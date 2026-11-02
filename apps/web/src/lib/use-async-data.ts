@@ -20,18 +20,23 @@ export function useAsyncData<T>(load: () => Promise<T>, deps: unknown[]) {
   });
   const [attempt, setAttempt] = useState(0);
   const loadRef = useRef(load);
+  const lastAttempt = useRef(0);
 
   loadRef.current = load;
 
   useEffect(() => {
     let current = true;
 
-    // Keep showing what we have while reloading; only a first load is "loading".
+    // A retry keeps what is on screen; a different request (new id, tab or
+    // search) must not show the previous one's data while it loads.
     setState((previous) =>
-      previous.status === "ready"
-        ? previous
-        : { status: "loading", data: null, error: null },
+      previous.status === "ready" && lastAttempt.current === attempt
+        ? { status: "loading", data: null, error: null }
+        : previous.status === "ready"
+          ? previous
+          : { status: "loading", data: null, error: null },
     );
+    lastAttempt.current = attempt;
 
     loadRef
       .current()
@@ -49,7 +54,12 @@ export function useAsyncData<T>(load: () => Promise<T>, deps: unknown[]) {
   }, [attempt, ...deps]);
 
   const reload = useCallback(() => {
-    setState({ status: "loading", data: null, error: null });
+    // A failed state goes back to loading; ready data stays while it reloads.
+    setState((previous) =>
+      previous.status === "ready"
+        ? previous
+        : { status: "loading", data: null, error: null },
+    );
     setAttempt((value) => value + 1);
   }, []);
 

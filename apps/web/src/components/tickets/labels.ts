@@ -49,3 +49,10 @@ export const messageOf = (error: unknown) => {
 
   return error.message;
 };
+
+/** True when the server said the record is missing or off limits, not that something broke. */
+export const isMissing = (error: unknown) => {
+  const code = (error as { data?: { code?: string } } | null)?.data?.code;
+
+  return code === "NOT_FOUND" || code === "FORBIDDEN";
+};

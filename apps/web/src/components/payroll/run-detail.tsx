@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowLeftIcon } from "lucide-react";
@@ -16,7 +16,9 @@ import { toast, toastError } from "@zentro/ui/index";
 
 import { usePageCrumb } from "~/src/components/shell/breadcrumb-context";
 
-import { messageOf } from "../tickets/labels";
+import { useAsyncData } from "~/src/lib/use-async-data";
+
+import { isMissing, messageOf } from "../tickets/labels";
 import { formatMoney, formatPeriod, runTone } from "./money";
 
 type Run = inferRouterOutputs<AppRouter>["payroll"]["run"];
@@ -24,25 +26,16 @@ type Run = inferRouterOutputs<AppRouter>["payroll"]["run"];
 export function RunDetail({ id }: { id: string }) {
   const trpc = useTrpcClient();
   const router = useRouter();
-  const [run, setRun] = useState<Run | null>(null);
-  const [failed, setFailed] = useState(false);
   const [bonuses, setBonuses] = useState<Record<string, string>>({});
   const [busy, setBusy] = useState(false);
+  const {
+    data: run,
+    status,
+    error,
+    reload,
+  } = useAsyncData<Run>(() => trpc.payroll.run.query({ id }), [trpc, id]);
 
   usePageCrumb(`/payroll/${id}`, run?.label ?? "Pay run");
-
-  const load = useCallback(async () => {
-    try {
-      setRun(await trpc.payroll.run.query({ id }));
-      setFailed(false);
-    } catch {
-      setFailed(true);
-    }
-  }, [trpc, id]);
-
-  useEffect(() => {
-    void load();
-  }, [load]);
 
   async function act(
     action: () => Promise<unknown>,
@@ -53,7 +46,7 @@ export function RunDetail({ id }: { id: string }) {
     try {
       await action();
       if (done) toast.success(done);
-      await load();
+      reload();
     } catch (error) {
       toastError(failure, messageOf(error));
     } finally {
@@ -61,7 +54,18 @@ export function RunDetail({ id }: { id: string }) {
     }
   }
 
-  if (failed)
+  if (status === "error" && !isMissing(error))
+    return (
+      <div className="p-6">
+        <EmptyState
+          title="The pay run did not load"
+          description="Check your connection and try again."
+          action={<Button onClick={reload}>Retry</Button>}
+        />
+      </div>
+    );
+
+  if (status === "error")
     return (
       <div className="p-6">
         <EmptyState

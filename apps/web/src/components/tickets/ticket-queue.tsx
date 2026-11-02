@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { PlusIcon, SearchIcon } from "lucide-react";
@@ -19,6 +19,9 @@ import {
   statusLabels,
   statusTone,
 } from "./labels";
+import { useAsyncData } from "~/src/lib/use-async-data";
+import { useDebounced } from "~/src/lib/use-debounced";
+
 import { NewTicketDialog } from "./new-ticket-dialog";
 
 type Queue = inferRouterOutputs<AppRouter>["tickets"]["list"];
@@ -44,25 +47,19 @@ export function TicketQueue({ canCreate }: { canCreate: boolean }) {
   const trpc = useTrpcClient();
   const router = useRouter();
   const [view, setView] = useState<View>("mine");
-  const [q, setQ] = useState("");
-  const [queue, setQueue] = useState<Queue | null>(null);
-  const [failed, setFailed] = useState(false);
   const [creating, setCreating] = useState(false);
-
-  const load = useCallback(async () => {
-    try {
-      setQueue(await trpc.tickets.list.query({ view, q: q || undefined }));
-      setFailed(false);
-    } catch {
-      setFailed(true);
-    }
-  }, [trpc, view, q]);
-
-  useEffect(() => {
-    const timer = setTimeout(() => void load(), q ? 250 : 0);
-
-    return () => clearTimeout(timer);
-  }, [load, q]);
+  const [search, setSearch] = useState("");
+  // Typing waits a moment before it asks the server; tabs ask at once.
+  const q = useDebounced(search, 250);
+  const {
+    data: queue,
+    status,
+    reload,
+  } = useAsyncData<Queue>(
+    () => trpc.tickets.list.query({ view, q: q || undefined }),
+    [trpc, view, q],
+  );
+  const failed = status === "error";
 
   const newButton = canCreate ? (
     <Button onClick={() => setCreating(true)}>
@@ -119,8 +116,8 @@ export function TicketQueue({ canCreate }: { canCreate: boolean }) {
             aria-label="Search tickets"
             placeholder="Search tickets"
             className="pl-8"
-            value={q}
-            onChange={(e) => setQ(e.target.value)}
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
           />
         </div>
       </div>
@@ -129,9 +126,9 @@ export function TicketQueue({ canCreate }: { canCreate: boolean }) {
         <EmptyState
           title="Tickets did not load"
           description="Check your connection and try again."
-          action={<Button onClick={() => void load()}>Retry</Button>}
+          action={<Button onClick={() => reload()}>Retry</Button>}
         />
-      ) : queue === null ? (
+      ) : !queue ? (
         <p role="status" className="text-sm text-ink-2">
           Loading tickets…
         </p>

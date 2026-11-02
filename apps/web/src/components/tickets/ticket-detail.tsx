@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowLeftIcon, Trash2Icon } from "lucide-react";
@@ -17,7 +17,15 @@ import { toast, toastError } from "@zentro/ui/index";
 
 import { usePageCrumb } from "~/src/components/shell/breadcrumb-context";
 
-import { messageOf, priorityLabels, selectClass, statusLabels } from "./labels";
+import { useAsyncData } from "~/src/lib/use-async-data";
+
+import {
+  isMissing,
+  messageOf,
+  priorityLabels,
+  selectClass,
+  statusLabels,
+} from "./labels";
 
 type Ticket = inferRouterOutputs<AppRouter>["tickets"]["get"];
 type People = inferRouterOutputs<AppRouter>["tickets"]["assignees"];
@@ -32,39 +40,28 @@ const dateFormat = new Intl.DateTimeFormat(undefined, {
 export function TicketDetail({ id }: { id: string }) {
   const trpc = useTrpcClient();
   const router = useRouter();
-  const [ticket, setTicket] = useState<Ticket | null>(null);
-  const [people, setPeople] = useState<People>([]);
-  const [failed, setFailed] = useState(false);
   const [body, setBody] = useState("");
   const [kind, setKind] = useState<"reply" | "note">("reply");
   const [taskKey, setTaskKey] = useState("");
   const [busy, setBusy] = useState(false);
+  const { data, status, error, reload } = useAsyncData(async () => {
+    const [ticket, people] = await Promise.all([
+      trpc.tickets.get.query({ id }),
+      trpc.tickets.assignees.query(),
+    ]);
+
+    return { ticket, people };
+  }, [trpc, id]);
+  const ticket: Ticket | null = data?.ticket ?? null;
+  const people: People = data?.people ?? [];
 
   usePageCrumb(`/tickets/${id}`, ticket?.ref ?? "Ticket");
-
-  const load = useCallback(async () => {
-    try {
-      const [next, assignees] = await Promise.all([
-        trpc.tickets.get.query({ id }),
-        trpc.tickets.assignees.query(),
-      ]);
-      setTicket(next);
-      setPeople(assignees);
-      setFailed(false);
-    } catch {
-      setFailed(true);
-    }
-  }, [trpc, id]);
-
-  useEffect(() => {
-    void load();
-  }, [load]);
 
   async function run(action: () => Promise<unknown>, failure: string) {
     setBusy(true);
     try {
       await action();
-      await load();
+      reload();
     } catch (error) {
       toastError(failure, messageOf(error));
     } finally {
@@ -72,7 +69,19 @@ export function TicketDetail({ id }: { id: string }) {
     }
   }
 
-  if (failed) {
+  if (status === "error" && !isMissing(error)) {
+    return (
+      <div className="p-6">
+        <EmptyState
+          title="The ticket did not load"
+          description="Check your connection and try again."
+          action={<Button onClick={reload}>Retry</Button>}
+        />
+      </div>
+    );
+  }
+
+  if (status === "error") {
     return (
       <div className="p-6">
         <EmptyState
