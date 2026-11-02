@@ -102,6 +102,38 @@ async function manageableChannel(ctx: OrganizationContext, channelId: string) {
 
 const EMOJI_NAME = /^[a-z0-9_+-]{2,32}$/;
 
+/**
+ * A reply goes into the thread of a top-level message in the same channel and
+ * organization; anything else would write into a thread the caller cannot read.
+ */
+async function assertThreadParent(
+  ctx: OrganizationContext,
+  channelId: string,
+  parentId: string | undefined,
+) {
+  if (!parentId) return;
+
+  const [parent] = await ctx.db
+    .select({ id: chatMessages.id })
+    .from(chatMessages)
+    .where(
+      and(
+        eq(chatMessages.id, parentId),
+        eq(chatMessages.organizationId, ctx.activeOrganization.id),
+        eq(chatMessages.channelId, channelId),
+        isNull(chatMessages.parentId),
+      ),
+    )
+    .limit(1);
+
+  if (!parent) {
+    throw new TRPCError({
+      code: "BAD_REQUEST",
+      message: "Reply in the thread of a message in this channel.",
+    });
+  }
+}
+
 export const chatExtraProcedures = {
   // ── Saved messages and reminders ────────────────────────────────────────
 
@@ -353,6 +385,8 @@ export const chatExtraProcedures = {
     )
     .mutation(async ({ ctx, input }) => {
       const access = await postableChannel(ctx, input.channelId);
+
+      await assertThreadParent(ctx, input.channelId, input.parentId);
 
       if (input.sendAt.getTime() < Date.now() + 30_000) {
         throw new TRPCError({
@@ -1061,6 +1095,9 @@ export const chatExtraProcedures = {
     )
     .mutation(async ({ ctx, input }) => {
       const access = await postableChannel(ctx, input.channelId);
+
+      await assertThreadParent(ctx, input.channelId, input.parentId);
+
       const message = await ctx.db.transaction(async (tx) => {
         const created = await postChatMessage(tx, {
           organizationId: ctx.activeOrganization.id,
