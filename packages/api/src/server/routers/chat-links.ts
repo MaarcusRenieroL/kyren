@@ -6,6 +6,7 @@ import {
   eq,
   ilike,
   inArray,
+  isNotNull,
   isNull,
   or,
   sql,
@@ -190,22 +191,43 @@ async function itemIdFromRef(
   return row.id;
 }
 
-async function discussionChannel(ctx: OrganizationContext, item: Item) {
+/**
+ * The oldest channel linked to the item that the caller may open: a public
+ * one, the item's own discussion, or one they already belong to. Any other
+ * private channel is never found, joined or described for someone outside it.
+ */
+async function discussionChannel(
+  ctx: OrganizationContext,
+  item: Item,
+  memberId: string,
+) {
   const [existing] = await ctx.db
-    .select()
+    .select({ channel: chatChannels })
     .from(chatChannels)
+    .leftJoin(
+      chatMembers,
+      and(
+        eq(chatMembers.channelId, chatChannels.id),
+        eq(chatMembers.memberId, memberId),
+      ),
+    )
     .where(
       and(
         eq(chatChannels.organizationId, ctx.activeOrganization.id),
         eq(chatChannels.linkType, item.type),
         eq(chatChannels.linkId, item.id),
         eq(chatChannels.kind, "channel"),
+        or(
+          eq(chatChannels.visibility, "public"),
+          eq(chatChannels.discussion, true),
+          isNotNull(chatMembers.id),
+        ),
       ),
     )
     .orderBy(asc(chatChannels.createdAt))
     .limit(1);
 
-  return existing ?? null;
+  return existing?.channel ?? null;
 }
 
 export const chatLinkProcedures = {
@@ -308,7 +330,7 @@ export const chatLinkProcedures = {
       const id = input.id ?? (await itemIdFromRef(ctx, input.type, input.ref!));
       const item = await viewableItem(ctx, input.type, id);
       const memberId = await currentMemberId(ctx);
-      let channel = await discussionChannel(ctx, item);
+      let channel = await discussionChannel(ctx, item, memberId);
       let created = false;
 
       if (!channel) {
@@ -342,12 +364,13 @@ export const chatLinkProcedures = {
             visibility: "private",
             linkType: item.type,
             linkId: item.id,
+            discussion: true,
             createdByMemberId: memberId,
           })
           .onConflictDoNothing()
           .returning();
 
-        channel = row ?? (await discussionChannel(ctx, item));
+        channel = row ?? (await discussionChannel(ctx, item, memberId));
         created = Boolean(row);
 
         if (row) {
@@ -401,7 +424,7 @@ export const chatLinkProcedures = {
     .query(async ({ ctx, input }) => {
       const item = await viewableItem(ctx, input.type, input.id);
       const memberId = await currentMemberId(ctx);
-      const channel = await discussionChannel(ctx, item);
+      const channel = await discussionChannel(ctx, item, memberId);
 
       if (!channel) {
         return { exists: false as const, title: item.title };

@@ -36,6 +36,11 @@ export const chatChannels = pgTable(
     /** "team" or "project", with the id in `linkId`. */
     linkType: text("linkType"),
     linkId: uuid("linkId"),
+    /**
+     * Opened from a task, doc or project's "Discuss" button: anyone who can
+     * see the item may join. A channel merely linked to an item is not one.
+     */
+    discussion: boolean("discussion").notNull().default(false),
 
     createdByMemberId: uuid("createdByMemberId").references(() => members.id, {
       onDelete: "set null",
