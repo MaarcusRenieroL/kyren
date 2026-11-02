@@ -1,8 +1,18 @@
+import { timingSafeEqual } from "node:crypto";
+
 import { runChatJobs } from "@zentro/api/server";
 import { db } from "@zentro/db";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+
+/** Compares in constant time so the secret can't be guessed byte by byte. */
+function sameSecret(given: string | null, secret: string) {
+  const expected = Buffer.from(`Bearer ${secret}`);
+  const actual = Buffer.from(given ?? "");
+
+  return actual.length === expected.length && timingSafeEqual(actual, expected);
+}
 
 /**
  * Chat's background work: scheduled messages, reminders, retention and
@@ -12,7 +22,7 @@ export const dynamic = "force-dynamic";
 export async function GET(request: Request) {
   const secret = process.env.CRON_SECRET;
 
-  if (!secret || request.headers.get("authorization") !== `Bearer ${secret}`) {
+  if (!secret || !sameSecret(request.headers.get("authorization"), secret)) {
     return new Response("Unauthorized", { status: 401 });
   }
 
