@@ -8,7 +8,8 @@
     "./client": "./src/client/index.ts"
   },
   "scripts": {
-    "check-types": "tsc --noEmit"
+    "check-types": "tsc --noEmit",
+    "test": "vitest run"
   },
   "dependencies": {
     "@better-auth/drizzle-adapter": "^1.6.9",
