@@ -14,7 +14,7 @@ import { migrate } from "drizzle-orm/node-postgres/migrator";
 import { Client, Pool } from "pg";
 
 const defaultTestDatabaseUrl =
-  "postgres://zentro:zentro@localhost:5434/zentro_test";
+  "postgres://zentro:zentro@localhost:5432/zentro_test";
 
 // Works from any package directory (and under both ESM and CJS loaders).
 function findRepoRoot(start = process.cwd()): string {
@@ -103,8 +103,8 @@ export async function ensureTestDatabase(
     await admin.connect();
   } catch (error) {
     throw new Error(
-      "Could not reach the test Postgres server. Start it with: " +
-        "docker compose --profile test up -d test-db\n" +
+      "Could not reach the test Postgres server. Start Postgres and point " +
+        "TEST_DATABASE_URL at it (the database name must end in _test).\n" +
         `(${(error as Error).message})`,
     );
   }
