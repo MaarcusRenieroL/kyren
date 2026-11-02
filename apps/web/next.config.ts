@@ -2,11 +2,16 @@ import path from "node:path";
 
 import type { NextConfig } from "next";
 
+import { securityHeaders } from "./security-headers";
+
 const nextConfig: NextConfig = {
   output: "standalone",
   outputFileTracingRoot: path.resolve(process.cwd(), "../.."),
   devIndicators: {
     position: "bottom-right",
+  },
+  async headers() {
+    return [{ source: "/:path*", headers: securityHeaders }];
   },
   async redirects() {
     // The old task-scoped project pages showed sample data; projects live at
