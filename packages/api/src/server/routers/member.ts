@@ -1,7 +1,14 @@
 import { TRPCError } from "@trpc/server";
 import { auth } from "@zentro/auth";
-import { and, asc, desc, eq } from "@zentro/db/drizzle";
-import { activityEvents, members, roles, users } from "@zentro/db/schema";
+import { and, asc, desc, eq, gte, lte } from "@zentro/db/drizzle";
+import {
+  activityEvents,
+  employees,
+  leaveRequests,
+  members,
+  roles,
+  users,
+} from "@zentro/db/schema";
 import { z } from "zod";
 
 import { assertHoldsAll } from "../access";
@@ -267,6 +274,37 @@ export const memberRouter = router({
         oooList.push({ memberId, untilDate: val.untilDate });
       }
     });
+
+    // Approved leave counts too, so nobody is offered work while on holiday.
+    // Only the return date leaves this query; the leave type and note stay in HR.
+    const today = new Date().toISOString().slice(0, 10);
+    const onLeave = await db
+      .select({
+        memberId: employees.memberId,
+        endDate: leaveRequests.endDate,
+      })
+      .from(leaveRequests)
+      .innerJoin(employees, eq(employees.id, leaveRequests.employeeId))
+      .where(
+        and(
+          eq(leaveRequests.organizationId, activeOrganization.id),
+          eq(leaveRequests.status, "approved"),
+          lte(leaveRequests.startDate, today),
+          gte(leaveRequests.endDate, today),
+        ),
+      );
+
+    for (const leave of onLeave) {
+      if (!leave.memberId) continue;
+      const existing = oooList.find(
+        (entry) => entry.memberId === leave.memberId,
+      );
+      if (!existing) {
+        oooList.push({ memberId: leave.memberId, untilDate: leave.endDate });
+      } else if (!existing.untilDate || existing.untilDate < leave.endDate) {
+        existing.untilDate = leave.endDate;
+      }
+    }
 
     return oooList;
   }),

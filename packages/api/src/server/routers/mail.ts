@@ -124,7 +124,8 @@ async function writeMessage(
     });
   }
 
-  let id = input.id;
+  const existingId = input.id;
+  const id = existingId ?? randomUUID();
   let threadId: string | undefined;
 
   if (input.replyToId) {
@@ -147,7 +148,7 @@ async function writeMessage(
 
   // Message and recipients change together or not at all.
   await ctx.db.transaction(async (tx) => {
-    if (id) {
+    if (existingId) {
       const [draft] = await tx
         .select({ id: mailMessages.id })
         .from(mailMessages)
@@ -168,7 +169,6 @@ async function writeMessage(
       await tx.update(mailMessages).set(values).where(eq(mailMessages.id, id));
       await tx.delete(mailRecipients).where(eq(mailRecipients.messageId, id));
     } else {
-      id = randomUUID();
       await tx.insert(mailMessages).values({
         id,
         organizationId: ctx.activeOrganization.id,
@@ -191,7 +191,7 @@ async function writeMessage(
     if (rows.length) {
       await tx
         .insert(mailRecipients)
-        .values(rows.map((row) => ({ ...row, messageId: id! })));
+        .values(rows.map((row) => ({ ...row, messageId: id })));
     }
   });
 
