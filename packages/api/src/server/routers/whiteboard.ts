@@ -26,9 +26,25 @@ export const boardElement = z.object({
   w: num.default(0),
   h: num.default(0),
   points: z.array(num).max(6000).optional(),
-  color: z.string().max(20).default("#1f2937"),
+  color: z
+    .string()
+    .regex(/^(ink|#[0-9a-f]{3,8})$/i, "Use a palette colour.")
+    .default("#1f2937"),
   text: z.string().max(2000).optional(),
 });
+
+/** A whole drawing: bounded by shapes and by total points, so one save stays small. */
+export const boardElements = z
+  .array(boardElement)
+  .max(5000)
+  .refine(
+    (elements) =>
+      elements.reduce(
+        (sum, element) => sum + (element.points?.length ?? 0),
+        0,
+      ) <= 100_000,
+    "That drawing is too large to save.",
+  );
 
 const title = z.string().trim().min(1, "Give the board a title.").max(120);
 
@@ -155,7 +171,7 @@ export const whiteboardRouter = router({
 
   /** Saves the drawing. Anyone who can edit boards may draw on any board. */
   save: procedure("whiteboards.edit")
-    .input(z.object({ id: uuid, elements: z.array(boardElement).max(5000) }))
+    .input(z.object({ id: uuid, elements: boardElements }))
     .mutation(async ({ ctx, input }) => {
       const result = await ctx.db
         .update(whiteboards)

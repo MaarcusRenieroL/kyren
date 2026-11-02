@@ -5,11 +5,10 @@ import { z } from "zod";
 
 import { currentMemberId } from "../chat";
 import { isUniqueViolation } from "../db-errors";
+import { isoDate, uuid } from "../zod-common";
 import { permissionProcedure, router, type OrganizationContext } from "../trpc";
 import { currentEmployee } from "./hr";
 
-const uuid = z.string().uuid();
-const isoDate = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Pick a date.");
 /** Whole minor units (cents), kept within a Postgres integer. */
 const money = z.number().int().min(0).max(2_000_000_000);
 
@@ -272,7 +271,13 @@ export const payrollRouter = router({
         .refine((value) => value.periodEnd >= value.periodStart, {
           message: "The period can't end before it starts.",
           path: ["periodEnd"],
-        }),
+        })
+        .refine(
+          (value) =>
+            +new Date(value.periodEnd) - +new Date(value.periodStart) <=
+            366 * 864e5,
+          { message: "A pay run covers at most a year.", path: ["periodEnd"] },
+        ),
     )
     .mutation(async ({ ctx, input }) => {
       const memberId = await currentMemberId(ctx);

@@ -4,10 +4,8 @@ import { employees, leaveRequests, members, users } from "@zentro/db/schema";
 import { z } from "zod";
 
 import { currentMemberId } from "../chat";
+import { isoDate, uuid } from "../zod-common";
 import { permissionProcedure, router, type OrganizationContext } from "../trpc";
-
-const uuid = z.string().uuid();
-const isoDate = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Pick a date.");
 
 export const employeeStatuses = [
   "active",
@@ -318,7 +316,13 @@ export const hrRouter = router({
         .refine((value) => value.endDate >= value.startDate, {
           message: "The leave can't end before it starts.",
           path: ["endDate"],
-        }),
+        })
+        .refine(
+          (value) =>
+            +new Date(value.endDate) - +new Date(value.startDate) <=
+            366 * 864e5,
+          { message: "Leave can span at most a year.", path: ["endDate"] },
+        ),
     )
     .mutation(async ({ ctx, input }) => {
       if (!(await ctx.permissions.can("hr.leave.request"))) {
