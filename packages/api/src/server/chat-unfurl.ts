@@ -1,5 +1,5 @@
 import { lookup } from "node:dns/promises";
-import { isIP } from "node:net";
+import { BlockList, isIP } from "node:net";
 
 export type Preview = {
   url: string;
@@ -12,35 +12,52 @@ export type Preview = {
 const MAX_BYTES = 512 * 1024;
 const TIMEOUT_MS = 4000;
 
+const blocked = new BlockList();
+
+for (const [network, prefix] of [
+  ["0.0.0.0", 8],
+  ["10.0.0.0", 8],
+  ["100.64.0.0", 10],
+  ["127.0.0.0", 8],
+  ["169.254.0.0", 16],
+  ["172.16.0.0", 12],
+  ["192.0.0.0", 24],
+  ["192.168.0.0", 16],
+  ["198.18.0.0", 15],
+  ["224.0.0.0", 4],
+  ["240.0.0.0", 4],
+] as const) {
+  blocked.addSubnet(network, prefix, "ipv4");
+}
+
+for (const [network, prefix] of [
+  ["::", 128],
+  ["::1", 128],
+  ["fc00::", 7],
+  ["fe80::", 10],
+  ["ff00::", 8],
+] as const) {
+  blocked.addSubnet(network, prefix, "ipv6");
+}
+
+// IPv4-mapped addresses never belong in a public URL. Kept apart because a
+// BlockList treats every plain IPv4 address as mapped and would match it.
+const mapped = new BlockList();
+
+mapped.addSubnet("::ffff:0:0", 96, "ipv6");
+
 /** Addresses a server must never fetch on someone's behalf. */
-function isPrivateAddress(address: string) {
-  if (address === "::1" || address === "::") return true;
+export function isPrivateAddress(address: string) {
+  const family = isIP(address);
 
-  const lower = address.toLowerCase();
+  // Anything that is not a literal address cannot be vouched for.
+  if (!family) return true;
 
-  if (lower.startsWith("fc") || lower.startsWith("fd")) return true;
-  if (lower.startsWith("fe80")) return true;
-  if (lower.startsWith("::ffff:")) {
-    return isPrivateAddress(lower.slice("::ffff:".length));
+  if (family === 6) {
+    return blocked.check(address, "ipv6") || mapped.check(address, "ipv6");
   }
 
-  const parts = address.split(".").map(Number);
-
-  if (parts.length !== 4 || parts.some((part) => Number.isNaN(part))) {
-    return false;
-  }
-
-  const [a, b] = parts as [number, number, number, number];
-
-  return (
-    a === 10 ||
-    a === 127 ||
-    a === 0 ||
-    (a === 169 && b === 254) ||
-    (a === 172 && b >= 16 && b <= 31) ||
-    (a === 192 && b === 168) ||
-    (a === 100 && b >= 64 && b <= 127)
-  );
+  return blocked.check(address, "ipv4");
 }
 
 /** True when the address is a public web address that is safe to fetch. */
