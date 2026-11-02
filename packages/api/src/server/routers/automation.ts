@@ -3,6 +3,7 @@ import { z } from "zod";
 import { and, desc, eq, isNotNull, lte, ne, sql } from "@zentro/db/drizzle";
 import { automations, projects, tasks } from "@zentro/db/schema";
 import { channelAccess } from "../chat";
+import { projectFromInput } from "../resources";
 import { listProcedure, permissionProcedure, router } from "../trpc";
 
 export const automationRouter = router({
@@ -33,7 +34,7 @@ export const automationRouter = router({
     return rows;
   }),
 
-  create: permissionProcedure("tasks.create")
+  create: permissionProcedure("tasks.create", projectFromInput)
     .input(
       z.object({
         name: z.string().min(1).max(100),
@@ -72,6 +73,25 @@ export const automationRouter = router({
             code: "BAD_REQUEST",
             message: "Say which words a message should contain.",
           });
+        }
+      }
+
+      // A rule scoped to one conversation can only watch one its creator reads;
+      // without a channel it only ever sees public ones (see the engine).
+      if (input.triggerEvent === "chat.message_contains") {
+        const scoped = input.triggerConfig.channelId;
+
+        if (scoped !== undefined && scoped !== null && scoped !== "") {
+          const readable = z.string().uuid().safeParse(scoped).success
+            ? await channelAccess(ctx, String(scoped))
+            : null;
+
+          if (!readable?.canRead) {
+            throw new TRPCError({
+              code: "BAD_REQUEST",
+              message: "Pick a channel you can read.",
+            });
+          }
         }
       }
 

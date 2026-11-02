@@ -254,6 +254,10 @@ export async function runMessageAutomations({
       if (!needle || !text.includes(needle)) continue;
       if (trigger.channelId && trigger.channelId !== message.channelId)
         continue;
+      // A rule that names no channel watches public ones only, so it cannot
+      // be used to read private conversations or direct messages.
+      if (!trigger.channelId && !(await isPublicChannel(db, message.channelId)))
+        continue;
 
       let ran = false;
 
@@ -301,6 +305,16 @@ export async function runMessageAutomations({
   } catch (error) {
     console.error("Chat automation error:", error);
   }
+}
+
+async function isPublicChannel(db: any, channelId: string) {
+  const [channel] = await db
+    .select({ kind: chatChannels.kind, visibility: chatChannels.visibility })
+    .from(chatChannels)
+    .where(eq(chatChannels.id, channelId))
+    .limit(1);
+
+  return channel?.kind === "channel" && channel.visibility === "public";
 }
 
 async function createTaskFromMessage(
