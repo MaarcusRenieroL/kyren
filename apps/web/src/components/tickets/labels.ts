@@ -29,5 +29,23 @@ export const statusTone: Record<string, string> = {
 export const selectClass =
   "h-9 rounded-lg border border-line bg-surface px-2.5 text-sm text-ink outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-60";
 
-export const messageOf = (error: unknown) =>
-  error instanceof Error ? error.message : undefined;
+/** The readable message of an error; schema failures arrive as a JSON list of issues. */
+export const messageOf = (error: unknown) => {
+  if (!(error instanceof Error)) return undefined;
+
+  if (error.message.startsWith("[")) {
+    try {
+      const issues = JSON.parse(error.message) as { message?: string }[];
+      const text = issues
+        .map((issue) => issue.message)
+        .filter(Boolean)
+        .join(" ");
+
+      if (text) return text;
+    } catch {
+      // Not JSON after all: fall through to the raw message.
+    }
+  }
+
+  return error.message;
+};
