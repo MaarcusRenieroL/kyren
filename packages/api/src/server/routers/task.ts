@@ -41,6 +41,7 @@ import {
   moduleProcedure,
   permissionProcedure,
   router,
+  type OrganizationContext,
 } from "../trpc";
 import { memberName, postTaskEvent } from "../chat-events";
 import { syncMentions } from "../mentions";
@@ -57,6 +58,39 @@ import {
 import { runTaskAutomations } from "../automations/engine";
 import { isUniqueViolation } from "../db-errors";
 
+/**
+ * A parent must be a task in the same project, and a task can't become its own
+ * ancestor. Ids from other projects or organizations read as "not found".
+ */
+async function assertParentTask(
+  db: OrganizationContext["db"],
+  organizationId: string,
+  projectId: string,
+  parentTaskId: string,
+  selfId?: string,
+) {
+  const invalid = new TRPCError({
+    code: "BAD_REQUEST",
+    message: "Pick a parent task from the same project.",
+  });
+  let cursor: string | null = parentTaskId;
+
+  for (let depth = 0; cursor && depth < 50; depth += 1) {
+    if (cursor === selfId) throw invalid;
+
+    const [row] = await db
+      .select({ projectId: tasks.projectId, parentTaskId: tasks.parentTaskId })
+      .from(tasks)
+      .where(
+        and(eq(tasks.id, cursor), eq(tasks.organizationId, organizationId)),
+      )
+      .limit(1);
+
+    if (!row || row.projectId !== projectId) throw invalid;
+    cursor = row.parentTaskId;
+  }
+}
+
 export const taskRouter = router({
   createTask: permissionProcedure("tasks.create", projectFromInput, {
     module: "tasks",
@@ -71,6 +105,15 @@ export const taskRouter = router({
         await assertAnyPermission(ctx, ["tasks.assign"], {
           project: (await loadProjectById(ctx, input.projectId)) ?? null,
         });
+      }
+
+      if (input.parentTaskId) {
+        await assertParentTask(
+          db,
+          activeOrganization.id,
+          input.projectId,
+          input.parentTaskId,
+        );
       }
 
       // Created from a doc: the doc must be one the caller can see.
@@ -946,6 +989,15 @@ export const taskRouter = router({
       }
 
       if (values.parentTaskId !== undefined) {
+        if (values.parentTaskId) {
+          await assertParentTask(
+            db,
+            activeOrganization.id,
+            previousTask.projectId,
+            values.parentTaskId,
+            previousTask.id,
+          );
+        }
         updateValues.parentTaskId = values.parentTaskId;
       }
 
