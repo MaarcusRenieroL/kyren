@@ -36,13 +36,20 @@ function localDriver(): Driver {
       await writeFile(target, body);
     },
     async get(key) {
+      const target = resolve(key);
+
       try {
         return {
-          body: await readFile(resolve(key)),
+          body: await readFile(target),
           contentType: "application/octet-stream",
         };
-      } catch {
-        return null;
+      } catch (error) {
+        // Only a missing file is "not found"; anything else is a real fault.
+        const code = (error as NodeJS.ErrnoException).code;
+
+        if (code === "ENOENT" || code === "ENOTDIR") return null;
+
+        throw error;
       }
     },
     async remove(key) {
@@ -103,8 +110,22 @@ function s3Driver(): Driver {
               contentType: result.ContentType ?? "application/octet-stream",
             }
           : null;
-      } catch {
-        return null;
+      } catch (error) {
+        // Only a missing object is "not found"; bad credentials, throttling
+        // and network errors must not look like lost data.
+        const failure = error as {
+          name?: string;
+          $metadata?: { httpStatusCode?: number };
+        };
+
+        if (
+          failure.name === "NoSuchKey" ||
+          failure.$metadata?.httpStatusCode === 404
+        ) {
+          return null;
+        }
+
+        throw error;
       }
     },
     async remove(key) {

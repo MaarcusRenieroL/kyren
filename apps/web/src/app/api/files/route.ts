@@ -47,6 +47,16 @@ function imageSize(bytes: Buffer, mime: string) {
 export async function POST(request: Request) {
   const ctx = await createRequestContext(request);
   const caller = appRouter.createCaller(ctx);
+  const declared = Number(request.headers.get("content-length") ?? 0);
+
+  // Refuse oversized bodies before they are buffered into memory.
+  if (declared > MAX_FILE_BYTES + 1024 * 1024) {
+    return Response.json(
+      { error: "Files can be up to 25 MB." },
+      { status: 413 },
+    );
+  }
+
   const form = await request.formData().catch(() => null);
   const file = form?.get("file");
   // The Files library has its own permission and does not need Chat.
@@ -89,6 +99,13 @@ export async function POST(request: Request) {
       width,
       height,
       storageKey: key,
+    }).catch(async (error: unknown) => {
+      // Do not leave an unreferenced object behind.
+      await storage()
+        .remove(key)
+        .catch(() => undefined);
+
+      throw error;
     });
 
     return Response.json({
@@ -113,6 +130,8 @@ export async function POST(request: Request) {
 
       return Response.json({ error: error.message }, { status });
     }
+
+    console.error("File upload failed", error);
 
     return Response.json(
       { error: "Could not upload the file." },

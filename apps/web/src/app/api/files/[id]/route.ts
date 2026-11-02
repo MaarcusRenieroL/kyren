@@ -1,3 +1,4 @@
+import { TRPCError } from "@trpc/server";
 import { appRouter } from "@zentro/api/server";
 import { db } from "@zentro/db";
 import { eq } from "@zentro/db/drizzle";
@@ -30,8 +31,18 @@ export async function GET(
   try {
     // The caller can open it only when this resolves.
     await appRouter.createCaller(ctx).files.get({ id });
-  } catch {
-    return new Response("Not found", { status: 404 });
+  } catch (error) {
+    // Hide files the caller may not see; surface real faults as errors.
+    if (
+      error instanceof TRPCError &&
+      (error.code === "NOT_FOUND" || error.code === "FORBIDDEN")
+    ) {
+      return new Response("Not found", { status: 404 });
+    }
+
+    console.error("File lookup failed", { id, error });
+
+    return new Response("Could not open the file", { status: 500 });
   }
 
   const [file] = await db.select().from(files).where(eq(files.id, id)).limit(1);
