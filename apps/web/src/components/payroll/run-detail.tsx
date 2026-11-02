@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowLeftIcon } from "lucide-react";
+import { ArrowLeftIcon, DownloadIcon } from "lucide-react";
 
 import { useTrpcClient } from "@zentro/api/react";
 import type { AppRouter } from "@zentro/api/server";
@@ -20,6 +20,7 @@ import { useAsyncData } from "~/src/lib/use-async-data";
 
 import { isMissing, messageOf } from "../tickets/labels";
 import { formatMoney, formatPeriod, runTone } from "./money";
+import { csvFileName, runCsv } from "./run-csv";
 
 type Run = inferRouterOutputs<AppRouter>["payroll"]["run"];
 
@@ -87,6 +88,19 @@ export function RunDetail({ id }: { id: string }) {
       </p>
     );
 
+  function exportCsv() {
+    if (!run) return;
+    const url = URL.createObjectURL(
+      new Blob([runCsv(run.lines)], { type: "text/csv;charset=utf-8" }),
+    );
+    const link = document.createElement("a");
+
+    link.href = url;
+    link.download = csvFileName(run.label);
+    link.click();
+    URL.revokeObjectURL(url);
+  }
+
   const editable = run.status === "draft" && run.canManage;
   const currency = run.lines[0]?.currency ?? "USD";
   const total = run.lines.reduce((sum, line) => sum + line.net, 0);
@@ -115,6 +129,10 @@ export function RunDetail({ id }: { id: string }) {
         description={`${formatPeriod(run.periodStart, run.periodEnd)} · ${run.deductionRateBps / 100}% held back as tax and contributions`}
         actions={
           <>
+            <Button variant="outline" onClick={exportCsv}>
+              <DownloadIcon aria-hidden />
+              Export CSV
+            </Button>
             {run.status === "draft" && run.canManage ? (
               <Button
                 variant="ghost"
