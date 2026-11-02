@@ -103,7 +103,11 @@ export const auth = betterAuth({
   emailAndPassword: {
     enabled: true,
     sendResetPassword: async ({ user, url }) => {
-      sendForgotPasswordEmail(user.email, url);
+      // Not awaited on purpose, so response time does not reveal whether the
+      // address has an account; failures are logged instead of left unhandled.
+      void sendForgotPasswordEmail(user.email, url).catch((error: unknown) => {
+        console.error("Could not send the password reset email", error);
+      });
     },
     resetPasswordTokenExpiresIn: 60 * 60,
   },
@@ -145,8 +149,25 @@ export const auth = betterAuth({
       organization: schema.organizations,
       member: schema.members,
       invitation: schema.invitations,
+      rateLimit: schema.rateLimits,
     },
   }),
+
+  // Counted in Postgres so serverless instances share one limit. Off outside
+  // production so tests and local work are not throttled.
+  rateLimit: {
+    enabled: process.env.NODE_ENV === "production",
+    storage: "database",
+    window: 60,
+    max: 100,
+    customRules: {
+      "/sign-in/email": { window: 60, max: 10 },
+      "/sign-up/email": { window: 60, max: 5 },
+      "/request-password-reset": { window: 60, max: 3 },
+      "/email-otp/send-verification-otp": { window: 60, max: 3 },
+      "/email-otp/verify-email": { window: 60, max: 5 },
+    },
+  },
 
   advanced: {
     database: {
