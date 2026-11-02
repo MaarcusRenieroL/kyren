@@ -55,15 +55,7 @@ import {
   triggerDownstreamUnblocks,
 } from "./task-helpers";
 import { runTaskAutomations } from "../automations/engine";
-
-function isUniqueViolation(error: unknown) {
-  const candidate = error as {
-    code?: string;
-    cause?: { code?: string };
-  } | null;
-
-  return candidate?.code === "23505" || candidate?.cause?.code === "23505";
-}
+import { isUniqueViolation } from "../db-errors";
 
 export const taskRouter = router({
   createTask: permissionProcedure("tasks.create", projectFromInput, {

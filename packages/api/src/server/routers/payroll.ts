@@ -4,6 +4,7 @@ import { compensations, employees, payRuns, payslips } from "@zentro/db/schema";
 import { z } from "zod";
 
 import { currentMemberId } from "../chat";
+import { isUniqueViolation } from "../db-errors";
 import { permissionProcedure, router, type OrganizationContext } from "../trpc";
 import { currentEmployee } from "./hr";
 
@@ -55,6 +56,28 @@ function assertStatus(run: { status: string }, expected: string, verb: string) {
     throw new TRPCError({
       code: "CONFLICT",
       message: `Only a ${expected} pay run can be ${verb}.`,
+    });
+  }
+}
+
+/** Moves a run to its next status only if it is still in the expected one. */
+async function moveRun(
+  tx: Parameters<Parameters<OrganizationContext["db"]["transaction"]>[0]>[0],
+  run: { id: string },
+  from: string,
+  to: Partial<typeof payRuns.$inferInsert>,
+  verb: string,
+) {
+  const moved = await tx
+    .update(payRuns)
+    .set(to)
+    .where(and(eq(payRuns.id, run.id), eq(payRuns.status, from)))
+    .returning({ id: payRuns.id });
+
+  if (!moved.length) {
+    throw new TRPCError({
+      code: "CONFLICT",
+      message: `Only a ${from} pay run can be ${verb}.`,
     });
   }
 }
@@ -276,39 +299,50 @@ export const payrollRouter = router({
         });
       }
 
-      return ctx.db.transaction(async (tx) => {
-        const [run] = await tx
-          .insert(payRuns)
-          .values({
-            ...input,
-            organizationId: ctx.activeOrganization.id,
-            createdByMemberId: memberId,
-          })
-          .returning({ id: payRuns.id });
-
-        await tx.insert(payslips).values(
-          paid.map((person) => {
-            const base = Math.round(person.annualSalary / 12);
-
-            return {
-              payRunId: run!.id,
+      return ctx.db
+        .transaction(async (tx) => {
+          const [run] = await tx
+            .insert(payRuns)
+            .values({
+              ...input,
               organizationId: ctx.activeOrganization.id,
-              employeeId: person.employeeId,
-              employeeName: person.name,
-              currency: person.currency,
-              base,
-              bonus: 0,
-              ...computePay(base, 0, input.deductionRateBps),
-            };
-          }),
-        );
-        await ctx.audit.record(tx, {
-          action: "payroll.run_created",
-          target: { id: run!.id, label: input.label },
-        });
+              createdByMemberId: memberId,
+            })
+            .returning({ id: payRuns.id });
 
-        return { id: run!.id };
-      });
+          await tx.insert(payslips).values(
+            paid.map((person) => {
+              const base = Math.round(person.annualSalary / 12);
+
+              return {
+                payRunId: run!.id,
+                organizationId: ctx.activeOrganization.id,
+                employeeId: person.employeeId,
+                employeeName: person.name,
+                currency: person.currency,
+                base,
+                bonus: 0,
+                ...computePay(base, 0, input.deductionRateBps),
+              };
+            }),
+          );
+          await ctx.audit.record(tx, {
+            action: "payroll.run_created",
+            target: { id: run!.id, label: input.label },
+          });
+
+          return { id: run!.id };
+        })
+        .catch((error: unknown) => {
+          if (isUniqueViolation(error)) {
+            throw new TRPCError({
+              code: "CONFLICT",
+              message: "There is already a pay run for that period.",
+            });
+          }
+
+          throw error;
+        });
     }),
 
   setBonus: procedure("payroll.manage", ["payroll.bonus_set"])
@@ -333,9 +367,16 @@ export const payrollRouter = router({
         });
       }
 
-      assertStatus(row.run, "draft", "edited");
-
       await ctx.db.transaction(async (tx) => {
+        // Lock the run so an approval cannot slip in between check and write.
+        const [locked] = await tx
+          .select({ status: payRuns.status })
+          .from(payRuns)
+          .where(eq(payRuns.id, row.run.id))
+          .for("update");
+
+        assertStatus({ status: locked?.status ?? "" }, "draft", "edited");
+
         await tx
           .update(payslips)
           .set({
@@ -360,10 +401,13 @@ export const payrollRouter = router({
       assertStatus(run, "draft", "approved");
 
       await ctx.db.transaction(async (tx) => {
-        await tx
-          .update(payRuns)
-          .set({ status: "approved", approvedAt: new Date() })
-          .where(eq(payRuns.id, run.id));
+        await moveRun(
+          tx,
+          run,
+          "draft",
+          { status: "approved", approvedAt: new Date() },
+          "approved",
+        );
         await ctx.audit.record(tx, {
           action: "payroll.run_approved",
           target: { id: run.id, label: run.label },
@@ -381,10 +425,13 @@ export const payrollRouter = router({
       assertStatus(run, "approved", "marked as paid");
 
       await ctx.db.transaction(async (tx) => {
-        await tx
-          .update(payRuns)
-          .set({ status: "paid", paidAt: new Date() })
-          .where(eq(payRuns.id, run.id));
+        await moveRun(
+          tx,
+          run,
+          "approved",
+          { status: "paid", paidAt: new Date() },
+          "marked as paid",
+        );
         await ctx.audit.record(tx, {
           action: "payroll.run_paid",
           target: { id: run.id, label: run.label },
@@ -402,7 +449,18 @@ export const payrollRouter = router({
       assertStatus(run, "draft", "deleted");
 
       await ctx.db.transaction(async (tx) => {
-        await tx.delete(payRuns).where(eq(payRuns.id, run.id));
+        const removed = await tx
+          .delete(payRuns)
+          .where(and(eq(payRuns.id, run.id), eq(payRuns.status, "draft")))
+          .returning({ id: payRuns.id });
+
+        if (!removed.length) {
+          throw new TRPCError({
+            code: "CONFLICT",
+            message: "Only a draft pay run can be deleted.",
+          });
+        }
+
         await ctx.audit.record(tx, {
           action: "payroll.run_deleted",
           target: { id: run.id, label: run.label },
