@@ -107,7 +107,7 @@ const Stat = ({
   <div className="rounded-xl border border-line p-4">
     <dt className="text-xs text-ink-2">{label}</dt>
     <dd className="font-mono text-xl text-ink">{value}</dd>
-    {hint ? <p className="text-xs text-ink-3">{hint}</p> : null}
+    {hint ? <dd className="text-xs text-ink-3">{hint}</dd> : null}
   </div>
 );
 
