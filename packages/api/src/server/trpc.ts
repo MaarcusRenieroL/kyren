@@ -97,6 +97,15 @@ export const protectedProcedure = baseProcedure.use(({ ctx, next }) => {
     });
   }
 
+  // The page proxy already sends unverified users to verification; this keeps
+  // the API from being used directly with an address nobody has confirmed.
+  if (ctx.user.emailVerified === false) {
+    throw new TRPCError({
+      code: "FORBIDDEN",
+      message: "Verify your email address first.",
+    });
+  }
+
   if (!ctx.activeOrganization) {
     throw new TRPCError({
       code: "BAD_REQUEST",
