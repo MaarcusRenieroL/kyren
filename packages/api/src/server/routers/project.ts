@@ -948,6 +948,18 @@ export const projectRouter = router({
       const { db, activeOrganization } = ctx;
       const { slug } = input;
 
+      // The graph is made of tasks, so it needs the right to see them.
+      if (
+        !(await ctx.permissions.can("tasks.view", {
+          project: (await loadProjectBySlug(ctx, slug)) ?? null,
+        }))
+      ) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "You do not have permission to view tasks in this project.",
+        });
+      }
+
       const [project] = await db
         .select({ id: projects.id, name: projects.name, slug: projects.slug })
         .from(projects)
