@@ -232,7 +232,7 @@ export const HomeDashboard: FC = () => {
               to the tasks they explain. Start blank or pick a blueprint below.
             </p>
             <div className="pt-2">
-              <CreateDocModal />
+              <CreateDocModal triggerVariant="outline" />
             </div>
           </div>
           <TemplateRow />
