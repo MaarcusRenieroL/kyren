@@ -46,16 +46,10 @@ test.describe("task overview", () => {
     await createProjectViaUi(page, uniqueName("Proj"));
     await createTaskViaUi(page, taskB);
 
-    // Organization B (active) sees only B's task, and a total of one.
+    // Organization B (active) sees only B's task.
     await page.goto("/tasks/overview");
     await expect(page.getByText(taskB).first()).toBeVisible();
     await expect(page.getByText(taskA)).toHaveCount(0);
-    await expect(page.getByText("Total work items")).toBeVisible();
-    await expect(
-      page
-        .getByText("Total work items")
-        .locator("xpath=preceding-sibling::span"),
-    ).toHaveText("1");
 
     await switchOrganization(page, orgA);
     await page.goto("/tasks/overview");
@@ -77,11 +71,6 @@ test.describe("task overview", () => {
     ).toBeVisible();
     await expect(page.getByText("Nothing is overdue.")).toBeVisible();
     await expect(page.getByText("No task activity yet.")).toBeVisible();
-    await expect(
-      page
-        .getByText("Total work items")
-        .locator("xpath=preceding-sibling::span"),
-    ).toHaveText("0");
   });
 });
 

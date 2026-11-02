@@ -223,7 +223,7 @@ test("Today: an empty workspace asks for a task, then start and finish work", as
 
   // No tasks at all: no celebration, a way to create one.
   await page.goto("/dashboard");
-  await expect(page.getByText("No tasks yet.")).toBeVisible();
+  await expect(page.getByText("No tasks yet.").first()).toBeVisible();
   await expect(page.getByText("Nothing left today.")).toHaveCount(0);
   await expect(page.getByText("Nothing planned").first()).toBeVisible();
 
