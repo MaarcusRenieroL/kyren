@@ -260,6 +260,11 @@ export const ticketsRouter = router({
       }
 
       return ctx.db.transaction(async (tx) => {
+        // Serialize numbering per organization; the lock ends with the transaction.
+        await tx.execute(
+          sql`select pg_advisory_xact_lock(hashtextextended(${ctx.activeOrganization.id}, 0))`,
+        );
+
         const [last] = await tx
           .select({
             max: sql<number>`coalesce(max(${tickets.number}), 0)::int`,
