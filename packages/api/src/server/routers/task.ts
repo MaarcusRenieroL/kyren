@@ -538,6 +538,31 @@ export const taskRouter = router({
         project: (await loadProjectById(ctx, parentTask.projectId)) ?? null,
       });
 
+      // Assigning someone is its own permission, and only to people in the org.
+      if (input.assignedToMemberId) {
+        await assertAnyPermission(ctx, ["tasks.assign"], {
+          project: (await loadProjectById(ctx, parentTask.projectId)) ?? null,
+        });
+
+        const [assignee] = await db
+          .select({ id: members.id })
+          .from(members)
+          .where(
+            and(
+              eq(members.id, input.assignedToMemberId),
+              eq(members.organizationId, activeOrganization.id),
+            ),
+          )
+          .limit(1);
+
+        if (!assignee) {
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: "Assignee not found in active organization.",
+          });
+        }
+      }
+
       const [member] = await db
         .select({ id: members.id })
         .from(members)
