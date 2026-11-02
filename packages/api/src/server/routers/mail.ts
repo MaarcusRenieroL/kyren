@@ -145,55 +145,55 @@ async function writeMessage(
     ...(send ? { sentAt: now } : {}),
   };
 
-  if (id) {
-    const [draft] = await ctx.db
-      .select({ id: mailMessages.id })
-      .from(mailMessages)
-      .where(
-        and(
-          eq(mailMessages.id, id),
-          eq(mailMessages.organizationId, ctx.activeOrganization.id),
-          eq(mailMessages.senderMemberId, memberId),
-          isNull(mailMessages.sentAt),
-        ),
-      )
-      .limit(1);
+  // Message and recipients change together or not at all.
+  await ctx.db.transaction(async (tx) => {
+    if (id) {
+      const [draft] = await tx
+        .select({ id: mailMessages.id })
+        .from(mailMessages)
+        .where(
+          and(
+            eq(mailMessages.id, id),
+            eq(mailMessages.organizationId, ctx.activeOrganization.id),
+            eq(mailMessages.senderMemberId, memberId),
+            isNull(mailMessages.sentAt),
+          ),
+        )
+        .limit(1);
 
-    if (!draft) {
-      throw new TRPCError({ code: "NOT_FOUND", message: "Draft not found." });
+      if (!draft) {
+        throw new TRPCError({ code: "NOT_FOUND", message: "Draft not found." });
+      }
+
+      await tx.update(mailMessages).set(values).where(eq(mailMessages.id, id));
+      await tx.delete(mailRecipients).where(eq(mailRecipients.messageId, id));
+    } else {
+      id = randomUUID();
+      await tx.insert(mailMessages).values({
+        id,
+        organizationId: ctx.activeOrganization.id,
+        senderMemberId: memberId,
+        threadId: threadId ?? id,
+        ...values,
+      });
     }
 
-    await ctx.db
-      .update(mailMessages)
-      .set(values)
-      .where(eq(mailMessages.id, id));
-    await ctx.db.delete(mailRecipients).where(eq(mailRecipients.messageId, id));
-  } else {
-    id = randomUUID();
-    await ctx.db.insert(mailMessages).values({
-      id,
-      organizationId: ctx.activeOrganization.id,
-      senderMemberId: memberId,
-      threadId: threadId ?? id,
-      ...values,
-    });
-  }
+    const rows = [
+      ...input.to.map((memberIdValue) => ({
+        memberId: memberIdValue,
+        kind: "to",
+      })),
+      ...input.cc
+        .filter((value) => !input.to.includes(value))
+        .map((memberIdValue) => ({ memberId: memberIdValue, kind: "cc" })),
+    ];
 
-  const rows = [
-    ...input.to.map((memberIdValue) => ({
-      memberId: memberIdValue,
-      kind: "to",
-    })),
-    ...input.cc
-      .filter((value) => !input.to.includes(value))
-      .map((memberIdValue) => ({ memberId: memberIdValue, kind: "cc" })),
-  ];
-
-  if (rows.length) {
-    await ctx.db
-      .insert(mailRecipients)
-      .values(rows.map((row) => ({ ...row, messageId: id! })));
-  }
+    if (rows.length) {
+      await tx
+        .insert(mailRecipients)
+        .values(rows.map((row) => ({ ...row, messageId: id! })));
+    }
+  });
 
   return { id };
 }
