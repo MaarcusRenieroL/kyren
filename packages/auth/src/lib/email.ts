@@ -3,6 +3,8 @@ import { authEnv } from "./env";
 import { Invitation, Organization } from "better-auth/plugins";
 import { User } from "better-auth";
 
+import { escapeHtml } from "./html";
+
 const resend = new Resend(authEnv.RESEND_API_KEY);
 
 function getAppUrl() {
@@ -40,7 +42,7 @@ export async function sendVerificationEmail(email: string, otp: string) {
                 letter-spacing:10px;
                 font-weight:700;
               ">
-                ${otp}
+                ${escapeHtml(otp)}
               </div>
 
               <p>This code will expire shortly.</p>
@@ -78,7 +80,7 @@ export async function sendForgotPasswordEmail(email: string, resetUrl: string) {
               </p>
 
               <a
-                href="${resetUrl}"
+                href="${escapeHtml(resetUrl)}"
                 style="
                   display:inline-block;
                   background:#f9fafb;
@@ -98,8 +100,8 @@ export async function sendForgotPasswordEmail(email: string, resetUrl: string) {
               </p>
 
               <p style="margin:0;color:#9ca3af;font-size:14px;line-height:1.5;word-break:break-all;">
-                <a href="${resetUrl}" style="color:#93c5fd;">
-                  ${resetUrl}
+                <a href="${escapeHtml(resetUrl)}" style="color:#93c5fd;">
+                  ${escapeHtml(resetUrl)}
                 </a>
               </p>
 
@@ -155,19 +157,19 @@ export async function sendOrgInviteEmail(
           <tr>
             <td align="center">
               <h1 style="margin:0 0 16px;color:#f9fafb;">
-                You're invited to join ${organizationName}
+                You're invited to join ${escapeHtml(organizationName)}
               </h1>
 
               <p style="margin:0 0 16px;color:#d1d5db;line-height:1.5;">
-                ${inviterName} invited you to join <strong>${organizationName}</strong> on Zentro.
+                ${escapeHtml(inviterName)} invited you to join <strong>${escapeHtml(organizationName)}</strong> on Zentro.
               </p>
 
               <p style="margin:0 0 24px;color:#d1d5db;line-height:1.5;">
-                Your role will be <strong>${role}</strong>.
+                Your role will be <strong>${escapeHtml(role)}</strong>.
               </p>
 
               <a
-                href="${inviteUrl}"
+                href="${escapeHtml(inviteUrl)}"
                 style="
                   display:inline-block;
                   background:#f9fafb;
@@ -187,8 +189,8 @@ export async function sendOrgInviteEmail(
               </p>
 
               <p style="margin:0;color:#9ca3af;font-size:14px;line-height:1.5;word-break:break-all;">
-                <a href="${inviteUrl}" style="color:#93c5fd;">
-                  ${inviteUrl}
+                <a href="${escapeHtml(inviteUrl)}" style="color:#93c5fd;">
+                  ${escapeHtml(inviteUrl)}
                 </a>
               </p>
 
