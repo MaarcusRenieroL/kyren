@@ -173,24 +173,24 @@ export function RunDetail({ id }: { id: string }) {
       </dl>
 
       <div className="overflow-x-auto rounded-xl border border-line">
-        <table className="w-full min-w-[40rem] text-sm">
+        <table className="w-full min-w-[34rem] text-sm">
           <thead>
             <tr className="border-b border-line text-left text-xs text-ink-2">
-              <th className="px-4 py-2 font-medium">Employee</th>
-              <th className="px-4 py-2 text-right font-medium">Base</th>
-              <th className="px-4 py-2 text-right font-medium">Bonus</th>
-              <th className="px-4 py-2 text-right font-medium">Deductions</th>
-              <th className="px-4 py-2 text-right font-medium">Net</th>
+              <th className="px-3 py-2 font-medium">Employee</th>
+              <th className="px-3 py-2 text-right font-medium">Base</th>
+              <th className="px-3 py-2 text-right font-medium">Bonus</th>
+              <th className="px-3 py-2 text-right font-medium">Deductions</th>
+              <th className="px-3 py-2 text-right font-medium">Net</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-line">
             {run.lines.map((line) => (
               <tr key={line.id}>
-                <td className="px-4 py-2 text-ink">{line.employeeName}</td>
-                <td className="px-4 py-2 text-right font-mono">
+                <td className="px-3 py-2 text-ink">{line.employeeName}</td>
+                <td className="px-3 py-2 text-right font-mono">
                   {formatMoney(line.base, line.currency)}
                 </td>
-                <td className="px-4 py-2 text-right font-mono">
+                <td className="px-3 py-2 text-right font-mono">
                   {editable ? (
                     <form
                       className="flex items-center justify-end gap-2"
@@ -220,7 +220,7 @@ export function RunDetail({ id }: { id: string }) {
                       <Input
                         aria-label={`Bonus for ${line.employeeName}`}
                         inputMode="decimal"
-                        className="w-24 text-right"
+                        className="w-20 text-right"
                         value={bonuses[line.id] ?? String(line.bonus / 100)}
                         onChange={(e) =>
                           setBonuses((current) => ({
@@ -242,10 +242,10 @@ export function RunDetail({ id }: { id: string }) {
                     formatMoney(line.bonus, line.currency)
                   )}
                 </td>
-                <td className="px-4 py-2 text-right font-mono">
+                <td className="px-3 py-2 text-right font-mono">
                   {formatMoney(line.deductions, line.currency)}
                 </td>
-                <td className="px-4 py-2 text-right font-mono font-medium">
+                <td className="px-3 py-2 text-right font-mono font-medium">
                   {formatMoney(line.net, line.currency)}
                 </td>
               </tr>
