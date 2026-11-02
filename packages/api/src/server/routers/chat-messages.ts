@@ -873,9 +873,22 @@ export const chatMessageProcedures = {
 
       if (input.aroundId) {
         const anchor = await loadMessage(ctx, input.aroundId);
-        const at = anchor.parentId
-          ? (await loadMessage(ctx, anchor.parentId)).createdAt
-          : anchor.createdAt;
+        const top = anchor.parentId
+          ? await loadMessage(ctx, anchor.parentId)
+          : anchor;
+
+        // An anchor from another channel would leak when its messages were sent.
+        if (
+          anchor.channelId !== input.channelId ||
+          top.channelId !== input.channelId
+        ) {
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: "Message not found.",
+          });
+        }
+
+        const at = top.createdAt;
         const [older, newer] = await Promise.all([
           ctx.db
             .select()
