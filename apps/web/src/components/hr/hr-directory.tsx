@@ -81,7 +81,7 @@ export function HrDirectory() {
       <PageHeader
         title="People"
         description="Everyone in the organization, who they report to and where they are."
-        actions={addButton}
+        actions={directory?.people.length === 0 ? null : addButton}
       />
       <HrTabs />
 

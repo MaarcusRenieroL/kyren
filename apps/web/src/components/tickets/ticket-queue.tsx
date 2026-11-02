@@ -71,12 +71,16 @@ export function TicketQueue({ canCreate }: { canCreate: boolean }) {
     </Button>
   ) : null;
 
+  // An empty "mine" view offers the action itself; the header drops its copy
+  // so the screen keeps one primary button.
+  const emptyMine = view === "mine" && !q && queue?.tickets.length === 0;
+
   return (
     <div className="flex min-w-0 flex-1 flex-col gap-6 overflow-y-auto p-6">
       <PageHeader
         title="Tickets"
         description="Support requests, from first message to the task that fixes them."
-        actions={newButton}
+        actions={emptyMine ? null : newButton}
       />
 
       <div className="flex flex-wrap items-center gap-2">
@@ -137,7 +141,7 @@ export function TicketQueue({ canCreate }: { canCreate: boolean }) {
           description={
             q ? "Try a different search." : "No tickets in this view right now."
           }
-          action={view === "mine" ? newButton : undefined}
+          action={emptyMine ? newButton : undefined}
         />
       ) : (
         <ul className="divide-y divide-line rounded-xl border border-line">
