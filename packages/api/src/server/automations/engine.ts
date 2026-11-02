@@ -1,3 +1,4 @@
+import { taskPrioritySchema, taskStatusSchema } from "../../types/zod-schema";
 import { and, desc, eq, isNull, sql } from "@zentro/db/drizzle";
 import {
   automations,
@@ -59,10 +60,10 @@ export async function runTaskAutomations({
 
     if (!activeRules.length) return;
 
-    for (const rule of activeRules) {
+    const applyRule = async (rule: any) => {
       // Check project scoping
       if (rule.projectId && rule.projectId !== task.projectId) {
-        continue;
+        return;
       }
 
       const trigConfig = (rule.triggerConfig ?? {}) as Record<string, any>;
@@ -81,12 +82,15 @@ export async function runTaskAutomations({
         shouldExecute = true;
       }
 
-      if (!shouldExecute) continue;
+      if (!shouldExecute) return;
 
       let executedAction = false;
 
       // Execute Action
-      if (rule.actionType === "update_status" && actionConfig.targetStatus) {
+      if (
+        rule.actionType === "update_status" &&
+        taskStatusSchema.safeParse(actionConfig.targetStatus).success
+      ) {
         // If this was triggered because subtasks are all done, update the parent task!
         const targetTaskId =
           event === "task.subtasks_all_done" && task.parentTaskId
@@ -107,7 +111,10 @@ export async function runTaskAutomations({
             .where(eq(tasks.id, task.id));
           executedAction = true;
         }
-      } else if (rule.actionType === "set_priority" && actionConfig.priority) {
+      } else if (
+        rule.actionType === "set_priority" &&
+        taskPrioritySchema.safeParse(actionConfig.priority).success
+      ) {
         await db
           .update(tasks)
           .set({ priority: actionConfig.priority, updatedAt: new Date() })
@@ -133,6 +140,21 @@ export async function runTaskAutomations({
             lastRunAt: new Date(),
           })
           .where(eq(automations.id, rule.id));
+      }
+    };
+
+    // One failing rule must not stop the others, and the log names it.
+    for (const rule of activeRules) {
+      try {
+        await applyRule(rule);
+      } catch (error) {
+        console.error("Automation rule failed", {
+          organizationId,
+          ruleId: rule.id,
+          ruleName: rule.name,
+          event,
+          error,
+        });
       }
     }
   } catch (error) {

@@ -1058,7 +1058,7 @@ export const taskRouter = router({
         task
       ) {
         const actor = await getCurrentMember(ctx);
-        void runTaskAutomations({
+        await runTaskAutomations({
           db,
           organizationId: activeOrganization.id,
           event: "task.status_changed",
@@ -1088,7 +1088,7 @@ export const taskRouter = router({
             (t) => t.status === "done",
           );
           if (allSiblingsDone) {
-            void runTaskAutomations({
+            await runTaskAutomations({
               db,
               organizationId: activeOrganization.id,
               event: "task.subtasks_all_done",
