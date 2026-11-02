@@ -649,6 +649,8 @@ export const teamRouter = router({
         .where(eq(teamMembers.teamId, input.id));
 
       const memberIds = teamMemberList.map((m) => m.memberId);
+      const visibleProjects =
+        await ctx.permissions.viewableProjectIds("tasks.view");
 
       // Tasks either owned by this team, or assigned to a member of this team across any project
       const teamTasks = await db
@@ -675,6 +677,7 @@ export const teamRouter = router({
           and(
             eq(tasks.organizationId, activeOrganization.id),
             isNull(tasks.deletedAt),
+            inArray(tasks.projectId, visibleProjects),
             memberIds.length
               ? or(
                   eq(tasks.teamId, input.id),

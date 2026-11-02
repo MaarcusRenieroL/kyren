@@ -1,6 +1,17 @@
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
-import { and, desc, eq, isNotNull, lte, ne, sql } from "@zentro/db/drizzle";
+import {
+  and,
+  desc,
+  eq,
+  inArray,
+  isNotNull,
+  isNull,
+  lte,
+  ne,
+  or,
+  sql,
+} from "@zentro/db/drizzle";
 import { automations, projects, tasks } from "@zentro/db/schema";
 import { channelAccess } from "../chat";
 import { projectFromInput } from "../resources";
@@ -28,7 +39,19 @@ export const automationRouter = router({
       })
       .from(automations)
       .leftJoin(projects, eq(projects.id, automations.projectId))
-      .where(eq(automations.organizationId, activeOrganization.id))
+      .where(
+        and(
+          eq(automations.organizationId, activeOrganization.id),
+          // Rules of a project the viewer cannot see stay out of their list.
+          or(
+            isNull(automations.projectId),
+            inArray(
+              automations.projectId,
+              await ctx.permissions.viewableProjectIds("tasks.view"),
+            ),
+          ),
+        ),
+      )
       .orderBy(desc(automations.createdAt));
 
     return rows;
@@ -277,6 +300,12 @@ export const automationRouter = router({
         .where(
           and(
             eq(tasks.organizationId, activeOrganization.id),
+            isNull(tasks.deletedAt),
+            isNull(tasks.archivedAt),
+            inArray(
+              tasks.projectId,
+              await ctx.permissions.viewableProjectIds("tasks.update_any"),
+            ),
             ne(tasks.status, "done"),
             isNotNull(tasks.dueAt),
             lte(tasks.dueAt, in24Hours),
