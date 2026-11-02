@@ -410,22 +410,30 @@ export const hrRouter = router({
         });
       }
 
-      if (row.request.status !== "pending") {
-        throw new TRPCError({
-          code: "CONFLICT",
-          message: "That request has already been decided.",
-        });
-      }
-
       await ctx.db.transaction(async (tx) => {
-        await tx
+        // The status is part of the filter, so two deciders cannot both win.
+        const decided = await tx
           .update(leaveRequests)
           .set({
             status: input.decision,
             decidedByMemberId: decider,
             decidedAt: new Date(),
           })
-          .where(eq(leaveRequests.id, row.request.id));
+          .where(
+            and(
+              eq(leaveRequests.id, row.request.id),
+              eq(leaveRequests.status, "pending"),
+            ),
+          )
+          .returning({ id: leaveRequests.id });
+
+        if (!decided.length) {
+          throw new TRPCError({
+            code: "CONFLICT",
+            message: "That request has already been decided.",
+          });
+        }
+
         await ctx.audit.record(tx, {
           action: "leave.decided",
           target: { id: row.request.id, label: row.name },
