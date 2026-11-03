@@ -662,6 +662,13 @@ export const ticketsPermissions: PermissionDefinition[] = [
     "Tickets",
     org,
   ),
+  definePermission(
+    "tickets.manage_articles",
+    "Manage help articles",
+    "Write, publish and delete knowledge base articles.",
+    "Tickets",
+    org,
+  ),
 ];
 
 export const hrPermissions: PermissionDefinition[] = [

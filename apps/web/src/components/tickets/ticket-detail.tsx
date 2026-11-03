@@ -16,6 +16,8 @@ import { Input } from "@zentro/ui/shadcn/input";
 import { Textarea } from "@zentro/ui/shadcn/textarea";
 import { toast, toastError } from "@zentro/ui/index";
 
+import { SuggestedArticles } from "./suggested-articles";
+
 import { usePageCrumb } from "~/src/components/shell/breadcrumb-context";
 
 import { useAsyncData } from "~/src/lib/use-async-data";
@@ -288,6 +290,16 @@ export function TicketDetail({ id }: { id: string }) {
                   </button>
                 ))}
               </div>
+              {kind === "reply" ? (
+                <SuggestedArticles
+                  subject={ticket.subject}
+                  onInsert={(text) =>
+                    setBody((current) =>
+                      current ? `${current}\n\n${text}` : text,
+                    )
+                  }
+                />
+              ) : null}
               <Textarea
                 aria-label={kind === "reply" ? "Reply" : "Internal note"}
                 rows={4}

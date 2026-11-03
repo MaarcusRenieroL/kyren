@@ -42,6 +42,7 @@ const targetTypes = [
   "custom_field",
   "meeting",
   "sprint",
+  "article",
 ];
 
 describe("event catalog", () => {

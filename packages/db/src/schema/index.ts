@@ -19,6 +19,7 @@ export * from "./calendar";
 export * from "./whiteboard";
 export * from "./mail";
 export * from "./ticket";
+export * from "./kb-article";
 export * from "./hr";
 export * from "./payroll";
 export * from "./api-key";
