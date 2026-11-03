@@ -66,6 +66,8 @@ const recordsNothing: Record<string, string> = {
     "A personal read mark on your own inbox; it changes nothing anyone else sees.",
   "notification.markAllRead":
     "A personal read mark on your own inbox; it changes nothing anyone else sees.",
+  "notification.setPreferences":
+    "A personal setting for your own inbox; it changes nothing anyone else sees.",
   "automation.create": "Creates an automation rule.",
   "automation.toggle": "Enables or disables an automation rule.",
   "automation.delete": "Deletes an automation rule.",

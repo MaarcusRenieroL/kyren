@@ -34,6 +34,10 @@ const unmanaged: Record<string, string> = {
     "Signed-in members read their own inbox; each source is filtered by the task and doc permissions they already hold.",
   "notification.markRead": "Signed-in members mark their own inbox items read.",
   "notification.markAllRead": "Signed-in members mark their own inbox read.",
+  "notification.getPreferences":
+    "Signed-in members read their own notification settings.",
+  "notification.setPreferences":
+    "Signed-in members change their own notification settings.",
   "file.getFiles": "Stub that returns null; no data behind it yet.",
   "search.searchById": "Stub that returns null; no data behind it yet.",
 };
