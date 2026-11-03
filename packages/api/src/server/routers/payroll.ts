@@ -4,6 +4,7 @@ import { compensations, employees, payRuns, payslips } from "@zentro/db/schema";
 import { z } from "zod";
 
 import { currentMemberId } from "../chat";
+import { proratedBase } from "../payroll-math";
 import { isUniqueViolation } from "../db-errors";
 import { isoDate, uuid } from "../zod-common";
 import { permissionProcedure, router, type OrganizationContext } from "../trpc";
@@ -258,7 +259,7 @@ export const payrollRouter = router({
       return { id: employee.id };
     }),
 
-  /** A draft run with one line per paid employee, a twelfth of salary each. */
+  /** A draft run with one line per employee paid in the period, prorated by the day. */
   createRun: procedure("payroll.manage", ["payroll.run_created"])
     .input(
       z
@@ -287,6 +288,8 @@ export const payrollRouter = router({
           name: employees.name,
           annualSalary: compensations.annualSalary,
           currency: compensations.currency,
+          startDate: employees.startDate,
+          endDate: employees.endDate,
         })
         .from(employees)
         .innerJoin(compensations, eq(compensations.employeeId, employees.id))
@@ -304,8 +307,53 @@ export const payrollRouter = router({
         });
       }
 
+      const lines = paid
+        .map((person) => ({
+          ...person,
+          base: proratedBase(
+            person.annualSalary,
+            input.periodStart,
+            input.periodEnd,
+            person.startDate,
+            person.endDate,
+          ),
+        }))
+        .filter((person) => person.base > 0);
+
+      if (!lines.length) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Nobody with a salary was employed during that period.",
+        });
+      }
+
       return ctx.db
         .transaction(async (tx) => {
+          // One run is created at a time, so the overlap check below cannot
+          // be raced by a second request for a nearby period.
+          await tx.execute(
+            sql`select pg_advisory_xact_lock(hashtextextended(${`pay-runs:${ctx.activeOrganization.id}`}, 0))`,
+          );
+
+          const [overlap] = await tx
+            .select({ id: payRuns.id })
+            .from(payRuns)
+            .where(
+              and(
+                eq(payRuns.organizationId, ctx.activeOrganization.id),
+                sql`${payRuns.periodStart} <= ${input.periodEnd}`,
+                sql`${payRuns.periodEnd} >= ${input.periodStart}`,
+              ),
+            )
+            .limit(1);
+
+          if (overlap) {
+            throw new TRPCError({
+              code: "CONFLICT",
+              message: "That period overlaps an existing pay run.",
+            });
+          }
+
           const [run] = await tx
             .insert(payRuns)
             .values({
@@ -316,8 +364,8 @@ export const payrollRouter = router({
             .returning({ id: payRuns.id });
 
           await tx.insert(payslips).values(
-            paid.map((person) => {
-              const base = Math.round(person.annualSalary / 12);
+            lines.map((person) => {
+              const base = person.base;
 
               return {
                 payRunId: run!.id,
@@ -351,7 +399,7 @@ export const payrollRouter = router({
     }),
 
   setBonus: procedure("payroll.manage", ["payroll.bonus_set"])
-    .input(z.object({ payslipId: uuid, bonus: money }))
+    .input(z.object({ payslipId: uuid, bonus: money.max(1_000_000_000) }))
     .mutation(async ({ ctx, input }) => {
       const [row] = await ctx.db
         .select({ line: payslips, run: payRuns })
