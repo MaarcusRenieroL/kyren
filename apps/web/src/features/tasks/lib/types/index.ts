@@ -8,6 +8,9 @@ export type WorkspaceTask = {
   description: string;
   projectSlug: string;
   projectName: string;
+  projectId?: string;
+  /** The sprint the task is planned in; null when it is in the backlog. */
+  sprintId?: string | null;
   teamId: string | null;
   teamName: string | null;
   teamColor: string | null;

@@ -323,6 +323,13 @@
       "when": 1795300000000,
       "tag": "0045_meeting_reminder",
       "breakpoints": true
+    },
+    {
+      "idx": 46,
+      "version": "7",
+      "when": 1795400000000,
+      "tag": "0046_sprints",
+      "breakpoints": true
     }
   ]
 }

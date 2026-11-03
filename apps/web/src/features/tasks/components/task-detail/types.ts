@@ -27,6 +27,7 @@ export type TaskDetail = {
   name: string;
   description: string | null;
   projectId: string;
+  sprintId?: string | null;
   projectName: string;
   projectSlug: string;
   status: string;

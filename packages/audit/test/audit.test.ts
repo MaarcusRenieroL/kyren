@@ -41,6 +41,7 @@ const targetTypes = [
   "webhook",
   "custom_field",
   "meeting",
+  "sprint",
 ];
 
 describe("event catalog", () => {

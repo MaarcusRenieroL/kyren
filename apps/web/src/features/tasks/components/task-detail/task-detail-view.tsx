@@ -23,6 +23,7 @@ import { TaskDetailActivity } from "./task-detail-activity";
 import { TaskDetailSidebar } from "./task-detail-sidebar";
 import { TaskSubtasks } from "./task-subtasks";
 import { TaskCustomFields } from "./task-custom-fields";
+import { TaskSprint } from "./task-sprint";
 import { TaskTimeTracker } from "./task-time-tracker";
 import type {
   MemberOption,
@@ -109,6 +110,13 @@ export function TaskDetailView({
           task={task}
           canEdit={canEdit}
           onTaskUpdated={() => onSave("estimatePoints", {})}
+        />
+
+        <TaskSprint
+          taskKey={task.key}
+          projectId={task.projectId}
+          sprintId={task.sprintId ?? null}
+          canEdit={canEdit}
         />
 
         <TaskCustomFields taskKey={task.key} canEdit={canEdit} />

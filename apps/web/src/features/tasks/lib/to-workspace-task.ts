@@ -10,6 +10,8 @@ type ApiTask = {
   description?: string | null;
   projectSlug: string;
   project: string;
+  projectId?: string;
+  sprintId?: string | null;
   teamId: string | null;
   teamName: string | null;
   teamColor: string | null;
@@ -34,6 +36,8 @@ export function toWorkspaceTask(task: ApiTask): WorkspaceTask {
     description: task.description ?? "",
     projectSlug: task.projectSlug,
     projectName: task.project,
+    projectId: task.projectId,
+    sprintId: task.sprintId ?? null,
     teamId: task.teamId,
     teamName: task.teamName,
     teamColor: task.teamColor,

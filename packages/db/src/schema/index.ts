@@ -25,5 +25,6 @@ export * from "./api-key";
 export * from "./webhook";
 export * from "./custom-field";
 export * from "./task-view";
+export * from "./sprint";
 export * from "./meeting";
 export * from "./running-timer";

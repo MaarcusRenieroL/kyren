@@ -11,6 +11,7 @@ import {
 
 import { members, organizations } from "./auth";
 import { projects } from "./project";
+import { sprints } from "./sprint";
 import { teams } from "./team";
 
 export const tasks = pgTable(
@@ -62,6 +63,11 @@ export const tasks = pgTable(
     deletedAt: timestamp("deletedAt"),
 
     estimatePoints: integer("estimatePoints"),
+
+    /** The sprint the task is planned in, if any. */
+    sprintId: uuid("sprintId").references((): AnyPgColumn => sprints.id, {
+      onDelete: "set null",
+    }),
     timeSpentMinutes: integer("timeSpentMinutes").default(0).notNull(),
 
     createdAt: timestamp("createdAt").notNull().defaultNow(),
@@ -85,6 +91,7 @@ export const tasks = pgTable(
     index("task_assigned_to_member_idx").on(table.assignedToMemberId),
     index("task_due_at_idx").on(table.dueAt),
     index("task_parent_task_idx").on(table.parentTaskId),
+    index("task_sprint_idx").on(table.sprintId),
   ],
 );
 

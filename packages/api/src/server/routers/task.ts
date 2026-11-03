@@ -447,6 +447,8 @@ export const taskRouter = router({
           parentTaskId: tasks.parentTaskId,
           estimatePoints: tasks.estimatePoints,
           timeSpentMinutes: tasks.timeSpentMinutes,
+          projectId: tasks.projectId,
+          sprintId: tasks.sprintId,
           createdAt: tasks.createdAt,
         })
         .from(tasks)
@@ -558,6 +560,7 @@ export const taskRouter = router({
           assignee: users.name,
           due: tasks.dueAt,
           completedAt: tasks.completedAt,
+          sprintId: tasks.sprintId,
           createdAt: tasks.createdAt,
           updatedAt: tasks.updatedAt,
         })
@@ -1136,9 +1139,19 @@ export const taskRouter = router({
           .for("update");
         const wasDone = locked?.status === "done";
 
+        // Finishing a task stamps when; reopening it clears the stamp.
+        const completion =
+          values.status === undefined
+            ? {}
+            : values.status === "done"
+              ? wasDone
+                ? {}
+                : { completedAt: new Date() }
+              : { completedAt: null };
+
         const [row] = await tx
           .update(tasks)
-          .set(updateValues)
+          .set({ ...updateValues, ...completion })
           .where(
             and(
               eq(tasks.key, key),

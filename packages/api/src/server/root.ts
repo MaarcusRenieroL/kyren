@@ -9,6 +9,7 @@ import { apiKeyRouter } from "./routers/api-key";
 import { webhookRouter } from "./routers/webhook";
 import { customFieldRouter } from "./routers/custom-field";
 import { meetingRouter } from "./routers/meeting";
+import { sprintRouter } from "./routers/sprint";
 import { taskViewRouter } from "./routers/task-view";
 import { timesheetRouter } from "./routers/timesheet";
 import { ticketsRouter } from "./routers/tickets";
@@ -52,6 +53,7 @@ export const appRouter = router({
   webhook: webhookRouter,
   customField: customFieldRouter,
   meeting: meetingRouter,
+  sprint: sprintRouter,
   taskView: taskViewRouter,
   timesheet: timesheetRouter,
   tickets: ticketsRouter,

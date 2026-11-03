@@ -99,7 +99,12 @@ export async function runTaskAutomations({
 
         await db
           .update(tasks)
-          .set({ status: actionConfig.targetStatus, updatedAt: new Date() })
+          .set({
+            status: actionConfig.targetStatus,
+            completedAt:
+              actionConfig.targetStatus === "done" ? new Date() : null,
+            updatedAt: new Date(),
+          })
           .where(eq(tasks.id, targetTaskId));
         executedAction = true;
       } else if (rule.actionType === "assign_actor" && actorMemberId) {

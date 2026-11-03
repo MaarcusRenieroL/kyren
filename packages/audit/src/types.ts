@@ -25,7 +25,8 @@ export type AuditTargetType =
   | "api_key"
   | "webhook"
   | "custom_field"
-  | "meeting";
+  | "meeting"
+  | "sprint";
 
 /** Where an event belongs: a module id, or the platform itself. */
 export type AuditModule =

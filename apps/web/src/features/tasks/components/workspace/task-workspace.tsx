@@ -20,11 +20,7 @@ import {
   type TaskSort,
   type TaskView,
 } from "./task-workspace-header";
-import {
-  SprintCycleBar,
-  type SprintScope,
-  type SprintStats,
-} from "./sprint-cycle-bar";
+import { SprintPanel, type SprintScope } from "./sprint-panel";
 import type {
   BulkChange,
   TaskPriority,
@@ -60,6 +56,9 @@ export const TaskWorkspace: FC<Props> = ({
   onTaskCreated,
 }) => {
   const userId = useCurrentUserId();
+  const projectId = projectSlug
+    ? tasks.find((task) => task.projectSlug === projectSlug)?.projectId
+    : undefined;
   const { isMobile } = useSidebar();
   const [savedView, setSavedView] = useState<SavedView>("all");
   const [searchQuery, setSearchQuery] = useState("");
@@ -75,46 +74,9 @@ export const TaskWorkspace: FC<Props> = ({
   const [sort, setSort] = useState<TaskSort>("due");
   const [chosenView, setView] = useState<TaskView>("list");
   const [sprintScope, setSprintScope] = useState<SprintScope>("all");
+  const [activeSprintId, setActiveSprintId] = useState<string | null>(null);
   // Phones get the list only; board and calendar need the width.
   const view = isMobile ? "list" : chosenView;
-
-  const sprintStats: SprintStats = useMemo(() => {
-    const totalTasks = tasks.length;
-    const doneTasks = tasks.filter((t) => t.status === "done").length;
-    const backlogTasks = tasks.filter((t) => t.status === "backlog").length;
-    const sprintTasksList = tasks.filter((t) => t.status !== "backlog");
-    const sprintTasks = sprintTasksList.length;
-    const sprintDoneTasks = sprintTasksList.filter(
-      (t) => t.status === "done",
-    ).length;
-    const totalPoints = sprintTasksList.reduce(
-      (sum, t) => sum + (t.estimatePoints ?? 0),
-      0,
-    );
-    const donePoints = sprintTasksList
-      .filter((t) => t.status === "done")
-      .reduce((sum, t) => sum + (t.estimatePoints ?? 0), 0);
-
-    return {
-      totalTasks,
-      doneTasks,
-      sprintTasks,
-      sprintDoneTasks,
-      backlogTasks,
-      totalPoints,
-      donePoints,
-    };
-  }, [tasks]);
-
-  const handlePlanAllToSprint = () => {
-    const backlogTasks = tasks.filter((t) => t.status === "backlog");
-    if (!backlogTasks.length) return;
-    if (onTasksChange) {
-      onTasksChange(backlogTasks, { status: "todo" });
-    } else if (onTaskStatusChange) {
-      backlogTasks.forEach((t) => onTaskStatusChange(t, "todo"));
-    }
-  };
 
   const assigneeOptions = useMemo(() => {
     return Array.from(new Set(tasks.map((task) => task.assignee))).sort(
@@ -178,8 +140,8 @@ export const TaskWorkspace: FC<Props> = ({
       const matchesScope =
         sprintScope === "all" ||
         (sprintScope === "sprint"
-          ? task.status !== "backlog"
-          : task.status === "backlog");
+          ? Boolean(activeSprintId) && task.sprintId === activeSprintId
+          : !task.sprintId);
 
       return (
         matchesView &&
@@ -200,6 +162,7 @@ export const TaskWorkspace: FC<Props> = ({
     projectSlug,
     searchQuery,
     sprintScope,
+    activeSprintId,
     statusFilter,
     tasks,
     teamFilter,
@@ -369,12 +332,16 @@ export const TaskWorkspace: FC<Props> = ({
         onClearFilters={clearFilters}
       />
 
-      <SprintCycleBar
-        scope={sprintScope}
-        onScopeChange={setSprintScope}
-        stats={sprintStats}
-        onPlanAllToSprint={handlePlanAllToSprint}
-      />
+      {projectId ? (
+        <SprintPanel
+          projectId={projectId}
+          tasks={tasks.filter((task) => task.projectSlug === projectSlug)}
+          scope={sprintScope}
+          onScopeChange={setSprintScope}
+          onActiveSprint={setActiveSprintId}
+          onChanged={() => void onTaskCreated?.()}
+        />
+      ) : null}
 
       <div className="min-w-0">
         {view === "board" ? (
