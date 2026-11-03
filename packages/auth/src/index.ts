@@ -46,6 +46,7 @@ const disabledOrganizationPaths = [
   "/organization/get-active-member-role",
   "/organization/get-full-organization",
   "/organization/get-invitation",
+  "/organization/get-organization",
   "/organization/get-role",
   "/organization/has-permission",
   "/organization/invite-member",

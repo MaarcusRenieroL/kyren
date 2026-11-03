@@ -55,7 +55,7 @@ export function TwoFactorSection() {
 
     setBusy(false);
 
-    if (failure || !data) {
+    if (failure || !data || !("totpURI" in data)) {
       setError("That password didn’t match.");
       return;
     }

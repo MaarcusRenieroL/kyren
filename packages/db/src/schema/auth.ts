@@ -45,6 +45,7 @@ export const organizations = pgTable("organization", {
   name: text("name").notNull(),
   slug: text("slug").notNull().unique(),
   logo: text("logo"),
+  metadata: text("metadata"),
   createdAt: timestamp("createdAt").notNull().defaultNow(),
   updatedAt: timestamp("updatedAt").notNull().defaultNow(),
 });
@@ -115,6 +116,8 @@ export const twoFactors = pgTable("twoFactor", {
     .notNull()
     .references(() => users.id, { onDelete: "cascade" }),
   verified: boolean("verified").default(true),
+  failedVerificationCount: integer("failedVerificationCount").default(0),
+  lockedUntil: timestamp("lockedUntil"),
 });
 
 export const rateLimits = pgTable("rateLimit", {
