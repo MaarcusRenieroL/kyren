@@ -86,7 +86,11 @@ async function assertParentTask(
       .select({ projectId: tasks.projectId, parentTaskId: tasks.parentTaskId })
       .from(tasks)
       .where(
-        and(eq(tasks.id, cursor), eq(tasks.organizationId, organizationId)),
+        and(
+          eq(tasks.id, cursor),
+          eq(tasks.organizationId, organizationId),
+          isNull(tasks.deletedAt),
+        ),
       )
       .limit(1);
 

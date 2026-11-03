@@ -13,6 +13,7 @@ describe("a parent task must be a real task in the same project", () => {
   let child: { id: string; key: string };
   let otherProjectTask: { id: string };
   let foreignTask: { id: string };
+  let trashed: { id: string };
 
   beforeAll(async () => {
     const org = await world.org("Parent task");
@@ -33,6 +34,10 @@ describe("a parent task must be a real task in the same project", () => {
     });
     otherProjectTask = await world.task(org, sibling, { taskNumber: 1 });
     foreignTask = await world.task(other, foreign, { taskNumber: 1 });
+    trashed = await world.task(org, project, {
+      taskNumber: 3,
+      deletedAt: new Date(),
+    });
   });
 
   it("refuses a parent from another project or organization on create", async () => {
@@ -66,6 +71,16 @@ describe("a parent task must be a real task in the same project", () => {
 
     await expect(
       owner.task.updateTaskByKey({ key: parent.key, parentTaskId: child.id }),
+    ).rejects.toMatchObject({ code: "BAD_REQUEST" });
+  });
+
+  it("refuses a parent that has been deleted", async () => {
+    await expect(
+      owner.task.createTask({
+        projectId,
+        name: "Under the trash",
+        parentTaskId: trashed.id,
+      }),
     ).rejects.toMatchObject({ code: "BAD_REQUEST" });
   });
 
