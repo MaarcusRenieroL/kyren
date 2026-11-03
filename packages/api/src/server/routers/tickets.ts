@@ -346,7 +346,11 @@ export const ticketsRouter = router({
             ...changes,
             ...(changes.status
               ? {
-                  resolvedAt: changes.status === "resolved" ? new Date() : null,
+                  // Saving an already-resolved ticket keeps its first time.
+                  resolvedAt:
+                    changes.status === "resolved"
+                      ? sql`coalesce(${tickets.resolvedAt}, now())`
+                      : null,
                 }
               : {}),
             updatedAt: new Date(),
@@ -386,16 +390,20 @@ export const ticketsRouter = router({
           kind: input.kind,
           body: input.body,
         });
-        // Answering the requester parks the ticket until they respond.
         await tx
           .update(tickets)
-          .set({
-            updatedAt: new Date(),
-            ...(input.kind === "reply" && ticket.status === "open"
-              ? { status: "pending" }
-              : {}),
-          })
+          .set({ updatedAt: new Date() })
           .where(eq(tickets.id, ticket.id));
+
+        // Answering the requester parks an open ticket until they respond.
+        // The status is part of the filter, so a ticket resolved a moment ago
+        // is not moved back to pending.
+        if (input.kind === "reply") {
+          await tx
+            .update(tickets)
+            .set({ status: "pending" })
+            .where(and(eq(tickets.id, ticket.id), eq(tickets.status, "open")));
+        }
       });
 
       return { id: ticket.id };
