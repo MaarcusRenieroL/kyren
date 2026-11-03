@@ -1,5 +1,5 @@
 import { TRPCError } from "@trpc/server";
-import { and, asc, eq, inArray, isNull, or, sql } from "@zentro/db/drizzle";
+import { and, asc, eq, inArray, isNull, sql } from "@zentro/db/drizzle";
 import {
   chatEmojis,
   chatLinkPreviews,
