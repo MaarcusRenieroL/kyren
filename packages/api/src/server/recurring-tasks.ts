@@ -55,6 +55,9 @@ export async function createDueRecurringTasks(
       and(
         eq(taskRecurrences.enabled, true),
         lte(taskRecurrences.nextRunAt, now),
+        organizationId
+          ? eq(taskRecurrences.organizationId, organizationId)
+          : undefined,
       ),
     )
     .orderBy(asc(taskRecurrences.nextRunAt))
@@ -142,6 +145,9 @@ let lastLazyRun = 0;
 
 /** A cheap check from a task list load, at most every 20 seconds per server. */
 export async function createDueRecurringTasksLazily(db: Db) {
+  // Tests run the sweep themselves; a page load must not claim another file's rules.
+  if (process.env.VITEST) return;
+
   if (Date.now() - lastLazyRun < 20_000) return;
 
   lastLazyRun = Date.now();

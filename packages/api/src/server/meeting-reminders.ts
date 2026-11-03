@@ -46,8 +46,14 @@ export async function sendDueMeetingReminders(db: DbHandle) {
 
 let lastLazyRun = 0;
 
-/** A cheap check from a page load, at most once a minute per server. */
+/**
+ * A cheap check from a page load, at most once a minute per server. Tests run
+ * the sweep themselves, so a page load in one test file never claims the
+ * meetings of another.
+ */
 export async function sendDueMeetingRemindersLazily(db: DbHandle) {
+  if (process.env.VITEST) return;
+
   if (Date.now() - lastLazyRun < 60_000) return;
 
   lastLazyRun = Date.now();
