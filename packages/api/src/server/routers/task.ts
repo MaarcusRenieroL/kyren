@@ -30,6 +30,7 @@ import {
   createTaskSchema,
   deleteTaskByKeySchema,
   getTaskByKeySchema,
+  importTasksSchema,
   getTasksSchema,
   logTaskTimeSchema,
   updateTaskByKeySchema,
@@ -308,6 +309,85 @@ export const taskRouter = router({
       });
 
       return created;
+    }),
+  /** Creates many tasks in one project at once, all or nothing. */
+  importTasks: permissionProcedure("tasks.create", projectFromInput, {
+    module: "tasks",
+    audit: ["task.created"],
+  })
+    .input(importTasksSchema)
+    .mutation(async ({ ctx, input }) => {
+      const { db, activeOrganization } = ctx;
+      const memberId = (await getCurrentMember(ctx)).id;
+
+      const created = await db.transaction(async (tx) => {
+        await tx.execute(
+          sql`select pg_advisory_xact_lock(hashtextextended(${input.projectId}, 0))`,
+        );
+
+        const [project] = await tx
+          .select({
+            id: projects.id,
+            teamId: projects.teamId,
+            taskKeyPrefix: projects.taskKeyPrefix,
+          })
+          .from(projects)
+          .where(
+            and(
+              eq(projects.id, input.projectId),
+              eq(projects.organizationId, activeOrganization.id),
+            ),
+          )
+          .limit(1);
+
+        if (!project) {
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: "Project not found.",
+          });
+        }
+
+        const [latest] = await tx
+          .select({ taskNumber: tasks.taskNumber })
+          .from(tasks)
+          .where(eq(tasks.projectId, project.id))
+          .orderBy(desc(tasks.taskNumber))
+          .limit(1);
+        let taskNumber = latest?.taskNumber ?? 0;
+
+        for (const row of input.rows) {
+          taskNumber += 1;
+
+          const [task] = await tx
+            .insert(tasks)
+            .values({
+              name: row.name,
+              description: row.description || null,
+              status: row.status,
+              priority: row.priority,
+              dueAt: row.dueAt,
+              projectId: project.id,
+              teamId: project.teamId,
+              createdByMemberId: memberId,
+              organizationId: activeOrganization.id,
+              key: `${project.taskKeyPrefix}-${taskNumber}`,
+              taskNumber,
+            })
+            .returning({ id: tasks.id, key: tasks.key, name: tasks.name });
+
+          await ctx.audit.record(tx, {
+            action: "task.created",
+            target: { id: task!.id, label: task!.key },
+            projectId: project.id,
+            teamId: project.teamId,
+            metadata: { name: task!.name, imported: true },
+          });
+        }
+
+        return input.rows.length;
+      });
+
+      return { created };
     }),
   getTasksByOrgId: listProcedure("tasks.view", "tasks")
     .input(getTasksSchema.optional().default({}))

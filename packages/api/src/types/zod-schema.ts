@@ -172,6 +172,28 @@ export const createTaskSchema = z.object({
   estimatePoints: z.number().int().min(0).max(100).optional().nullable(),
 });
 
+/** Up to this many tasks arrive in one import. */
+export const MAX_IMPORT_ROWS = 200;
+
+export const importTasksSchema = z.object({
+  projectId: z.string().uuid(),
+  rows: z
+    .array(
+      z.object({
+        name: z.string().trim().min(1, "Task name is required.").max(120),
+        description: z.string().trim().max(10000).optional(),
+        status: taskStatusSchema.default("todo"),
+        priority: taskPrioritySchema.default("medium"),
+        dueAt: z.preprocess(
+          (value) => (value === "" ? null : value),
+          z.coerce.date().optional().nullable(),
+        ),
+      }),
+    )
+    .min(1, "Add at least one row.")
+    .max(MAX_IMPORT_ROWS, `Import up to ${MAX_IMPORT_ROWS} tasks at a time.`),
+});
+
 export const getTasksSchema = z.object({
   teamId: z.string().uuid().optional().nullable(),
 });

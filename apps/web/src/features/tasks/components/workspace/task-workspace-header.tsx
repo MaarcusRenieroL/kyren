@@ -4,6 +4,7 @@ import {
   LayersIcon,
   SearchIcon,
 } from "lucide-react";
+import Link from "next/link";
 import { FC, type ReactNode } from "react";
 
 import { cn } from "@zentro/ui/lib/utils";
@@ -206,6 +207,14 @@ export const TaskWorkspaceHeader: FC<Props> = ({
           </DropdownMenuContent>
         </DropdownMenu>
         <span className="flex-1" />
+        {compact ? null : (
+          <Link
+            href="/tasks/import"
+            className="rounded-lg px-2.5 py-1.5 text-[13px] text-ink-2 outline-none hover:bg-sunken hover:text-ink focus-visible:ring-2 focus-visible:ring-ring"
+          >
+            Import CSV
+          </Link>
+        )}
         <CreateTaskModal onTaskCreated={onTaskCreated} />
       </div>
 
