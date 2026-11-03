@@ -32,6 +32,7 @@ import {
   normalizeChannelName,
   readableChannel,
 } from "../chat";
+import { visibleDocsCondition } from "../access";
 import { runChatJobsLazily } from "../chat-jobs";
 import { loadProjectById } from "../resources";
 import {
@@ -128,22 +129,39 @@ async function linkLabels(
   const docIds = rows
     .filter((row) => row.linkType === "doc" && row.linkId)
     .map((row) => row.linkId!);
-  const [taskRows, docRows] = await Promise.all([
+  // A label only names what the reader could open themselves.
+  const [taskProjects, projectProjects, docsVisible] = await Promise.all([
     taskIds.length
+      ? ctx.permissions.viewableProjectIds("tasks.view")
+      : Promise.resolve([] as string[]),
+    projectIds.length
+      ? ctx.permissions.viewableProjectIds("projects.view")
+      : Promise.resolve([] as string[]),
+    docIds.length
+      ? visibleDocsCondition(ctx.permissions, "docs.view")
+      : Promise.resolve(null),
+  ]);
+  const [taskRows, docRows] = await Promise.all([
+    taskIds.length && taskProjects.length
       ? ctx.db
           .select({ id: tasks.id, name: tasks.name, key: tasks.key })
           .from(tasks)
-          .where(inArray(tasks.id, taskIds))
+          .where(
+            and(
+              inArray(tasks.id, taskIds),
+              inArray(tasks.projectId, taskProjects),
+            ),
+          )
       : [],
-    docIds.length
+    docIds.length && docsVisible
       ? ctx.db
           .select({ id: docs.id, title: docs.title, slug: docs.slug })
           .from(docs)
-          .where(inArray(docs.id, docIds))
+          .where(and(inArray(docs.id, docIds), docsVisible))
       : [],
   ]);
   const [projectRows, teamRows] = await Promise.all([
-    projectIds.length
+    projectIds.length && projectProjects.length
       ? ctx.db
           .select({
             id: projects.id,
@@ -152,7 +170,12 @@ async function linkLabels(
             slug: projects.slug,
           })
           .from(projects)
-          .where(inArray(projects.id, projectIds))
+          .where(
+            and(
+              inArray(projects.id, projectIds),
+              inArray(projects.id, projectProjects),
+            ),
+          )
       : [],
     teamIds.length
       ? ctx.db
