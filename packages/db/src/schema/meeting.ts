@@ -39,6 +39,9 @@ export const meetings = pgTable(
     notes: text("notes"),
     summary: text("summary"),
 
+    /** Set once the starting-soon email went out. */
+    reminderSentAt: timestamp("reminderSentAt"),
+
     createdAt: timestamp("createdAt").notNull().defaultNow(),
   },
   (table) => [

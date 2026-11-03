@@ -6,6 +6,8 @@ import { meetingAttendees, meetings, members, users } from "@zentro/db/schema";
 import { z } from "zod";
 
 import { askClaude } from "../chat-ai";
+import { mailMeeting } from "../meeting-mail";
+import { sendDueMeetingRemindersLazily } from "../meeting-reminders";
 import { permissionProcedure, router, type OrganizationContext } from "../trpc";
 import { uuid } from "../zod-common";
 
@@ -63,6 +65,8 @@ export const meetingRouter = router({
   list: procedure("calendar.view")
     .input(z.object({ when: z.enum(["upcoming", "past"]) }))
     .query(async ({ ctx, input }) => {
+      await sendDueMeetingRemindersLazily(ctx.db);
+
       const now = new Date();
       // Meetings last at most 8 hours, so that bounds what can still be running.
       const earliestRunning = new Date(now.getTime() - 480 * 60_000);
@@ -182,7 +186,7 @@ export const meetingRouter = router({
         }
       }
 
-      return ctx.db.transaction(async (tx) => {
+      const result = await ctx.db.transaction(async (tx) => {
         const [created] = await tx
           .insert(meetings)
           .values({
@@ -209,6 +213,15 @@ export const meetingRouter = router({
 
         return { id: created!.id };
       });
+
+      const [row] = await ctx.db
+        .select()
+        .from(meetings)
+        .where(eq(meetings.id, result.id));
+
+      await mailMeeting(ctx.db, row!, "invite");
+
+      return result;
     }),
 
   /** An invitee's answer. */
@@ -274,6 +287,7 @@ export const meetingRouter = router({
           target: { id: meeting.id, label: meeting.title },
         });
       });
+      await mailMeeting(ctx.db, meeting, "cancel");
 
       return { ok: true };
     }),

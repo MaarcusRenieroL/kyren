@@ -14,6 +14,7 @@ import {
 } from "./automations/due-escalation";
 import { postOverdueEvents } from "./chat-events";
 import { postChatMessage } from "./chat-post";
+import { sendDueMeetingReminders } from "./meeting-reminders";
 import { deliverDueWebhooks } from "./webhooks";
 
 type Db = DbHandle & {
@@ -149,6 +150,7 @@ export async function runChatJobs(db: Db, options: { heavy?: boolean } = {}) {
   const purged = options.heavy ? await purgeExpired(db) : 0;
   const overdue = options.heavy ? await postOverdueEvents(db) : 0;
 
+  const meetingReminders = await sendDueMeetingReminders(db);
   let escalated = 0;
 
   if (options.heavy) {
@@ -162,7 +164,15 @@ export async function runChatJobs(db: Db, options: { heavy?: boolean } = {}) {
     db as unknown as Parameters<typeof deliverDueWebhooks>[0],
   );
 
-  return { sent, reminded, purged, overdue, escalated, webhooks };
+  return {
+    sent,
+    reminded,
+    purged,
+    overdue,
+    escalated,
+    meetingReminders,
+    webhooks,
+  };
 }
 
 let lastLazyRun = 0;

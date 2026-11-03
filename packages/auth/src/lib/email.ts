@@ -234,3 +234,49 @@ export async function sendNewSignInEmail(
     `,
   });
 }
+
+const meetingHeadlines = {
+  invite: "You're invited to a meeting",
+  cancel: "A meeting was canceled",
+  reminder: "A meeting starts soon",
+} as const;
+
+/** Invitation, cancellation and starting-soon notices for a meeting. Links to the app, never to the video room. */
+export async function sendMeetingEmail(mail: {
+  kind: keyof typeof meetingHeadlines;
+  to: string;
+  title: string;
+  startsAt: Date;
+  durationMinutes: number;
+  organizer: string;
+  path: string;
+}) {
+  const headline = meetingHeadlines[mail.kind];
+
+  await resend.emails.send({
+    from: authEnv.EMAIL_FROM,
+    to: mail.to,
+    subject: `${headline}: ${mail.title.slice(0, 120)}`,
+    html: `
+      <div style="background:#0a0a0a;padding:40px 20px;color:#e5e7eb;font-family: Inter, Arial, Sans-serif">
+        <table style="max-width:560px;margin:auto;background:#111827;padding:40px;border-radius:16px;">
+          <tr>
+            <td>
+              <h1>${escapeHtml(headline)}</h1>
+              <p><strong>${escapeHtml(mail.title)}</strong></p>
+              <p>
+                <strong>When:</strong> ${escapeHtml(mail.startsAt.toUTCString())} (${mail.durationMinutes} min)<br />
+                <strong>Organizer:</strong> ${escapeHtml(mail.organizer)}
+              </p>
+              ${
+                mail.kind === "cancel"
+                  ? ""
+                  : `<p><a href="${getAppUrl()}${escapeHtml(mail.path)}" style="color:#93c5fd">Open the meeting</a> to answer, read the agenda and join the call.</p>`
+              }
+            </td>
+          </tr>
+        </table>
+      </div>
+    `,
+  });
+}

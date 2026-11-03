@@ -316,6 +316,13 @@
       "when": 1795200000000,
       "tag": "0044_meetings",
       "breakpoints": true
+    },
+    {
+      "idx": 45,
+      "version": "7",
+      "when": 1795300000000,
+      "tag": "0045_meeting_reminder",
+      "breakpoints": true
     }
   ]
 }
