@@ -26,6 +26,7 @@ import { z } from "zod";
 import { awayUntilByMember } from "../away";
 import { aiAvailable, askClaude } from "../chat-ai";
 import { serializeSla, slaState, type SlaPolicy } from "../sla";
+import { mailTicketReply } from "../ticket-mail";
 import { currentMemberId } from "../chat";
 import { permissionProcedure, router, type OrganizationContext } from "../trpc";
 
@@ -479,6 +480,7 @@ export const ticketsRouter = router({
         id: ticket.id,
         ref: ticketRef(ticket.number),
         subject: ticket.subject,
+        portalToken: ticket.portalToken,
         description: ticket.description,
         requesterName: ticket.requesterName,
         requesterEmail: ticket.requesterEmail,
@@ -646,6 +648,9 @@ export const ticketsRouter = router({
             .where(and(eq(tickets.id, ticket.id), eq(tickets.status, "open")));
         }
       });
+
+      // The requester gets an agent's reply by email; internal notes never go out.
+      if (input.kind === "reply") await mailTicketReply(ticket, input.body);
 
       return { id: ticket.id };
     }),

@@ -280,3 +280,32 @@ export async function sendMeetingEmail(mail: {
     `,
   });
 }
+
+/** An agent's reply to a requester, with a private link to follow and answer the ticket. */
+export async function sendTicketReplyEmail(mail: {
+  to: string;
+  subject: string;
+  body: string;
+  path: string;
+}) {
+  await resend.emails.send({
+    from: authEnv.EMAIL_FROM,
+    to: mail.to,
+    subject: mail.subject.slice(0, 200),
+    html: `
+      <div style="background:#0a0a0a;padding:40px 20px;color:#e5e7eb;font-family: Inter, Arial, Sans-serif">
+        <table style="max-width:560px;margin:auto;background:#111827;padding:40px;border-radius:16px;">
+          <tr>
+            <td>
+              <p style="white-space:pre-wrap">${escapeHtml(mail.body)}</p>
+              <p style="color:#9ca3af;font-size:14px">
+                You can reply to this email, or <a href="${getAppUrl()}${escapeHtml(mail.path)}" style="color:#93c5fd">open your request</a> to see the whole conversation.
+                Keep the reference in the subject so your answer reaches the right ticket.
+              </p>
+            </td>
+          </tr>
+        </table>
+      </div>
+    `,
+  });
+}

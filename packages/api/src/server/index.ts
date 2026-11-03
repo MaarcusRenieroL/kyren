@@ -14,3 +14,4 @@ export { apiKeyCaller } from "./api-context";
 export { authenticateApiKey, bearerToken } from "./api-keys";
 export { enforceRateLimit, hit } from "./rate-limit";
 export { receiveTicketMail } from "./ticket-inbound";
+export { portalReply, portalView } from "./ticket-portal";

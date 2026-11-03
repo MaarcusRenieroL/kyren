@@ -9,6 +9,8 @@ import {
   uuid,
 } from "drizzle-orm/pg-core";
 
+import { sql } from "drizzle-orm";
+
 import { members, organizations } from "./auth";
 import { tasks } from "./task";
 
@@ -31,6 +33,14 @@ export const tickets = pgTable(
     status: text("status").notNull().default("open"),
     priority: text("priority").notNull().default("normal"),
     category: text("category"),
+
+    /** The secret in the requester's private link to follow and answer this ticket. */
+    portalToken: text("portalToken")
+      .notNull()
+      .unique()
+      .default(
+        sql`replace(gen_random_uuid()::text, '-', '') || replace(gen_random_uuid()::text, '-', '')`,
+      ),
 
     assigneeMemberId: uuid("assigneeMemberId").references(() => members.id, {
       onDelete: "set null",

@@ -106,7 +106,10 @@ describe("what is stored", () => {
       keep: "yes",
       nested: { deep: [{ ok: 1 }] },
     });
-    expect(JSON.stringify(stored)).not.toMatch(/hunter2|abc|123456|Bearer/);
+    // Only the metadata: the row also holds random ids, where "abc" turns up by chance.
+    expect(JSON.stringify(stored!.metadata)).not.toMatch(
+      /hunter2|abc|123456|Bearer/,
+    );
   });
 
   it("refuses unknown actions and derives audit-only from the catalog", async () => {

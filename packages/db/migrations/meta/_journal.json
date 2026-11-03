@@ -337,6 +337,13 @@
       "when": 1795500000000,
       "tag": "0047_ticket_inbox",
       "breakpoints": true
+    },
+    {
+      "idx": 48,
+      "version": "7",
+      "when": 1795600000000,
+      "tag": "0048_ticket_portal",
+      "breakpoints": true
     }
   ]
 }

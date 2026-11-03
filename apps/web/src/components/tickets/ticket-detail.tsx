@@ -217,6 +217,14 @@ export function TicketDetail({ id }: { id: string }) {
             </section>
           ) : null}
 
+          <p className="text-xs text-ink-2">
+            Customer link (no sign-in needed):{" "}
+            <code className="break-all rounded bg-sunken px-1">
+              {typeof window === "undefined"
+                ? ""
+                : `${window.location.origin}/support/${ticket.portalToken}`}
+            </code>
+          </p>
           <ol className="flex flex-col gap-3">
             {ticket.messages.map((message) => (
               <li
