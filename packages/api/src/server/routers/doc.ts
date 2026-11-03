@@ -20,6 +20,7 @@ import {
   users,
   workLinks,
 } from "@zentro/db/schema";
+import { sanitizeRichText } from "@zentro/utils";
 
 import {
   createDocCommentSchema,
@@ -728,7 +729,7 @@ export const docsRouter = router({
             organizationId: activeOrganization.id,
             docId: doc.id,
             authorMemberId: member.id,
-            body: input.body,
+            body: sanitizeRichText(input.body),
           })
           .returning();
 

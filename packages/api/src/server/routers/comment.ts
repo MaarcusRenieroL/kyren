@@ -1,6 +1,7 @@
 import { TRPCError } from "@trpc/server";
 import { asc, and, eq, isNull } from "@zentro/db/drizzle";
 import { members, taskComments, users } from "@zentro/db/schema";
+import { sanitizeRichText } from "@zentro/utils";
 
 import {
   createTaskCommentSchema,
@@ -61,7 +62,7 @@ export const commentRouter = router({
             organizationId: activeOrganization.id,
             taskId: task.id,
             authorMemberId: member.id,
-            body: input.body,
+            body: sanitizeRichText(input.body),
           })
           .returning();
 

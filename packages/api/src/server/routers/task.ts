@@ -44,6 +44,8 @@ import {
   router,
   type OrganizationContext,
 } from "../trpc";
+import { sanitizeRichText } from "@zentro/utils";
+
 import { enforceRateLimit } from "../rate-limit";
 import { memberName, postTaskEvent } from "../chat-events";
 import { syncMentions } from "../mentions";
@@ -220,7 +222,9 @@ export const taskRouter = router({
               projectId: project.id,
               parentTaskId: input.parentTaskId ?? null,
               teamId: project.teamId,
-              description: input.description || null,
+              description: input.description
+                ? sanitizeRichText(input.description)
+                : null,
               assignedToMemberId,
               createdByMemberId: member.id,
               organizationId: activeOrganization.id,
@@ -369,7 +373,9 @@ export const taskRouter = router({
             .insert(tasks)
             .values({
               name: row.name,
-              description: row.description || null,
+              description: row.description
+                ? sanitizeRichText(row.description)
+                : null,
               status: row.status,
               priority: row.priority,
               dueAt: row.dueAt,
@@ -1064,7 +1070,9 @@ export const taskRouter = router({
       }
 
       if (values.description !== undefined) {
-        updateValues.description = values.description || null;
+        updateValues.description = values.description
+          ? sanitizeRichText(values.description)
+          : null;
       }
 
       if (values.status !== undefined) {

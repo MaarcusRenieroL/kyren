@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { sanitizeRichText } from "@zentro/utils";
 import {
   BoldIcon,
   CheckIcon,
@@ -97,7 +98,7 @@ export function RichTextPreview({
         "min-h-24 rounded-md p-3",
         className,
       )}
-      dangerouslySetInnerHTML={{ __html: value }}
+      dangerouslySetInnerHTML={{ __html: sanitizeRichText(value) }}
     />
   );
 }

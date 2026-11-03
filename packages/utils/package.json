@@ -10,6 +10,11 @@
     "test": "vitest run"
   },
   "devDependencies": {
-    "@zentro/typescript-config": "workspace:*"
+    "@types/sanitize-html": "^2.16.2",
+    "@zentro/typescript-config": "workspace:*",
+    "vitest": "^5.0.3"
+  },
+  "dependencies": {
+    "sanitize-html": "^2.18.1"
   }
 }
