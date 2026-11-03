@@ -12,6 +12,7 @@ import { meetingRouter } from "./routers/meeting";
 import { sprintRouter } from "./routers/sprint";
 import { taskViewRouter } from "./routers/task-view";
 import { timesheetRouter } from "./routers/timesheet";
+import { privacyRouter } from "./routers/privacy";
 import { recurrenceRouter } from "./routers/recurrence";
 import { kbRouter } from "./routers/kb";
 import { ticketsRouter } from "./routers/tickets";
@@ -61,6 +62,7 @@ export const appRouter = router({
   tickets: ticketsRouter,
   kb: kbRouter,
   recurrence: recurrenceRouter,
+  privacy: privacyRouter,
   audit: auditRouter,
   automation: automationRouter,
   calendar: calendarRouter,

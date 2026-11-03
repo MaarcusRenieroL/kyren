@@ -756,6 +756,13 @@ export const adminPermissions: PermissionDefinition[] = [
     org,
   ),
   definePermission(
+    "admin.manage_privacy",
+    "Export and erase personal data",
+    "Download everything held about a member, or remove a member and their personal data.",
+    "Administration",
+    org,
+  ),
+  definePermission(
     "time.view_report",
     "View the time report",
     "See how much time everyone logged on tasks.",
