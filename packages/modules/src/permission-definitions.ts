@@ -741,4 +741,11 @@ export const adminPermissions: PermissionDefinition[] = [
     "Administration",
     org,
   ),
+  definePermission(
+    "time.view_report",
+    "View the time report",
+    "See how much time everyone logged on tasks.",
+    "Administration",
+    org,
+  ),
 ];

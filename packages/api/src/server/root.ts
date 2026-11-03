@@ -9,6 +9,7 @@ import { apiKeyRouter } from "./routers/api-key";
 import { webhookRouter } from "./routers/webhook";
 import { customFieldRouter } from "./routers/custom-field";
 import { taskViewRouter } from "./routers/task-view";
+import { timesheetRouter } from "./routers/timesheet";
 import { ticketsRouter } from "./routers/tickets";
 import { activityRouter } from "./routers/activity";
 import { auditRouter } from "./routers/audit";
@@ -50,6 +51,7 @@ export const appRouter = router({
   webhook: webhookRouter,
   customField: customFieldRouter,
   taskView: taskViewRouter,
+  timesheet: timesheetRouter,
   tickets: ticketsRouter,
   audit: auditRouter,
   automation: automationRouter,

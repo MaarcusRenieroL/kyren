@@ -36,7 +36,6 @@ export function TaskTimeTracker({
   onTaskUpdated?: () => void;
 }) {
   const trpc = useTrpcClient();
-  const [isRunning, setIsRunning] = useState(false);
   const [seconds, setSeconds] = useState(0);
   const [manualMinutes, setManualMinutes] = useState("");
   const [manualNote, setManualNote] = useState("");
@@ -50,27 +49,78 @@ export function TaskTimeTracker({
     task.estimatePoints ?? null,
   );
 
-  // Live stopwatch timer
-  useEffect(() => {
-    let interval: NodeJS.Timeout | null = null;
-    if (isRunning) {
-      interval = setInterval(() => {
-        setSeconds((prev) => prev + 1);
-      }, 1000);
-    } else {
-      setSeconds(0);
-    }
-    return () => {
-      if (interval) clearInterval(interval);
-    };
-  }, [isRunning]);
+  const [startedAt, setStartedAt] = useState<number | null>(null);
+  const [elsewhere, setElsewhere] = useState<string | null>(null);
 
-  const elapsedMinutes = Math.max(1, Math.ceil(seconds / 60));
+  // The timer lives on the server, so a refresh or another tab sees it too.
+  useEffect(() => {
+    let alive = true;
+
+    trpc.timesheet.running
+      .query()
+      .then((timer) => {
+        if (!alive) return;
+
+        if (timer?.taskKey === task.key) {
+          setStartedAt(new Date(timer.startedAt).getTime());
+          setElsewhere(null);
+        } else {
+          setStartedAt(null);
+          setElsewhere(timer?.taskKey ?? null);
+        }
+      })
+      .catch(() => undefined);
+
+    return () => {
+      alive = false;
+    };
+  }, [trpc, task.key]);
+
+  const isRunning = startedAt !== null;
+
+  useEffect(() => {
+    if (startedAt === null) {
+      setSeconds(0);
+
+      return;
+    }
+
+    const tick = () =>
+      setSeconds(Math.max(0, Math.floor((Date.now() - startedAt) / 1000)));
+
+    tick();
+
+    const interval = setInterval(tick, 1000);
+
+    return () => clearInterval(interval);
+  }, [startedAt]);
+
   const timerDisplay = `${String(Math.floor(seconds / 60)).padStart(2, "0")}:${String(seconds % 60).padStart(2, "0")}`;
 
-  async function handleStopAndLog() {
-    setIsRunning(false);
-    await logTime(elapsedMinutes, "Timer session");
+  async function handleStart() {
+    try {
+      await trpc.timesheet.start.mutate({ key: task.key });
+      setStartedAt(Date.now());
+      setElsewhere(null);
+    } catch {
+      toastError("Error", "Could not start the timer");
+    }
+  }
+
+  async function handleStop() {
+    try {
+      const stopped = await trpc.timesheet.stop.mutate();
+
+      setStartedAt(null);
+
+      if (stopped) {
+        setTotalMinutes(stopped.totalTimeSpentMinutes);
+        toastSuccess(`Logged ${formatMinutes(stopped.minutes)}`);
+        onTaskUpdated?.();
+      }
+    } catch {
+      toastError("Error", "Could not stop the timer");
+    }
   }
 
   async function logTime(duration: number, note?: string) {
@@ -143,7 +193,7 @@ export function TaskTimeTracker({
           <Button
             size="sm"
             variant="destructive"
-            onClick={handleStopAndLog}
+            onClick={() => void handleStop()}
             className="h-8 gap-2 font-mono text-xs"
           >
             <SquareIcon className="size-3 fill-current" />
@@ -153,13 +203,18 @@ export function TaskTimeTracker({
           <Button
             size="sm"
             variant="outline"
-            onClick={() => setIsRunning(true)}
+            onClick={() => void handleStart()}
             className="h-8 gap-1.5 font-mono text-xs"
           >
             <PlayIcon className="size-3 fill-current text-success" />
-            <span>Start Timer</span>
+            <span>{elsewhere ? "Switch timer here" : "Start Timer"}</span>
           </Button>
         )}
+        {elsewhere && !isRunning ? (
+          <span className="text-xs text-ink-3">
+            Timer running on {elsewhere}
+          </span>
+        ) : null}
 
         <Button
           size="sm"

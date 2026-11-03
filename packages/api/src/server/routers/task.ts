@@ -56,6 +56,7 @@ import {
   getChangedTaskFields,
   getCurrentMember,
   getTaskForActiveOrganization,
+  addTimeLog,
   recordTaskChanges,
   triggerDownstreamUnblocks,
 } from "./task-helpers";
@@ -1387,35 +1388,13 @@ export const taskRouter = router({
           )
           .limit(1);
 
-        const [log] = await tx
-          .insert(taskTimeLogs)
-          .values({
-            organizationId: activeOrganization.id,
-            taskId: task.id,
-            memberId: member?.id ?? null,
-            durationMinutes,
-            note: note ?? null,
-          })
-          .returning();
-
-        if (!log) {
-          throw new TRPCError({
-            code: "INTERNAL_SERVER_ERROR",
-            message: "Failed to create time log entry.",
-          });
-        }
-
-        // Added in SQL so two entries logged at once both count.
-        const [updated] = await tx
-          .update(tasks)
-          .set({
-            timeSpentMinutes: sql`coalesce(${tasks.timeSpentMinutes}, 0) + ${durationMinutes}`,
-            updatedAt: new Date(),
-          })
-          .where(eq(tasks.id, task.id))
-          .returning({ total: tasks.timeSpentMinutes });
-
-        return { log, totalTimeSpentMinutes: updated?.total ?? 0 };
+        return addTimeLog(tx, {
+          organizationId: activeOrganization.id,
+          taskId: task.id,
+          memberId: member?.id ?? null,
+          durationMinutes,
+          note: note ?? null,
+        });
       });
     }),
 });

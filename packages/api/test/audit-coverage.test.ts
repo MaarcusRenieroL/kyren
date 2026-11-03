@@ -59,6 +59,8 @@ const recordsNothing: Record<string, string> = {
   "chat.openDm": "Starting a direct message between the people in it.",
   "chat.requestAccess":
     "Sends a direct message to a channel admin; nothing changes until they add the person.",
+  "timesheet.start": "A personal timer; the time it logs is on the task.",
+  "timesheet.stop": "Stopping a personal timer adds a time log to the task.",
   "taskView.create":
     "A saved filter set; it holds no task data, only the settings of the list.",
   "taskView.remove": "Removes a person's own saved filter set.",

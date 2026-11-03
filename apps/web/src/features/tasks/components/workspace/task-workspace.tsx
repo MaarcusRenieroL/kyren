@@ -31,6 +31,7 @@ import type {
   TaskStatus,
   WorkspaceTask,
 } from "~/src/features/tasks/lib/types";
+import Link from "next/link";
 import { FC } from "react";
 import { statusLabels } from "~/src/features/tasks/lib/constants";
 
@@ -325,6 +326,12 @@ export const TaskWorkspace: FC<Props> = ({
         viewControl={
           <>
             <SavedViewsMenu current={currentConfig} onApply={applyConfig} />
+            <Link
+              href="/tasks/timesheet"
+              className="rounded-xl border border-hairline bg-surface px-3 py-1.5 text-sm text-ink-2 hover:text-ink"
+            >
+              Timesheet
+            </Link>
             <div
               role="radiogroup"
               aria-label="View"

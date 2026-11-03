@@ -1,6 +1,13 @@
 import { TRPCError } from "@trpc/server";
-import { and, count, eq, isNull, ne } from "@zentro/db/drizzle";
-import { members, tasks, users, workLinks, type Task } from "@zentro/db/schema";
+import { and, count, eq, isNull, ne, sql } from "@zentro/db/drizzle";
+import {
+  members,
+  taskTimeLogs,
+  tasks,
+  users,
+  workLinks,
+  type Task,
+} from "@zentro/db/schema";
 import type { AuditHandle } from "@zentro/audit/server";
 
 import type { TRPCContext } from "../../types";
@@ -299,4 +306,39 @@ export async function triggerDownstreamUnblocks(
       });
     }
   }
+}
+
+/**
+ * Adds a time log to a task and its running total. The total is added in SQL
+ * so two entries logged at once both count.
+ */
+export async function addTimeLog(
+  tx: Pick<TRPCContext["db"], "insert" | "update">,
+  input: {
+    organizationId: string;
+    taskId: string;
+    memberId: string | null;
+    durationMinutes: number;
+    note: string | null;
+  },
+) {
+  const [log] = await tx.insert(taskTimeLogs).values(input).returning();
+
+  if (!log) {
+    throw new TRPCError({
+      code: "INTERNAL_SERVER_ERROR",
+      message: "Failed to create time log entry.",
+    });
+  }
+
+  const [updated] = await tx
+    .update(tasks)
+    .set({
+      timeSpentMinutes: sql`coalesce(${tasks.timeSpentMinutes}, 0) + ${input.durationMinutes}`,
+      updatedAt: new Date(),
+    })
+    .where(eq(tasks.id, input.taskId))
+    .returning({ total: tasks.timeSpentMinutes });
+
+  return { log, totalTimeSpentMinutes: updated?.total ?? 0 };
 }
