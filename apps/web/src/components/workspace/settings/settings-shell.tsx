@@ -45,6 +45,10 @@ const settingsTabs: Item[] = [
     label: "Appearance",
   },
   {
+    href: "/settings/account/notifications",
+    label: "Notifications",
+  },
+  {
     href: "/settings/account/security",
     label: "Security",
   },

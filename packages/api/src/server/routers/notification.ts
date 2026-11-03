@@ -19,6 +19,7 @@ import {
   docComments,
   docs,
   members,
+  notificationPreferences,
   notificationReads,
   taskComments,
   tasks,
@@ -34,7 +35,14 @@ import { getCurrentMember } from "./task-helpers";
 const WINDOW_DAYS = 30;
 const LIMIT = 60;
 
-export type NotificationKind = "mention" | "assignment" | "comment" | "unblock";
+export const notificationKinds = [
+  "mention",
+  "assignment",
+  "comment",
+  "unblock",
+] as const;
+
+export type NotificationKind = (typeof notificationKinds)[number];
 
 export type InboxItem = {
   /** Stable per source row, so read marks survive reloads. */
@@ -65,6 +73,25 @@ function excerpt(body: string) {
     .trim();
 
   return text.length > 160 ? `${text.slice(0, 157)}…` : text;
+}
+
+async function mutedKindsFor(ctx: {
+  db: typeof import("@zentro/db").db;
+  user: { id: string };
+  activeOrganization: { id: string };
+}) {
+  const [row] = await ctx.db
+    .select({ mutedKinds: notificationPreferences.mutedKinds })
+    .from(notificationPreferences)
+    .where(
+      and(
+        eq(notificationPreferences.organizationId, ctx.activeOrganization.id),
+        eq(notificationPreferences.userId, ctx.user.id),
+      ),
+    )
+    .limit(1);
+
+  return row?.mutedKinds ?? [];
 }
 
 /**
@@ -516,7 +543,10 @@ export const notificationRouter = router({
       });
     }
 
+    const muted = new Set(await mutedKindsFor(ctx));
+
     return items
+      .filter((item) => !muted.has(item.kind))
       .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
       .slice(0, LIMIT)
       .map(
@@ -528,6 +558,33 @@ export const notificationRouter = router({
         }),
       );
   }),
+
+  getPreferences: protectedProcedure.query(async ({ ctx }) => ({
+    mutedKinds: await mutedKindsFor(ctx),
+  })),
+
+  setPreferences: protectedProcedure
+    .input(z.object({ mutedKinds: z.array(z.enum(notificationKinds)).max(10) }))
+    .mutation(async ({ ctx, input }) => {
+      const mutedKinds = [...new Set(input.mutedKinds)];
+
+      await ctx.db
+        .insert(notificationPreferences)
+        .values({
+          organizationId: ctx.activeOrganization.id,
+          userId: ctx.user.id,
+          mutedKinds,
+        })
+        .onConflictDoUpdate({
+          target: [
+            notificationPreferences.organizationId,
+            notificationPreferences.userId,
+          ],
+          set: { mutedKinds, updatedAt: new Date() },
+        });
+
+      return { mutedKinds };
+    }),
 
   markRead: protectedProcedure
     .input(z.object({ id: z.string().min(1).max(120) }))

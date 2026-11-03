@@ -42,3 +42,35 @@ export const notificationReads = pgTable(
 );
 
 export type NotificationRead = typeof notificationReads.$inferSelect;
+
+/**
+ * Which kinds of notification a person has switched off in one organization.
+ * No row means everything is on.
+ */
+export const notificationPreferences = pgTable(
+  "notificationPreference",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+
+    organizationId: uuid("organizationId")
+      .notNull()
+      .references(() => organizations.id, { onDelete: "cascade" }),
+
+    userId: uuid("userId")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+
+    mutedKinds: text("mutedKinds").array().notNull().default([]),
+
+    updatedAt: timestamp("updatedAt").notNull().defaultNow(),
+  },
+  (table) => [
+    uniqueIndex("notification_preference_unique_idx").on(
+      table.organizationId,
+      table.userId,
+    ),
+  ],
+);
+
+export type NotificationPreference =
+  typeof notificationPreferences.$inferSelect;
