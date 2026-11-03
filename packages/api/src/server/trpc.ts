@@ -39,6 +39,8 @@ const trpc = initTRPC
     },
   });
 
+import { enforceBurstLimit } from "./burst-limit";
+
 export const router = trpc.router;
 
 /**
@@ -68,7 +70,15 @@ const auditGuard = trpc.middleware(async ({ ctx, type, meta, path, next }) => {
   return result;
 });
 
-const baseProcedure = trpc.procedure.use(auditGuard);
+const burstLimit = trpc.middleware(({ ctx, type, next }) => {
+  if (ctx.user?.id) {
+    enforceBurstLimit(ctx.user.id, type);
+  }
+
+  return next();
+});
+
+const baseProcedure = trpc.procedure.use(burstLimit).use(auditGuard);
 
 export const publicProcedure = baseProcedure;
 
