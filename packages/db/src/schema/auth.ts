@@ -46,6 +46,8 @@ export const organizations = pgTable("organization", {
   slug: text("slug").notNull().unique(),
   logo: text("logo"),
   metadata: text("metadata"),
+  /** When true, every member must sign in with two-factor to use the workspace. */
+  requireTwoFactor: boolean("requireTwoFactor").notNull().default(false),
   createdAt: timestamp("createdAt").notNull().defaultNow(),
   updatedAt: timestamp("updatedAt").notNull().defaultNow(),
 });

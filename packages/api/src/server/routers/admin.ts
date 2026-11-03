@@ -227,7 +227,26 @@ export const adminRouter = router({
         ),
       );
 
+    const [policy] = await ctx.db
+      .select({ required: organizations.requireTwoFactor })
+      .from(organizations)
+      .where(eq(organizations.id, ctx.activeOrganization.id));
+    const [coverage] = await ctx.db
+      .select({
+        total: count(),
+        withTwoFactor:
+          sql<number>`count(*) filter (where ${users.twoFactorEnabled})`.mapWith(
+            Number,
+          ),
+      })
+      .from(members)
+      .innerJoin(users, eq(users.id, members.userId))
+      .where(eq(members.organizationId, ctx.activeOrganization.id));
+
     return {
+      requireTwoFactor: policy?.required ?? false,
+      memberCount: coverage?.total ?? 0,
+      withTwoFactor: coverage?.withTwoFactor ?? 0,
       privileged: privileged.map((row) => ({
         id: row.id,
         name: row.name,

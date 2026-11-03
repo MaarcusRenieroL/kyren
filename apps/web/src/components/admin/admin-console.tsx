@@ -10,6 +10,7 @@ import type { AppRouter } from "@zentro/api/server";
 import type { inferRouterOutputs } from "@trpc/server";
 import { EmptyState } from "@zentro/ui/components/empty-state";
 import { PageHeader } from "@zentro/ui/components/page-header";
+import { toastError, toastSuccess } from "@zentro/ui/index";
 
 type Out = inferRouterOutputs<AppRouter>["admin"];
 
@@ -249,6 +250,23 @@ export function AdminUsage() {
 
 export function AdminSecurity() {
   const { data, failed } = useAdminData("security");
+  const trpc = useTrpcClient();
+  const [required, setRequired] = useState<boolean | null>(null);
+  const requireTwoFactor = required ?? data?.requireTwoFactor ?? false;
+
+  async function changePolicy(next: boolean) {
+    try {
+      await trpc.organization.setTwoFactorPolicy.mutate({ required: next });
+      setRequired(next);
+      toastSuccess(
+        next
+          ? "Two-factor is now required"
+          : "Two-factor is no longer required",
+      );
+    } catch (error) {
+      toastError(error, "Could not change the requirement.");
+    }
+  }
 
   return (
     <Shell>
@@ -270,6 +288,29 @@ export function AdminSecurity() {
               value={String(data.staleInvitations.length)}
             />
           </dl>
+
+          <section aria-labelledby="policy" className="flex flex-col gap-2">
+            <h2 id="policy" className="text-sm font-semibold text-ink">
+              Two-factor sign-in
+            </h2>
+            <label className="flex items-start gap-3 text-sm">
+              <input
+                type="checkbox"
+                className="mt-0.5"
+                checked={requireTwoFactor}
+                onChange={(event) => void changePolicy(event.target.checked)}
+              />
+              <span>
+                <span className="block text-ink">
+                  Require two-factor sign-in for everyone
+                </span>
+                <span className="text-xs text-ink-3">
+                  {data.withTwoFactor} of {data.memberCount} people have it on.
+                  Others are asked to turn it on before they can continue.
+                </span>
+              </span>
+            </label>
+          </section>
 
           <section aria-labelledby="keys" className="flex flex-col gap-3">
             <h2 id="keys" className="text-sm font-semibold text-ink">

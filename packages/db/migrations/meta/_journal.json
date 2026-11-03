@@ -267,6 +267,13 @@
       "when": 1794500000000,
       "tag": "0037_webhooks",
       "breakpoints": true
+    },
+    {
+      "idx": 38,
+      "version": "7",
+      "when": 1794600000000,
+      "tag": "0038_org_require_two_factor",
+      "breakpoints": true
     }
   ]
 }

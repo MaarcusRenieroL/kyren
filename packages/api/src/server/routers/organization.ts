@@ -8,6 +8,7 @@ import { z } from "zod";
 import { auth } from "@zentro/auth";
 
 import { buildChanges } from "@zentro/audit";
+import { forgetTwoFactorPolicy } from "../two-factor-policy";
 import { callAuth } from "../auth-calls";
 import { authenticatedProcedure, permissionProcedure, router } from "../trpc";
 
@@ -54,6 +55,44 @@ export const organizationRouter = router({
       }
 
       return { id: activeOrganization.id };
+    }),
+
+  /** Requires every member to sign in with two-factor to use the workspace. */
+  setTwoFactorPolicy: permissionProcedure("org.settings.update", undefined, {
+    audit: ["org.updated"],
+  })
+    .input(z.object({ required: z.boolean() }))
+    .mutation(async ({ ctx, input }) => {
+      const { db, user, activeOrganization } = ctx;
+
+      // Whoever turns it on must already have it, or they lock themselves out.
+      if (input.required && !user.twoFactorEnabled) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message:
+            "Turn on two-factor for your own account first, then require it.",
+        });
+      }
+
+      await db
+        .update(organizations)
+        .set({ requireTwoFactor: input.required })
+        .where(eq(organizations.id, activeOrganization.id));
+      forgetTwoFactorPolicy(activeOrganization.id);
+
+      await ctx.audit.record(db, {
+        action: "org.updated",
+        target: { id: activeOrganization.id, label: activeOrganization.name },
+        changes: [
+          {
+            field: "requireTwoFactor",
+            from: String(!input.required),
+            to: String(input.required),
+          },
+        ],
+      });
+
+      return { required: input.required };
     }),
 
   // Owner only (org.delete is an owner-only permission).

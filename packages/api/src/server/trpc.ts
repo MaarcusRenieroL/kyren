@@ -41,6 +41,7 @@ const trpc = initTRPC
 
 import { enforceBurstLimit } from "./burst-limit";
 import { isUniqueViolation } from "./db-errors";
+import { requiresTwoFactor } from "./two-factor-policy";
 
 export const router = trpc.router;
 
@@ -124,7 +125,7 @@ export const authenticatedProcedure = baseProcedure.use(({ ctx, next }) => {
   });
 });
 
-export const protectedProcedure = baseProcedure.use(({ ctx, next }) => {
+export const protectedProcedure = baseProcedure.use(async ({ ctx, next }) => {
   if (!ctx.user?.id) {
     throw new TRPCError({
       code: "UNAUTHORIZED",
@@ -145,6 +146,19 @@ export const protectedProcedure = baseProcedure.use(({ ctx, next }) => {
     throw new TRPCError({
       code: "BAD_REQUEST",
       message: "No active organization selected",
+    });
+  }
+
+  // An organization can insist on two-factor. The page for turning it on is
+  // outside the workspace and uses no workspace procedures.
+  if (
+    !ctx.user.twoFactorEnabled &&
+    (await requiresTwoFactor(ctx.db, ctx.activeOrganization.id))
+  ) {
+    throw new TRPCError({
+      code: "FORBIDDEN",
+      message:
+        "Your organization requires two-factor sign-in. Turn it on in Settings, Security.",
     });
   }
 

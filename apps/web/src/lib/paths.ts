@@ -77,6 +77,7 @@ export const paths = {
     forgotPassword: () => "/auth/forgot-password",
     resetPassword: () => "/auth/reset-password",
     createOrganization: () => "/auth/create-organization",
+    twoFactorRequired: () => "/auth/two-factor-required",
     joinOrganization: () => "/auth/join-organization",
     invite: (code: string) => `/auth/invite/${encodeURIComponent(code)}`,
   },

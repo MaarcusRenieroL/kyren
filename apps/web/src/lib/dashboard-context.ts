@@ -6,7 +6,10 @@ import { auth } from "@zentro/auth";
 import { loadEnabledModules, loadPermissionSnapshot } from "@zentro/api/server";
 import { db } from "@zentro/db";
 import { and, eq, isNull } from "@zentro/db/drizzle";
-import { projects } from "@zentro/db/schema";
+import {
+  organizations as organizationsTable,
+  projects,
+} from "@zentro/db/schema";
 import type { ModuleId } from "@zentro/modules";
 import {
   can as engineCan,
@@ -104,6 +107,20 @@ export const getDashboardContext = cache(async () => {
     });
 
     organization = fallbackOrganization;
+  }
+
+  // An organization can insist on two-factor; until the person has it, the
+  // only page they can use is the one that turns it on.
+  if (!sessionWithUser.user.twoFactorEnabled) {
+    const [policy] = await db
+      .select({ required: organizationsTable.requireTwoFactor })
+      .from(organizationsTable)
+      .where(eq(organizationsTable.id, organization.id))
+      .limit(1);
+
+    if (policy?.required) {
+      redirect(paths.auth.twoFactorRequired());
+    }
   }
 
   const snapshot = await loadPermissionSnapshot(
