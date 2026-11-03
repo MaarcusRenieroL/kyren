@@ -47,6 +47,7 @@ import {
 } from "../chat";
 import { syncMentions, taskKeysIn } from "../mentions";
 import { runMessageAutomations } from "../automations/engine";
+import { isUniqueViolation } from "../db-errors";
 import { postChatMessage } from "../chat-post";
 import { visibleDocsCondition } from "../access";
 import { externalUrls } from "../chat-unfurl";
@@ -1027,19 +1028,43 @@ export const chatMessageProcedures = {
       }
 
       const fileIds = await claimFiles(ctx, access.memberId, input.fileIds);
-      const row = await ctx.db.transaction((tx) =>
-        postChatMessage(tx, {
-          organizationId: ctx.activeOrganization.id,
-          channelId: input.channelId,
-          memberId: access.memberId,
-          body,
-          parentId: input.parentId,
-          clientId: input.clientId,
-          fileIds,
-          // Posting in a public channel joins it.
-          join: !access.membership,
-        }),
-      );
+      const row = await ctx.db
+        .transaction((tx) =>
+          postChatMessage(tx, {
+            organizationId: ctx.activeOrganization.id,
+            channelId: input.channelId,
+            memberId: access.memberId,
+            body,
+            parentId: input.parentId,
+            clientId: input.clientId,
+            fileIds,
+            // Posting in a public channel joins it.
+            join: !access.membership,
+          }),
+        )
+        .catch(async (error: unknown) => {
+          // A retry that raced the original: hand back the message that won.
+          if (input.clientId && isUniqueViolation(error)) {
+            const [winner] = await ctx.db
+              .select()
+              .from(chatMessages)
+              .where(
+                and(
+                  eq(chatMessages.authorMemberId, access.memberId),
+                  eq(chatMessages.clientId, input.clientId),
+                ),
+              )
+              .limit(1);
+
+            if (winner) return { ...winner, duplicate: true as const };
+          }
+
+          throw error;
+        });
+
+      if ("duplicate" in row) {
+        return (await hydrateMessages(ctx, [row], access.memberId))[0]!;
+      }
 
       // Rules that watch chat run after the message is saved.
       await runMessageAutomations({

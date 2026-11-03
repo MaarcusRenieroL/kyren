@@ -72,10 +72,13 @@ export async function postChatMessage(tx: DbHandle, input: PostInput) {
     .update(chatChannels)
     .set({ lastMessageAt: now })
     .where(eq(chatChannels.id, input.channelId));
-  // What you send, you have read.
+  // What you send, you have read. A thread reply is not the channel's own
+  // message, so it must not clear the channel's unread count.
   await tx
     .update(chatMembers)
-    .set({ lastReadAt: now, typingAt: null })
+    .set(
+      input.parentId ? { typingAt: null } : { lastReadAt: now, typingAt: null },
+    )
     .where(
       and(
         eq(chatMembers.channelId, input.channelId),
