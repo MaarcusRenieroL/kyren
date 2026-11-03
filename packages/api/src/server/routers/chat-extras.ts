@@ -1151,21 +1151,30 @@ export const chatExtraProcedures = {
         eq(chatPollVotes.pollId, input.pollId),
         eq(chatPollVotes.memberId, access.memberId),
       );
-      const removed = await ctx.db
-        .delete(chatPollVotes)
-        .where(and(mine, eq(chatPollVotes.optionIndex, input.optionIndex)))
-        .returning({ id: chatPollVotes.id });
 
-      if (!removed.length) {
-        // One choice per person unless the poll allows several.
-        if (!poll.poll.multiple) await ctx.db.delete(chatPollVotes).where(mine);
+      // One vote change at a time per person and poll, so a double click or
+      // two quick taps cannot leave two votes on a single-choice poll.
+      await ctx.db.transaction(async (tx) => {
+        await tx.execute(
+          sql`select pg_advisory_xact_lock(hashtextextended(${`poll:${input.pollId}:${access.memberId}`}, 0))`,
+        );
 
-        await ctx.db.insert(chatPollVotes).values({
-          pollId: input.pollId,
-          memberId: access.memberId,
-          optionIndex: input.optionIndex,
-        });
-      }
+        const removed = await tx
+          .delete(chatPollVotes)
+          .where(and(mine, eq(chatPollVotes.optionIndex, input.optionIndex)))
+          .returning({ id: chatPollVotes.id });
+
+        if (!removed.length) {
+          // One choice per person unless the poll allows several.
+          if (!poll.poll.multiple) await tx.delete(chatPollVotes).where(mine);
+
+          await tx.insert(chatPollVotes).values({
+            pollId: input.pollId,
+            memberId: access.memberId,
+            optionIndex: input.optionIndex,
+          });
+        }
+      });
 
       return { ok: true };
     }),
