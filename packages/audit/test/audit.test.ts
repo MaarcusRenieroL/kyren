@@ -37,6 +37,7 @@ const targetTypes = [
   "employee",
   "leave",
   "payroll",
+  "api_key",
 ];
 
 describe("event catalog", () => {

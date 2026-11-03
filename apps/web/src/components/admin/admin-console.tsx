@@ -17,6 +17,7 @@ const sections = [
   { href: "/admin", label: "Overview" },
   { href: "/admin/usage", label: "Usage" },
   { href: "/admin/security", label: "Security" },
+  { href: "/admin/api-keys", label: "API keys" },
 ];
 
 const dateFormat = new Intl.DateTimeFormat(undefined, {
@@ -34,7 +35,7 @@ export function formatBytes(bytes: number) {
   return `${(bytes / 1024 ** 3).toFixed(2)} GB`;
 }
 
-function Shell({ children }: { children: React.ReactNode }) {
+export function Shell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
 
   return (

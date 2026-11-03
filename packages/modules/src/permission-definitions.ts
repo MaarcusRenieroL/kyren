@@ -713,4 +713,11 @@ export const adminPermissions: PermissionDefinition[] = [
     "Administration",
     org,
   ),
+  definePermission(
+    "admin.manage_api_keys",
+    "Manage API keys",
+    "Create and revoke keys for the public API.",
+    "Administration",
+    org,
+  ),
 ];

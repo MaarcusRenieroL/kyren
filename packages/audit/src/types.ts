@@ -21,7 +21,8 @@ export type AuditTargetType =
   | "ticket"
   | "employee"
   | "leave"
-  | "payroll";
+  | "payroll"
+  | "api_key";
 
 /** Where an event belongs: a module id, or the platform itself. */
 export type AuditModule =
