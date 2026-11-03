@@ -1,5 +1,9 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
+import { db } from "@zentro/db";
+import { eq } from "@zentro/db/drizzle";
+import { leaveRequests } from "@zentro/db/schema";
+
 import { World } from "./helpers";
 
 const world = new World();
@@ -111,5 +115,46 @@ describe("leave requests", () => {
     await expect(
       admin.hr.leaveDecide({ id: own.id, decision: "approved" }),
     ).resolves.toBeTruthy();
+  });
+});
+
+describe("the private reason on a leave request", () => {
+  it("is encrypted in the database and readable through the API", async () => {
+    process.env.FIELD_ENCRYPTION_KEY = Buffer.alloc(32, 7).toString("base64");
+
+    try {
+      const org = await world.org("Leave notes");
+      const o = await world.userIn(org, "owner", "Note Owner");
+      const m = await world.userIn(org, "member", "Note Member");
+      const owner = await world.caller(o.user, org);
+      const member = await world.caller(m.user, org);
+
+      await owner.hr.create(person(m.member.id, "Note Member"));
+      await member.hr.leaveRequest({
+        type: "sick",
+        startDate: "2027-03-01",
+        endDate: "2027-03-02",
+        note: "Chemotherapy appointment",
+      });
+
+      const [row] = await db
+        .select({ note: leaveRequests.note })
+        .from(leaveRequests)
+        .where(eq(leaveRequests.organizationId, org.id));
+
+      expect(row!.note).toMatch(/^enc:v1:/);
+      expect(row!.note).not.toContain("Chemotherapy");
+
+      const { requests } = await owner.hr.leaveList();
+
+      expect(requests[0]!.note).toBe("Chemotherapy appointment");
+
+      delete process.env.FIELD_ENCRYPTION_KEY;
+      expect((await owner.hr.leaveList()).requests[0]!.note).toMatch(
+        /cannot be read/,
+      );
+    } finally {
+      delete process.env.FIELD_ENCRYPTION_KEY;
+    }
   });
 });

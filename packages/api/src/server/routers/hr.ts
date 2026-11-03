@@ -14,6 +14,8 @@ import {
 import { employees, leaveRequests, members, users } from "@zentro/db/schema";
 import { z } from "zod";
 
+import { decryptField, encryptField } from "@zentro/utils/field-crypto";
+
 import { currentMemberId } from "../chat";
 import { enforceRateLimit } from "../rate-limit";
 import { isoDate, uuid } from "../zod-common";
@@ -165,6 +167,15 @@ export async function currentEmployee(ctx: OrganizationContext) {
 }
 
 const manager = alias(employees, "manager");
+
+/** A leave note is stored encrypted; an unreadable one must not break the whole board. */
+function readNote(stored: string | null) {
+  try {
+    return decryptField(stored);
+  } catch {
+    return "This note is encrypted and cannot be read right now.";
+  }
+}
 
 export const hrRouter = router({
   directory: procedure("hr.view").query(async ({ ctx }) => {
@@ -384,7 +395,7 @@ export const hrRouter = router({
         startDate: request.startDate,
         endDate: request.endDate,
         days: request.days,
-        note: request.note,
+        note: readNote(request.note),
         status: request.status,
         mine: request.employeeId === mine?.id,
       })),
@@ -468,6 +479,7 @@ export const hrRouter = router({
           .insert(leaveRequests)
           .values({
             ...input,
+            note: encryptField(input.note),
             days,
             organizationId: ctx.activeOrganization.id,
             employeeId: employee.id,
