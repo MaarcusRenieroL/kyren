@@ -167,7 +167,7 @@ test("views, counts, search and assignment move tickets between queues", async (
   await expect(
     page.getByRole("link", { name: new RegExp(alpha) }),
   ).toBeVisible();
-  await expect(page.getByText("Urgent")).toBeVisible();
+  await expect(page.getByRole("link").getByText("Urgent")).toBeVisible();
 });
 
 test("replies park a ticket as pending, notes stay internal, resolving stamps it", async ({
@@ -429,4 +429,31 @@ test("an empty queue offers one New ticket button, in the empty state", async ({
   await expect(
     page.getByRole("main").getByRole("button", { name: "New ticket" }),
   ).toHaveCount(1);
+});
+
+test("an admin sets a response target and the ticket shows when it is answered in time", async ({
+  page,
+}) => {
+  await registerWithOrganization(page, {
+    label: "tksla",
+    orgName: uniqueName("SLA org"),
+  });
+
+  await page.goto("/tickets");
+  await page.getByText("Response targets").click();
+  await page.getByLabel("Normal first answer, hours").fill("1");
+  await page.getByLabel("Normal resolved, hours").fill("4");
+  await page.getByRole("button", { name: "Save Normal targets" }).click();
+  await expect(page.getByText("Normal targets saved")).toBeVisible();
+
+  await newTicket(page, { subject: "Printer jammed", requester: "Rin" });
+  await expect(page.getByText("Answer on track")).toBeVisible();
+  await expect(page.getByText("Resolve on track")).toBeVisible();
+
+  await page.getByRole("radio", { name: "Reply", exact: true }).click();
+  await page
+    .getByRole("textbox", { name: "Reply", exact: true })
+    .fill("Looking now");
+  await page.getByRole("button", { name: "Send reply" }).click();
+  await expect(page.getByText("Answer on time")).toBeVisible();
 });

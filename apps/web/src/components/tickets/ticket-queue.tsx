@@ -9,7 +9,10 @@ import { useTrpcClient } from "@zentro/api/react";
 import type { AppRouter } from "@zentro/api/server";
 import type { inferRouterOutputs } from "@trpc/server";
 import { EmptyState } from "@zentro/ui/components/empty-state";
+import { SlaBadge } from "./sla-badge";
+import { SlaTargets } from "./sla-targets";
 import { PageHeader } from "@zentro/ui/components/page-header";
+import { usePermission } from "~/src/components/permissions/permission-provider";
 import { Button } from "@zentro/ui/shadcn/button";
 import { Input } from "@zentro/ui/shadcn/input";
 
@@ -45,6 +48,7 @@ const dateFormat = new Intl.DateTimeFormat(undefined, {
 });
 
 export function TicketQueue({ canCreate }: { canCreate: boolean }) {
+  const canManageSla = usePermission("tickets.manage_sla");
   const trpc = useTrpcClient();
   const router = useRouter();
   const [view, setView] = useState<View>("mine");
@@ -80,6 +84,8 @@ export function TicketQueue({ canCreate }: { canCreate: boolean }) {
         description="Support requests, from first message to the task that fixes them."
         actions={emptyMine ? null : newButton}
       />
+
+      {canManageSla ? <SlaTargets /> : null}
 
       <div className="flex flex-wrap items-center gap-2">
         <div
@@ -165,6 +171,8 @@ export function TicketQueue({ canCreate }: { canCreate: boolean }) {
                 >
                   {priorityLabels[ticket.priority]}
                 </span>
+                <SlaBadge label="Answer" clock={ticket.sla.response} />
+                <SlaBadge label="Resolve" clock={ticket.sla.resolution} />
                 <span className="w-32 truncate text-sm text-ink-2">
                   {ticket.requesterName}
                 </span>

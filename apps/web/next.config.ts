@@ -5,6 +5,8 @@ import type { NextConfig } from "next";
 import { securityHeaders } from "./security-headers";
 
 const nextConfig: NextConfig = {
+  // Set by the gateway so the app can live under /<name>; unset serves it at /.
+  basePath: process.env.NEXT_PUBLIC_BASE_PATH || undefined,
   output: "standalone",
   outputFileTracingRoot: path.resolve(process.cwd(), "../.."),
   devIndicators: {

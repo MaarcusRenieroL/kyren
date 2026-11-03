@@ -8,6 +8,7 @@ import { ArrowLeftIcon, Trash2Icon } from "lucide-react";
 import { useTrpcClient } from "@zentro/api/react";
 import type { AppRouter } from "@zentro/api/server";
 import type { inferRouterOutputs } from "@trpc/server";
+import { SlaBadge } from "./sla-badge";
 import { EmptyState } from "@zentro/ui/components/empty-state";
 import { PageHeader } from "@zentro/ui/components/page-header";
 import { Button } from "@zentro/ui/shadcn/button";
@@ -134,7 +135,15 @@ export function TicketDetail({ id }: { id: string }) {
         }
         title={ticket.subject}
         meta={
-          <span className="font-mono text-sm text-ink-3">{ticket.ref}</span>
+          <span className="flex flex-wrap items-center gap-2">
+            <span className="font-mono text-sm text-ink-3">{ticket.ref}</span>
+            <SlaBadge label="Answer" clock={ticket.sla.response} alwaysShow />
+            <SlaBadge
+              label="Resolve"
+              clock={ticket.sla.resolution}
+              alwaysShow
+            />
+          </span>
         }
         description={`${ticket.requesterName}${ticket.requesterEmail ? ` · ${ticket.requesterEmail}` : ""} · opened ${dateFormat.format(new Date(ticket.createdAt))}`}
         actions={
