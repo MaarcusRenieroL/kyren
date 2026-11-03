@@ -730,10 +730,11 @@ export function NotionEditorPage({ slug }: { slug: string }) {
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [isLoading, setIsLoading] = useState(true);
-  const [saveStatus, setSaveStatus] = useState<"saved" | "saving" | "error">(
-    "saved",
-  );
+  const [saveStatus, setSaveStatus] = useState<
+    "saved" | "saving" | "error" | "conflict"
+  >("saved");
   const [retryTick, setRetryTick] = useState(0);
+  const contentSaveInFlight = useRef(false);
   const [createTaskOpen, setCreateTaskOpen] = useState(false);
   const [splitCanvas, setSplitCanvas] = useState(false);
   const [prefillTaskName, setPrefillTaskName] = useState("");
@@ -885,10 +886,19 @@ export function NotionEditorPage({ slug }: { slug: string }) {
     setSaveStatus("saving");
 
     const timeout = window.setTimeout(async () => {
+      // A save is already on its way. When it lands, `doc` changes and this
+      // effect runs again with the newer version.
+      if (contentSaveInFlight.current) {
+        return;
+      }
+
+      contentSaveInFlight.current = true;
+
       try {
         const updatedDoc = await trpc.docs.updateDocContent.mutate({
           id: doc.id,
           content,
+          expectedUpdatedAt: doc.updatedAt,
         });
 
         setDoc((currentDoc) =>
@@ -903,8 +913,15 @@ export function NotionEditorPage({ slug }: { slug: string }) {
         setSaveStatus("saved");
       } catch (error) {
         toastError(error, "Failed to save doc content");
-        // The edits are not on the server yet, so say so and try again.
-        setSaveStatus("error");
+
+        // Retrying cannot fix someone else's newer version; only a reload can.
+        const code = (error as { data?: { code?: string } }).data?.code;
+
+        // The edits are not on the server yet, so say so (and try again
+        // unless the doc changed elsewhere).
+        setSaveStatus(code === "CONFLICT" ? "conflict" : "error");
+      } finally {
+        contentSaveInFlight.current = false;
       }
     }, 700);
 
@@ -1126,7 +1143,15 @@ export function NotionEditorPage({ slug }: { slug: string }) {
               className="ml-2 flex items-center gap-1.5 font-mono text-xs text-ink-3"
               suppressHydrationWarning
             >
-              {saveStatus === "error" ? (
+              {saveStatus === "conflict" ? (
+                <>
+                  <span
+                    aria-hidden="true"
+                    className="size-2 rounded-full bg-danger"
+                  />
+                  Changed elsewhere. Reload to see it.
+                </>
+              ) : saveStatus === "error" ? (
                 <>
                   <span
                     aria-hidden="true"

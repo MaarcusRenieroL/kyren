@@ -519,7 +519,7 @@ export const docsRouter = router({
     .input(updateDocContentSchema)
     .mutation(async ({ ctx, input }) => {
       const { db, user, activeOrganization } = ctx;
-      const { id, content } = input;
+      const { id, content, expectedUpdatedAt } = input;
       const member = await getCurrentMember(ctx);
 
       return db.transaction(async (tx) => {
@@ -534,14 +534,20 @@ export const docsRouter = router({
               eq(docs.id, id),
               eq(docs.organizationId, activeOrganization.id),
               isNull(docs.deletedAt),
+              // Only overwrite the version this edit started from.
+              ...(expectedUpdatedAt
+                ? [eq(docs.updatedAt, expectedUpdatedAt)]
+                : []),
             ),
           )
           .returning();
 
         if (!updatedDoc) {
           throw new TRPCError({
-            code: "NOT_FOUND",
-            message: "Doc not found.",
+            code: expectedUpdatedAt ? "CONFLICT" : "NOT_FOUND",
+            message: expectedUpdatedAt
+              ? "Someone else changed this doc. Reload to see their edits."
+              : "Doc not found.",
           });
         }
 

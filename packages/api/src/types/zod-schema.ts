@@ -312,6 +312,8 @@ export const updateDocTitleSchema = z.object({
 export const updateDocContentSchema = z.object({
   id: z.string().uuid(),
   content: z.string().max(100000),
+  /** The version this edit was made from. A newer one is not overwritten. */
+  expectedUpdatedAt: z.coerce.date().optional(),
 });
 
 export const deleteDocSchema = z.object({
