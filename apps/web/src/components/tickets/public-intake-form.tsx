@@ -134,7 +134,7 @@ export function PublicIntakeForm({ token }: { token: string }) {
               />
             )}
             {errors[field.id] ? (
-              <span role="alert" className="text-xs text-red-600">
+              <span role="alert" className="text-xs text-danger-text">
                 {errors[field.id]}
               </span>
             ) : null}
@@ -151,7 +151,7 @@ export function PublicIntakeForm({ token }: { token: string }) {
           />
         </div>
         {errors.form ? (
-          <p role="alert" className="text-sm text-red-600">
+          <p role="alert" className="text-sm text-danger-text">
             {errors.form}
           </p>
         ) : null}
