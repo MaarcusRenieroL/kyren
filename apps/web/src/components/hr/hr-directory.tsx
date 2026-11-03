@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 import { PlusIcon, SearchIcon } from "lucide-react";
 
 import { useTrpcClient } from "@zentro/api/react";
@@ -70,10 +71,15 @@ export function HrDirectory() {
   }, [directory, q, department]);
 
   const addButton = directory?.canManage ? (
-    <Button onClick={() => setTarget("new")}>
-      <PlusIcon aria-hidden />
-      Add person
-    </Button>
+    <>
+      <Button variant="outline" asChild>
+        <Link href="/hr/import">Import CSV</Link>
+      </Button>
+      <Button onClick={() => setTarget("new")}>
+        <PlusIcon aria-hidden />
+        Add person
+      </Button>
+    </>
   ) : null;
 
   return (
