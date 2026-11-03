@@ -121,3 +121,37 @@ describe("pay runs", () => {
     ).resolves.toHaveProperty("id");
   });
 });
+
+describe("pay runs and currencies", () => {
+  it("refuses a run that mixes currencies", async () => {
+    const org = await world.org("Mixed currency");
+    const o = await world.userIn(org, "owner", "Currency Owner");
+    const caller = await world.caller(o.user, org);
+
+    for (const [name, currency] of [
+      ["Dollar Dan", "USD"],
+      ["Euro Eva", "EUR"],
+    ] as const) {
+      const [row] = await db
+        .insert(employees)
+        .values({ organizationId: org.id, name, jobTitle: "" })
+        .returning();
+
+      await db.insert(compensations).values({
+        organizationId: org.id,
+        employeeId: row!.id,
+        annualSalary: 1_200_000,
+        currency,
+      });
+    }
+
+    await expect(
+      caller.payroll.createRun({
+        label: "Mixed",
+        periodStart: "2026-06-01",
+        periodEnd: "2026-06-30",
+        deductionRateBps: 0,
+      }),
+    ).rejects.toMatchObject({ code: "BAD_REQUEST" });
+  });
+});

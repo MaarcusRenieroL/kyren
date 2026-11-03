@@ -327,6 +327,15 @@ export const payrollRouter = router({
         });
       }
 
+      // A run's total adds the lines up, which only makes sense in one currency.
+      if (new Set(lines.map((line) => line.currency)).size > 1) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message:
+            "A pay run covers one currency. Pay each currency in its own run.",
+        });
+      }
+
       return ctx.db
         .transaction(async (tx) => {
           // One run is created at a time, so the overlap check below cannot

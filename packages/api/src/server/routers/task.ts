@@ -1119,6 +1119,22 @@ export const taskRouter = router({
       const changes = getChangedTaskFields(previousTask, values);
 
       const updatedTask = await db.transaction(async (tx) => {
+        // Lock the row and read its status now, not before the transaction:
+        // two requests marking it done at once must not both count as the
+        // change that unblocks the tasks waiting on it.
+        const [locked] = await tx
+          .select({ status: tasks.status })
+          .from(tasks)
+          .where(
+            and(
+              eq(tasks.key, key),
+              eq(tasks.organizationId, activeOrganization.id),
+              isNull(tasks.deletedAt),
+            ),
+          )
+          .for("update");
+        const wasDone = locked?.status === "done";
+
         const [row] = await tx
           .update(tasks)
           .set(updateValues)
@@ -1146,7 +1162,7 @@ export const taskRouter = router({
         }
 
         // When a task is marked done, check downstream blocked tasks and notify
-        if (values.status === "done" && previousTask.status !== "done") {
+        if (values.status === "done" && !wasDone) {
           await triggerDownstreamUnblocks(ctx, tx, previousTask);
         }
 

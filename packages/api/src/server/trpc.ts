@@ -40,6 +40,7 @@ const trpc = initTRPC
   });
 
 import { enforceBurstLimit } from "./burst-limit";
+import { isUniqueViolation } from "./db-errors";
 
 export const router = trpc.router;
 
@@ -78,7 +79,31 @@ const burstLimit = trpc.middleware(({ ctx, type, next }) => {
   return next();
 });
 
-const baseProcedure = trpc.procedure.use(burstLimit).use(auditGuard);
+/**
+ * A create that loses a race on a unique name or slug fails inside Postgres.
+ * Say so plainly instead of returning a server error.
+ */
+const conflictMapper = trpc.middleware(async ({ next }) => {
+  const result = await next();
+
+  if (
+    !result.ok &&
+    result.error.code === "INTERNAL_SERVER_ERROR" &&
+    isUniqueViolation(result.error.cause)
+  ) {
+    throw new TRPCError({
+      code: "CONFLICT",
+      message: "That already exists. Try a different name.",
+    });
+  }
+
+  return result;
+});
+
+const baseProcedure = trpc.procedure
+  .use(burstLimit)
+  .use(conflictMapper)
+  .use(auditGuard);
 
 export const publicProcedure = baseProcedure;
 
