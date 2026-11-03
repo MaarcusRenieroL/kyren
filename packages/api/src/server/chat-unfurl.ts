@@ -1,5 +1,8 @@
+import dns from "node:dns";
 import { lookup } from "node:dns/promises";
 import { BlockList, isIP } from "node:net";
+
+import { Agent, fetch as pinnedFetch } from "undici";
 
 export type Preview = {
   url: string;
@@ -36,6 +39,12 @@ for (const [network, prefix] of [
   ["fc00::", 7],
   ["fe80::", 10],
   ["ff00::", 8],
+  // NAT64, Teredo and 6to4 carry an IPv4 address inside an IPv6 one, which
+  // could point at an internal host.
+  ["64:ff9b::", 96],
+  ["64:ff9b:1::", 48],
+  ["2001::", 32],
+  ["2002::", 16],
 ] as const) {
   blocked.addSubnet(network, prefix, "ipv6");
 }
@@ -91,6 +100,42 @@ export async function isSafeUrl(value: string) {
   }
 }
 
+/**
+ * Resolves a host for the actual connection and refuses it if any answer is a
+ * private address. The check and the connection use the same answer, so a name
+ * that changes its address between the two cannot reach an internal host.
+ */
+export function safeLookup(
+  hostname: string,
+  options: dns.LookupOptions,
+  callback: (
+    error: Error | null,
+    address: string | dns.LookupAddress[],
+    family?: number,
+  ) => void,
+) {
+  dns.lookup(hostname, { ...options, all: true }, (error, addresses) => {
+    if (error) return callback(error, "");
+
+    const list = addresses as unknown as dns.LookupAddress[];
+
+    if (!list.length || list.some((entry) => isPrivateAddress(entry.address))) {
+      return callback(new Error("That address is not allowed."), "");
+    }
+
+    if (options.all) return callback(null, list);
+
+    callback(null, list[0]!.address, list[0]!.family);
+  });
+}
+
+const agent = new Agent({
+  connect: { lookup: safeLookup as never },
+  // Slow servers are cut off by the caller's timeout; keep no idle sockets.
+  pipelining: 0,
+  keepAliveTimeout: 1,
+});
+
 function meta(html: string, ...names: string[]) {
   for (const name of names) {
     const pattern = new RegExp(
@@ -128,7 +173,8 @@ export async function fetchPreview(value: string): Promise<Preview | null> {
     let url = value;
 
     for (let hop = 0; hop < 3; hop += 1) {
-      const response = await fetch(url, {
+      const response = await pinnedFetch(url, {
+        dispatcher: agent,
         signal: controller.signal,
         redirect: "manual",
         headers: {
