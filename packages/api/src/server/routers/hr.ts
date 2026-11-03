@@ -1,5 +1,16 @@
 import { TRPCError } from "@trpc/server";
-import { alias, and, asc, desc, eq, notInArray, sql } from "@zentro/db/drizzle";
+import {
+  alias,
+  and,
+  asc,
+  desc,
+  eq,
+  gte,
+  inArray,
+  lte,
+  notInArray,
+  sql,
+} from "@zentro/db/drizzle";
 import { employees, leaveRequests, members, users } from "@zentro/db/schema";
 import { z } from "zod";
 
@@ -426,17 +437,45 @@ export const hrRouter = router({
         });
       }
 
-      const [row] = await ctx.db
-        .insert(leaveRequests)
-        .values({
-          ...input,
-          days,
-          organizationId: ctx.activeOrganization.id,
-          employeeId: employee.id,
-        })
-        .returning({ id: leaveRequests.id });
+      return ctx.db.transaction(async (tx) => {
+        // One request per person at a time, so the overlap check cannot be
+        // raced by a double submit.
+        await tx.execute(
+          sql`select pg_advisory_xact_lock(hashtextextended(${`leave:${employee.id}`}, 0))`,
+        );
 
-      return { id: row!.id };
+        const [overlap] = await tx
+          .select({ id: leaveRequests.id })
+          .from(leaveRequests)
+          .where(
+            and(
+              eq(leaveRequests.employeeId, employee.id),
+              inArray(leaveRequests.status, ["pending", "approved"]),
+              lte(leaveRequests.startDate, input.endDate),
+              gte(leaveRequests.endDate, input.startDate),
+            ),
+          )
+          .limit(1);
+
+        if (overlap) {
+          throw new TRPCError({
+            code: "CONFLICT",
+            message: "You already have leave requested for some of those days.",
+          });
+        }
+
+        const [row] = await tx
+          .insert(leaveRequests)
+          .values({
+            ...input,
+            days,
+            organizationId: ctx.activeOrganization.id,
+            employeeId: employee.id,
+          })
+          .returning({ id: leaveRequests.id });
+
+        return { id: row!.id };
+      });
     }),
 
   leaveCancel: procedure("hr.view")
@@ -487,6 +526,16 @@ export const hrRouter = router({
         throw new TRPCError({
           code: "NOT_FOUND",
           message: "Request not found.",
+        });
+      }
+
+      // Someone else has to decide your own leave.
+      const mine = await currentEmployee(ctx);
+
+      if (mine && mine.id === row.request.employeeId) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "Ask another manager to decide your own leave.",
         });
       }
 
