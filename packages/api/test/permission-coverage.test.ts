@@ -22,6 +22,8 @@ const unmanaged: Record<string, string> = {
     "Authenticated only; returns an invitation to the user it was sent to.",
   "user.listPendingInvites":
     "Authenticated only; lists the signed-in user's own invitations.",
+  "user.exportMyData":
+    "Signed-in members export what they wrote or created; each source is limited to the projects, docs and channels they can already see.",
   "permissions.me":
     "Signed-in members read their own permissions; nothing about anyone else.",
   "permissions.check":

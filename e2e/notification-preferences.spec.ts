@@ -26,3 +26,19 @@ test("notification choices save and survive a reload", async ({ page }) => {
   await expect(comments).not.toBeChecked();
   await expect(mentions).toBeChecked();
 });
+
+test("a person can download their own data", async ({ page }) => {
+  await registerWithOrganization(page, {
+    label: "export",
+    orgName: uniqueName("Export org"),
+  });
+  await page.goto("/settings/account/profile");
+
+  const download = page.waitForEvent("download");
+
+  await page.getByRole("button", { name: "Download my data" }).click();
+
+  const file = await download;
+
+  expect(file.suggestedFilename()).toMatch(/^my-data-\d{4}-\d{2}-\d{2}\.json$/);
+});
