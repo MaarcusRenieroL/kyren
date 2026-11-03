@@ -44,6 +44,7 @@ import {
   router,
   type OrganizationContext,
 } from "../trpc";
+import { enforceRateLimit } from "../rate-limit";
 import { memberName, postTaskEvent } from "../chat-events";
 import { syncMentions } from "../mentions";
 import { readableMessage } from "../chat";
@@ -317,7 +318,13 @@ export const taskRouter = router({
   })
     .input(importTasksSchema)
     .mutation(async ({ ctx, input }) => {
-      const { db, activeOrganization } = ctx;
+      const { db, user, activeOrganization } = ctx;
+
+      await enforceRateLimit(db, `api:import-tasks:${user.id}`, {
+        max: 20,
+        windowMs: 60 * 60 * 1000,
+      });
+
       const memberId = (await getCurrentMember(ctx)).id;
 
       const created = await db.transaction(async (tx) => {

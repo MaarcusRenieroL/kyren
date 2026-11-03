@@ -23,6 +23,7 @@ import {
 
 import { visibleDocsCondition } from "../access";
 import { currentMemberId, readableChannelIds } from "../chat";
+import { enforceRateLimit } from "../rate-limit";
 
 /** The most rows of any one kind in an export. */
 const EXPORT_LIMIT = 5000;
@@ -65,6 +66,12 @@ export const userRouter = router({
    */
   exportMyData: protectedProcedure.query(async ({ ctx }) => {
     const { db, user, activeOrganization } = ctx;
+
+    await enforceRateLimit(db, `api:export:${user.id}`, {
+      max: 5,
+      windowMs: 60 * 60 * 1000,
+    });
+
     const memberId = await currentMemberId(ctx);
     const enabled = await ctx.enabledModules();
     const projectIds = enabled.has("tasks")
