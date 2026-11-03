@@ -15,6 +15,7 @@ import {
 import { postOverdueEvents } from "./chat-events";
 import { postChatMessage } from "./chat-post";
 import { sendDueMeetingReminders } from "./meeting-reminders";
+import { createDueRecurringTasks } from "./recurring-tasks";
 import { deliverDueWebhooks } from "./webhooks";
 
 type Db = DbHandle & {
@@ -151,6 +152,7 @@ export async function runChatJobs(db: Db, options: { heavy?: boolean } = {}) {
   const overdue = options.heavy ? await postOverdueEvents(db) : 0;
 
   const meetingReminders = await sendDueMeetingReminders(db);
+  const recurring = await createDueRecurringTasks(db);
   let escalated = 0;
 
   if (options.heavy) {
@@ -171,6 +173,7 @@ export async function runChatJobs(db: Db, options: { heavy?: boolean } = {}) {
     overdue,
     escalated,
     meetingReminders,
+    recurring,
     webhooks,
   };
 }

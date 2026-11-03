@@ -20,6 +20,7 @@ export * from "./whiteboard";
 export * from "./mail";
 export * from "./ticket";
 export * from "./kb-article";
+export * from "./task-recurrence";
 export * from "./hr";
 export * from "./payroll";
 export * from "./api-key";

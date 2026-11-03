@@ -20,6 +20,7 @@ import {
   type TaskSort,
   type TaskView,
 } from "./task-workspace-header";
+import { RecurringTasksPanel } from "./recurring-tasks-panel";
 import { SprintPanel, type SprintScope } from "./sprint-panel";
 import type {
   BulkChange,
@@ -342,6 +343,7 @@ export const TaskWorkspace: FC<Props> = ({
           onChanged={() => void onTaskCreated?.()}
         />
       ) : null}
+      {projectId ? <RecurringTasksPanel projectId={projectId} /> : null}
 
       <div className="min-w-0">
         {view === "board" ? (

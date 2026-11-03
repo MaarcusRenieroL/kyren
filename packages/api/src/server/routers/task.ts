@@ -60,6 +60,7 @@ import {
   recordTaskChanges,
   triggerDownstreamUnblocks,
 } from "./task-helpers";
+import { createDueRecurringTasksLazily } from "../recurring-tasks";
 import { runTaskAutomations } from "../automations/engine";
 import { isUniqueViolation } from "../db-errors";
 
@@ -411,6 +412,11 @@ export const taskRouter = router({
     .input(getTasksSchema.optional().default({}))
     .query(async ({ ctx, input }) => {
       const { db, activeOrganization } = ctx;
+
+      await createDueRecurringTasksLazily(
+        db as unknown as Parameters<typeof createDueRecurringTasksLazily>[0],
+      );
+
       const viewableProjectIds =
         await ctx.permissions.viewableProjectIds("tasks.view");
 
