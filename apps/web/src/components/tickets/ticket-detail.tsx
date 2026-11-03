@@ -20,6 +20,7 @@ import { usePageCrumb } from "~/src/components/shell/breadcrumb-context";
 import { useAsyncData } from "~/src/lib/use-async-data";
 
 import {
+  awayLabel,
   isMissing,
   messageOf,
   priorityLabels,
@@ -302,9 +303,18 @@ export function TicketDetail({ id }: { id: string }) {
               {people.map((person) => (
                 <option key={person.id} value={person.id}>
                   {person.name}
+                  {awayLabel(person.awayUntil)
+                    ? ` (${awayLabel(person.awayUntil)})`
+                    : ""}
                 </option>
               ))}
             </select>
+            {awayLabel(ticket.assigneeAwayUntil) ? (
+              <span role="status" className="text-xs text-warning-text">
+                The assignee is {awayLabel(ticket.assigneeAwayUntil)}. Consider
+                reassigning this ticket.
+              </span>
+            ) : null}
           </label>
 
           <div className="flex flex-col gap-1.5">

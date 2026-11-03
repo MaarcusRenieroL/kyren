@@ -14,6 +14,7 @@ import { Button } from "@zentro/ui/shadcn/button";
 import { Input } from "@zentro/ui/shadcn/input";
 
 import {
+  awayLabel,
   priorityLabels,
   priorityTone,
   statusLabels,
@@ -169,6 +170,11 @@ export function TicketQueue({ canCreate }: { canCreate: boolean }) {
                 </span>
                 <span className="w-28 truncate text-sm text-ink-3">
                   {ticket.assignee ?? "Unassigned"}
+                  {awayLabel(ticket.assigneeAwayUntil) ? (
+                    <span className="block text-xs text-warning-text">
+                      {awayLabel(ticket.assigneeAwayUntil)}
+                    </span>
+                  ) : null}
                 </span>
                 <span className="w-32 text-right text-xs text-ink-3">
                   {dateFormat.format(new Date(ticket.updatedAt))}

@@ -19,6 +19,7 @@ import {
 } from "@zentro/db/schema";
 import { z } from "zod";
 
+import { awayUntilByMember } from "../away";
 import { currentMemberId } from "../chat";
 import { permissionProcedure, router, type OrganizationContext } from "../trpc";
 
@@ -43,6 +44,17 @@ const procedure = (permission: string, audit?: string[], also?: string[]) =>
   });
 
 const escapeLike = (value: string) => value.replace(/[\\%_]/g, "\\$&");
+
+/**
+ * The return date of someone away today, "" when they are away with no return
+ * date, and `null` when they are present or the ticket is unassigned.
+ */
+function awayUntil(
+  away: Map<string, string | null>,
+  memberId: string | null,
+): string | null {
+  return memberId && away.has(memberId) ? (away.get(memberId) ?? "") : null;
+}
 
 const ticketRef = (number: number) => `SUP-${number}`;
 
@@ -176,6 +188,8 @@ export const ticketsRouter = router({
         .orderBy(desc(tickets.updatedAt))
         .limit(200);
 
+      const away = await awayUntilByMember(ctx.db, organizationId);
+
       return {
         counts,
         tickets: rows.map(({ ticket, assignee }) => ({
@@ -187,6 +201,7 @@ export const ticketsRouter = router({
           priority: ticket.priority,
           category: ticket.category,
           assignee: assignee ?? null,
+          assigneeAwayUntil: awayUntil(away, ticket.assigneeMemberId),
           updatedAt: ticket.updatedAt.toISOString(),
         })),
       };
@@ -194,12 +209,18 @@ export const ticketsRouter = router({
 
   /** People a ticket can be assigned to. */
   assignees: procedure("tickets.view").query(async ({ ctx }) => {
-    return ctx.db
+    const away = await awayUntilByMember(ctx.db, ctx.activeOrganization.id);
+    const people = await ctx.db
       .select({ id: members.id, name: users.name })
       .from(members)
       .innerJoin(users, eq(users.id, members.userId))
       .where(eq(members.organizationId, ctx.activeOrganization.id))
       .orderBy(asc(users.name));
+
+    return people.map((person) => ({
+      ...person,
+      awayUntil: awayUntil(away, person.id),
+    }));
   }),
 
   get: procedure("tickets.view")
@@ -234,6 +255,10 @@ export const ticketsRouter = router({
         priority: ticket.priority,
         category: ticket.category,
         assigneeMemberId: ticket.assigneeMemberId,
+        assigneeAwayUntil: awayUntil(
+          await awayUntilByMember(ctx.db, ctx.activeOrganization.id),
+          ticket.assigneeMemberId,
+        ),
         linkedTask: task ?? null,
         createdAt: ticket.createdAt.toISOString(),
         resolvedAt: ticket.resolvedAt?.toISOString() ?? null,

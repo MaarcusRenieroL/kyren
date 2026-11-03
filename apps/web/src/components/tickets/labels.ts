@@ -56,3 +56,14 @@ export const isMissing = (error: unknown) => {
 
   return code === "NOT_FOUND" || code === "FORBIDDEN";
 };
+
+/** "away until 12 Nov", or just "away" when there is no return date. */
+export function awayLabel(until: string | null | undefined) {
+  if (until === null || until === undefined) return null;
+  if (!until) return "away";
+
+  return `away until ${new Date(`${until}T00:00:00`).toLocaleDateString(
+    undefined,
+    { month: "short", day: "numeric" },
+  )}`;
+}

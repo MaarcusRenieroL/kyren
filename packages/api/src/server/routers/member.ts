@@ -12,6 +12,7 @@ import {
 import { z } from "zod";
 
 import { assertHoldsAll } from "../access";
+import { awayUntilByMember } from "../away";
 import { callAuth } from "../auth-calls";
 import { permissionProcedure, router } from "../trpc";
 
@@ -237,76 +238,9 @@ export const memberRouter = router({
     }),
 
   getOutOfOffice: permissionProcedure("members.view").query(async ({ ctx }) => {
-    const { db, activeOrganization } = ctx;
-    const events = await db
-      .select({
-        targetId: activityEvents.targetId,
-        metadata: activityEvents.metadata,
-        createdAt: activityEvents.createdAt,
-      })
-      .from(activityEvents)
-      .where(
-        and(
-          eq(activityEvents.organizationId, activeOrganization.id),
-          eq(activityEvents.targetType, "member"),
-          eq(activityEvents.action, "member.out_of_office"),
-        ),
-      )
-      .orderBy(desc(activityEvents.createdAt));
+    const away = await awayUntilByMember(ctx.db, ctx.activeOrganization.id);
 
-    const latest = new Map<
-      string,
-      { isOutOfOffice: boolean; untilDate?: string | null }
-    >();
-    for (const ev of events) {
-      if (!latest.has(ev.targetId)) {
-        const meta = (ev.metadata ?? {}) as Record<string, any>;
-        latest.set(ev.targetId, {
-          isOutOfOffice: Boolean(meta.isOutOfOffice),
-          untilDate: (meta.untilDate as string) || null,
-        });
-      }
-    }
-
-    const oooList: Array<{ memberId: string; untilDate?: string | null }> = [];
-    latest.forEach((val, memberId) => {
-      if (val.isOutOfOffice) {
-        oooList.push({ memberId, untilDate: val.untilDate });
-      }
-    });
-
-    // Approved leave counts too, so nobody is offered work while on holiday.
-    // Only the return date leaves this query; the leave type and note stay in HR.
-    const today = new Date().toISOString().slice(0, 10);
-    const onLeave = await db
-      .select({
-        memberId: employees.memberId,
-        endDate: leaveRequests.endDate,
-      })
-      .from(leaveRequests)
-      .innerJoin(employees, eq(employees.id, leaveRequests.employeeId))
-      .where(
-        and(
-          eq(leaveRequests.organizationId, activeOrganization.id),
-          eq(leaveRequests.status, "approved"),
-          lte(leaveRequests.startDate, today),
-          gte(leaveRequests.endDate, today),
-        ),
-      );
-
-    for (const leave of onLeave) {
-      if (!leave.memberId) continue;
-      const existing = oooList.find(
-        (entry) => entry.memberId === leave.memberId,
-      );
-      if (!existing) {
-        oooList.push({ memberId: leave.memberId, untilDate: leave.endDate });
-      } else if (!existing.untilDate || existing.untilDate < leave.endDate) {
-        existing.untilDate = leave.endDate;
-      }
-    }
-
-    return oooList;
+    return [...away].map(([memberId, untilDate]) => ({ memberId, untilDate }));
   }),
 
   toggleOutOfOffice: permissionProcedure("members.view")
