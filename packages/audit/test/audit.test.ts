@@ -40,6 +40,7 @@ const targetTypes = [
   "api_key",
   "webhook",
   "custom_field",
+  "meeting",
 ];
 
 describe("event catalog", () => {

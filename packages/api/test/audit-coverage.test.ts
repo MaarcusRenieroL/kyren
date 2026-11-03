@@ -61,6 +61,8 @@ const recordsNothing: Record<string, string> = {
     "Sends a direct message to a channel admin; nothing changes until they add the person.",
   "timesheet.start": "A personal timer; the time it logs is on the task.",
   "timesheet.stop": "Stopping a personal timer adds a time log to the task.",
+  "meeting.respond": "An invitee's own answer, shown to the other attendees.",
+  "meeting.saveNotes": "Shared notes the attendees write together.",
   "taskView.create":
     "A saved filter set; it holds no task data, only the settings of the list.",
   "taskView.remove": "Removes a person's own saved filter set.",

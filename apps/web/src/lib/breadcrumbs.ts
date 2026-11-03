@@ -16,6 +16,7 @@ const labels: Record<string, string> = {
   usage: "Usage",
   whiteboards: "Whiteboards",
   timesheet: "Timesheet",
+  meetings: "Meetings",
   chat: "Chat",
   projects: "Projects",
   tasks: "Tasks",

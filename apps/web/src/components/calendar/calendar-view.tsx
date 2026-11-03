@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 import { ChevronLeftIcon, ChevronRightIcon, PlusIcon } from "lucide-react";
 
 import { useTrpcClient } from "@zentro/api/react";
@@ -185,16 +186,21 @@ export function CalendarView() {
         title="Calendar"
         description="Meetings, deadlines and time off, shared with your team."
         actions={
-          canCreate ? (
-            <Button
-              onClick={() =>
-                setDraft(blank(new Date(), new Date().getHours() + 1))
-              }
-            >
-              <PlusIcon aria-hidden />
-              New event
+          <>
+            <Button asChild variant="outline">
+              <Link href="/calendar/meetings">Meetings</Link>
             </Button>
-          ) : null
+            {canCreate ? (
+              <Button
+                onClick={() =>
+                  setDraft(blank(new Date(), new Date().getHours() + 1))
+                }
+              >
+                <PlusIcon aria-hidden />
+                New event
+              </Button>
+            ) : null}
+          </>
         }
       />
 
