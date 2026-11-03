@@ -3,6 +3,7 @@ import { MAX_FILE_BYTES } from "@zentro/api/server";
 import { TRPCError } from "@trpc/server";
 
 import { createRequestContext } from "~/src/lib/request-context";
+import { BodyTooLargeError, readLimited } from "~/src/lib/read-limited";
 import { newStorageKey, storage } from "~/src/lib/storage";
 
 export const runtime = "nodejs";
@@ -57,7 +58,30 @@ export async function POST(request: Request) {
     );
   }
 
-  const form = await request.formData().catch(() => null);
+  // Count the bytes as they arrive; the header above is only a hint.
+  let form: FormData | null = null;
+
+  try {
+    const bytes = await readLimited(request, MAX_FILE_BYTES + 1024 * 1024);
+
+    form = await new Request(request.url, {
+      method: "POST",
+      headers: request.headers,
+      body: Buffer.from(bytes),
+    })
+      .formData()
+      .catch(() => null);
+  } catch (error) {
+    if (error instanceof BodyTooLargeError) {
+      return Response.json(
+        { error: "Files can be up to 25 MB." },
+        { status: 413 },
+      );
+    }
+
+    throw error;
+  }
+
   const file = form?.get("file");
   // The Files library has its own permission and does not need Chat.
   const library = form?.get("library") === "1";
