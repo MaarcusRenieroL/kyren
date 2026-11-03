@@ -24,6 +24,10 @@ const unmanaged: Record<string, string> = {
     "Authenticated only; lists the signed-in user's own invitations.",
   "user.exportMyData":
     "Signed-in members export what they wrote or created; each source is limited to the projects, docs and channels they can already see.",
+  "privacy.exportMine":
+    "Signed-in members export their own data in the active organization; nothing about anyone else.",
+  "privacy.eraseMine":
+    "Signed-in members erase themselves after typing their own email; the last owner is refused.",
   "permissions.me":
     "Signed-in members read their own permissions; nothing about anyone else.",
   "permissions.check":
