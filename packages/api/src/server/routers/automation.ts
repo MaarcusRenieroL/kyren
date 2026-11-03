@@ -17,6 +17,15 @@ import { channelAccess } from "../chat";
 import { projectFromInput } from "../resources";
 import { listProcedure, permissionProcedure, router } from "../trpc";
 
+// Rule settings are free-form, so cap their size instead of trusting callers.
+const smallConfig = z
+  .record(z.string().max(64), z.any()) // size-capped by the refine below
+  .refine((value) => JSON.stringify(value).length <= 10_000, {
+    message: "Rule settings are too large.",
+  })
+  .optional()
+  .default({});
+
 export const automationRouter = router({
   getAll: listProcedure("tasks.view", "tasks").query(async ({ ctx }) => {
     const { db, activeOrganization } = ctx;
@@ -61,7 +70,7 @@ export const automationRouter = router({
     .input(
       z.object({
         name: z.string().min(1).max(100),
-        description: z.string().optional().nullable(),
+        description: z.string().max(2000).optional().nullable(),
         projectId: z.string().uuid().optional().nullable(),
         triggerEvent: z.enum([
           "task.status_changed",
@@ -72,7 +81,7 @@ export const automationRouter = router({
           "task.sla_breach_risk",
           "chat.message_contains",
         ]),
-        triggerConfig: z.record(z.string(), z.any()).optional().default({}),
+        triggerConfig: smallConfig,
         actionType: z.enum([
           "update_status",
           "assign_actor",
@@ -80,7 +89,7 @@ export const automationRouter = router({
           "post_to_channel",
           "create_task",
         ]),
-        actionConfig: z.record(z.string(), z.any()).optional().default({}),
+        actionConfig: smallConfig,
       }),
     )
     .mutation(async ({ ctx, input }) => {

@@ -373,7 +373,7 @@ const rolesRouter = router({
       z.object({
         ...roleInput,
         scope: scopeSchema,
-        permissions: z.array(z.string()),
+        permissions: z.array(z.string().max(100)).max(500),
       }),
     )
     .mutation(async ({ ctx, input }) => {
@@ -420,7 +420,7 @@ const rolesRouter = router({
         id: uuid,
         name: roleInput.name.optional(),
         description: roleInput.description,
-        permissions: z.array(z.string()).optional(),
+        permissions: z.array(z.string().max(100)).max(500).optional(),
       }),
     )
     .mutation(async ({ ctx, input }) => {
@@ -1086,7 +1086,7 @@ const overridesRouter = router({
     .input(
       z.object({
         userId: uuid,
-        permission: z.string(),
+        permission: z.string().max(100),
         effect: z.enum(["allow", "deny"]),
         scopeType: scopeSchema,
         scopeId: uuid,
@@ -1303,8 +1303,8 @@ const logRouter = router({
           limit: z.number().int().min(1).max(100).default(30),
           cursor: cursorSchema.optional(),
           actorUserId: uuid.optional(),
-          targetType: z.string().optional(),
-          targetId: z.string().optional(),
+          targetType: z.string().max(64).optional(),
+          targetId: z.string().max(64).optional(),
         })
         .default({ limit: 30 }),
     )
@@ -1460,7 +1460,7 @@ export const permissionsRouter = router({
     .input(
       z.object({
         userId: uuid,
-        permission: z.string(),
+        permission: z.string().max(100),
         projectId: uuid.optional(),
         teamId: uuid.optional(),
         ownerUserId: uuid.optional(),

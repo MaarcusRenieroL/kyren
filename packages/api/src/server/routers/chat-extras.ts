@@ -1277,7 +1277,9 @@ export const chatExtraProcedures = {
   }),
 
   emojiCreate: chatProcedure("chat.post", { also: ["chat.files.upload"] })
-    .input(z.object({ name: z.string().trim().toLowerCase(), fileId: uuid }))
+    .input(
+      z.object({ name: z.string().trim().toLowerCase().max(64), fileId: uuid }),
+    )
     .mutation(async ({ ctx, input }) => {
       const memberId = await currentMemberId(ctx);
 
@@ -1372,7 +1374,9 @@ export const chatExtraProcedures = {
       z.object({
         channelId: uuid,
         enabled: z.boolean(),
-        events: z.array(z.enum(["created", "done", "assigned", "overdue"])),
+        events: z
+          .array(z.enum(["created", "done", "assigned", "overdue"]))
+          .max(4),
       }),
     )
     .mutation(async ({ ctx, input }) => {

@@ -7,7 +7,7 @@ import { loadEnabledModules } from "../modules";
 import { permissionProcedure, router } from "../trpc";
 
 const setEnabledSchema = z.object({
-  moduleId: z.string().trim().min(1),
+  moduleId: z.string().trim().min(1).max(64),
   enabled: z.boolean(),
 });
 

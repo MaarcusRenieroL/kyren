@@ -248,7 +248,7 @@ export const memberRouter = router({
       z.object({
         memberId: z.string().uuid(),
         isOutOfOffice: z.boolean(),
-        untilDate: z.string().optional().nullable(),
+        untilDate: z.string().max(40).optional().nullable(),
       }),
     )
     .mutation(async ({ ctx, input }) => {
