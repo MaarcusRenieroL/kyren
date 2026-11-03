@@ -267,3 +267,4 @@ export const auth = betterAuth({
 
 export { ensureSystemRoles, removeMemberAccess } from "./seed";
 export { disabledOrganizationPaths };
+export { isNewDevice } from "./lib/new-device";

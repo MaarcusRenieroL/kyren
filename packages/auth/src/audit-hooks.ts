@@ -8,6 +8,9 @@ import { db } from "@zentro/db";
 import { and, eq, sql } from "@zentro/db/drizzle";
 import { members, users, verifications } from "@zentro/db/schema";
 
+import { sendNewSignInEmail } from "./lib/email";
+import { isNewDevice } from "./lib/new-device";
+
 // The authentication events: sign-in, sign-out, password changes and so on.
 // Better Auth owns these requests, so they are recorded from its hooks. They
 // are audit-only, and they are written once for every organization the person
@@ -174,7 +177,24 @@ export async function auditAfter(
       const userId = ctx.context.newSession?.user.id;
 
       if (userId) {
+        const request = requestContextFromHeaders(ctx.headers, randomUUID());
+        // Decided before this sign-in is recorded, or it would count itself.
+        const unfamiliar = await isNewDevice(userId, request.userAgent ?? null);
+
         await recordForUser(ctx, userId, "auth.sign_in");
+
+        if (unfamiliar) {
+          const user = await userByEmail(body.email);
+
+          // A failed alert must never get in the way of signing in.
+          void sendNewSignInEmail(user?.email ?? String(body.email), {
+            browser: request.userAgent ?? "unknown",
+            ip: request.ip ?? null,
+            when: new Date(),
+          }).catch((error) =>
+            console.error("[auth] could not send the sign-in alert", error),
+          );
+        }
       }
 
       return;

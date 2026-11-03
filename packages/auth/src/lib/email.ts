@@ -204,3 +204,33 @@ export async function sendOrgInviteEmail(
     `,
   });
 }
+
+/** Tells someone their account was just used from a browser it has not used before. */
+export async function sendNewSignInEmail(
+  email: string,
+  details: { browser: string; ip: string | null; when: Date },
+) {
+  await resend.emails.send({
+    from: authEnv.EMAIL_FROM,
+    to: email,
+    subject: "New sign-in to your account",
+    html: `
+      <div style="background:#0a0a0a;padding:40px 20px;color:#e5e7eb;font-family: Inter, Arial, Sans-serif">
+        <table style="max-width:560px;margin:auto;background:#111827;padding:40px;border-radius:16px;">
+          <tr>
+            <td>
+              <h1>New sign-in</h1>
+              <p>Your account was just signed in to from a browser we haven't seen before.</p>
+              <p>
+                <strong>When:</strong> ${escapeHtml(details.when.toUTCString())}<br />
+                <strong>Browser:</strong> ${escapeHtml(details.browser.slice(0, 200))}<br />
+                <strong>Address:</strong> ${escapeHtml(details.ip ?? "unknown")}
+              </p>
+              <p>If this was you, there is nothing to do. If it wasn't, <a href="${getAppUrl()}/auth/forgot-password" style="color:#93c5fd">reset your password</a> now and turn on two-factor sign-in.</p>
+            </td>
+          </tr>
+        </table>
+      </div>
+    `,
+  });
+}
