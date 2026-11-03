@@ -1385,13 +1385,17 @@ export const taskRouter = router({
           });
         }
 
-        const newTotal = (task.timeSpentMinutes ?? 0) + durationMinutes;
-        await tx
+        // Added in SQL so two entries logged at once both count.
+        const [updated] = await tx
           .update(tasks)
-          .set({ timeSpentMinutes: newTotal, updatedAt: new Date() })
-          .where(eq(tasks.id, task.id));
+          .set({
+            timeSpentMinutes: sql`coalesce(${tasks.timeSpentMinutes}, 0) + ${durationMinutes}`,
+            updatedAt: new Date(),
+          })
+          .where(eq(tasks.id, task.id))
+          .returning({ total: tasks.timeSpentMinutes });
 
-        return { log, totalTimeSpentMinutes: newTotal };
+        return { log, totalTimeSpentMinutes: updated?.total ?? 0 };
       });
     }),
 });

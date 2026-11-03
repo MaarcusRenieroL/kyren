@@ -45,11 +45,14 @@ export async function awayUntilByMember(
 
   const away = new Map<string, string | null>();
 
-  latest.forEach((value, memberId) => {
-    if (value.isOutOfOffice) away.set(memberId, value.untilDate);
-  });
-
   const today = new Date().toISOString().slice(0, 10);
+
+  latest.forEach((value, memberId) => {
+    // A return date in the past means they are back.
+    if (value.isOutOfOffice && !(value.untilDate && value.untilDate < today)) {
+      away.set(memberId, value.untilDate);
+    }
+  });
   const onLeave = await db
     .select({ memberId: employees.memberId, endDate: leaveRequests.endDate })
     .from(leaveRequests)

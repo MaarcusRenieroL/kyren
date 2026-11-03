@@ -15,6 +15,7 @@ import { assertHoldsAll } from "../access";
 import { awayUntilByMember } from "../away";
 import { callAuth } from "../auth-calls";
 import { permissionProcedure, router } from "../trpc";
+import { isoDate } from "../zod-common";
 
 const memberIdSchema = z.object({ memberId: z.string().uuid() });
 
@@ -243,17 +244,31 @@ export const memberRouter = router({
     return [...away].map(([memberId, untilDate]) => ({ memberId, untilDate }));
   }),
 
-  toggleOutOfOffice: permissionProcedure("members.view")
+  toggleOutOfOffice: permissionProcedure("members.view", undefined, {
+    audit: ["member.out_of_office"],
+  })
     .input(
       z.object({
         memberId: z.string().uuid(),
         isOutOfOffice: z.boolean(),
-        untilDate: z.string().max(40).optional().nullable(),
+        untilDate: isoDate.optional().nullable(),
       }),
     )
     .mutation(async ({ ctx, input }) => {
       const { db, activeOrganization, user } = ctx;
       const target = await loadTargetMember(ctx, input.memberId);
+
+      // Your own status is yours to set; someone else's takes a manager.
+      if (
+        target.userId !== user.id &&
+        !(await ctx.permissions.can("members.role.update"))
+      ) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "You can only change your own out-of-office status.",
+        });
+      }
+
       const label = await userLabel(ctx, target.userId);
 
       await ctx.audit.record(db, {

@@ -163,6 +163,15 @@ export const auditCatalog: readonly AuditEventDefinition[] = [
     "/organization/leave",
   ),
   event(
+    "member.out_of_office",
+    "Out of office changed",
+    "settings",
+    "member",
+    true,
+    "changed the out-of-office status of {target}",
+    "Someone was marked as away or back.",
+  ),
+  event(
     "member.removed",
     "Member removed",
     "settings",
