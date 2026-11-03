@@ -72,3 +72,45 @@ test("two-factor sign-in: set up, sign in with a code, then with a backup code, 
   await page.getByRole("button", { name: "Sign in" }).click();
   await expect(page).not.toHaveURL(/\/auth\/sign-in/);
 });
+
+test("a sign-in challenge allows only a few code guesses", async ({
+  page,
+  context,
+}) => {
+  const { email } = await registerWithOrganization(page, {
+    label: "twofa-limit",
+    orgName: uniqueName("2FA limit org"),
+  });
+
+  await page.goto("/settings/account/security");
+  await page.getByRole("button", { name: "Set up" }).click();
+  await page.getByLabel("Confirm your password to continue").fill(password);
+  await page.getByRole("button", { name: "Continue" }).click();
+
+  const secret = (await page.getByLabel("Setup key").innerText()).trim();
+
+  await page.getByLabel("6-digit code").fill(totp(secret));
+  await page.getByRole("button", { name: "Turn on" }).click();
+  await expect(page.getByText("On", { exact: true })).toBeVisible();
+
+  await context.clearCookies();
+  await page.goto("/auth/sign-in");
+  await page.getByLabel("Work email").fill(email);
+  await page.getByLabel("Password", { exact: true }).fill(password);
+  await page.getByRole("button", { name: "Sign in" }).click();
+  await expect(
+    page.getByRole("heading", { name: "Enter your code" }),
+  ).toBeVisible();
+
+  for (let guess = 0; guess < 5; guess += 1) {
+    await page.getByLabel("6-digit code").fill("000000");
+    await page.getByRole("button", { name: "Verify" }).click();
+    await expect(page.getByText("That code didn’t work")).toBeVisible();
+  }
+
+  // The right code no longer helps: this challenge is used up.
+  await page.getByLabel("6-digit code").fill(totp(secret));
+  await page.getByRole("button", { name: "Verify" }).click();
+  await expect(page.getByText(/Too many attempts/)).toBeVisible();
+  await expect(page).toHaveURL(/\/auth\/sign-in/);
+});

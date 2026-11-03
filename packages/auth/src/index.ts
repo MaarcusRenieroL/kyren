@@ -1,10 +1,15 @@
 import { betterAuth } from "better-auth";
-import { createAuthMiddleware, getSessionFromCtx } from "better-auth/api";
+import {
+  APIError,
+  createAuthMiddleware,
+  getSessionFromCtx,
+} from "better-auth/api";
 import { auditAfter, auditBefore } from "./audit-hooks";
 import { drizzleAdapter } from "@better-auth/drizzle-adapter";
 import { emailOTP, organization, twoFactor } from "better-auth/plugins";
 
 import { db } from "@zentro/db";
+import { hit } from "@zentro/db/rate-limit";
 import { desc, eq } from "@zentro/db/drizzle";
 import * as schema from "@zentro/db/schema";
 import {
@@ -13,6 +18,8 @@ import {
   sendOrgInviteEmail,
 } from "./lib/email";
 import { validateProductionEnv } from "./lib/env";
+import { trustedOriginsFor } from "./lib/origins";
+import { twoFactorChallenge } from "./lib/two-factor-challenge";
 import { betterAuthAc, betterAuthRoles } from "./access-control";
 import { ensureSystemRoles, removeMemberAccess } from "./seed";
 import { userAdditionalFields } from "./additional-fields";
@@ -22,9 +29,7 @@ validateProductionEnv();
 const baseURL = process.env.BETTER_AUTH_URL ?? "http://localhost:3000";
 const secret = process.env.BETTER_AUTH_SECRET;
 
-const trustedOrigins = Array.from(
-  new Set([new URL(baseURL).origin, "http://localhost:3000"]),
-);
+const trustedOrigins = trustedOriginsFor(baseURL, process.env.NODE_ENV);
 
 // Endpoints that read or change organization data are only reachable through
 // our tRPC procedures, which check permissions with @zentro/permissions. Better
@@ -68,6 +73,25 @@ export const auth = betterAuth({
   disabledPaths: disabledOrganizationPaths,
   hooks: {
     before: createAuthMiddleware(async (ctx) => {
+      // Each password sign-in gets a few guesses at its code. Counting per
+      // challenge (not per IP) stops a distributed guess at a 6-digit code.
+      if (ctx.path.startsWith("/two-factor/verify")) {
+        const challenge = twoFactorChallenge(ctx.headers?.get("cookie"));
+
+        if (challenge) {
+          const result = await hit(db, `2fa:${challenge}`, {
+            max: 5,
+            windowMs: 10 * 60 * 1000,
+          });
+
+          if (!result.allowed) {
+            throw new APIError("TOO_MANY_REQUESTS", {
+              message: "Too many attempts. Sign in again to get a new code.",
+            });
+          }
+        }
+      }
+
       await auditBefore(ctx, async () => {
         const session = await getSessionFromCtx(ctx).catch(() => null);
 
@@ -163,8 +187,8 @@ export const auth = betterAuth({
     max: 100,
     customRules: {
       "/sign-in/email": { window: 60, max: 10 },
-      "/two-factor/verify-totp": { window: 60, max: 5 },
-      "/two-factor/verify-backup-code": { window: 60, max: 5 },
+      "/two-factor/verify-totp": { window: 60, max: 20 },
+      "/two-factor/verify-backup-code": { window: 60, max: 20 },
       "/sign-up/email": { window: 60, max: 5 },
       "/request-password-reset": { window: 60, max: 3 },
       "/email-otp/send-verification-otp": { window: 60, max: 3 },
@@ -173,6 +197,11 @@ export const auth = betterAuth({
   },
 
   advanced: {
+    // Rate limits key on the client address, so read it from the header the
+    // platform sets itself; `x-forwarded-for` is the fallback behind a proxy.
+    ipAddress: {
+      ipAddressHeaders: ["x-vercel-forwarded-for", "x-forwarded-for"],
+    },
     database: {
       generateId: false,
     },
