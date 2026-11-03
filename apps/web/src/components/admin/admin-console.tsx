@@ -18,6 +18,7 @@ const sections = [
   { href: "/admin/usage", label: "Usage" },
   { href: "/admin/security", label: "Security" },
   { href: "/admin/api-keys", label: "API keys" },
+  { href: "/admin/webhooks", label: "Webhooks" },
 ];
 
 const dateFormat = new Intl.DateTimeFormat(undefined, {

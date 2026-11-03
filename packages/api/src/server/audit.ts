@@ -9,6 +9,8 @@ import {
 } from "@zentro/audit/server";
 import type { ActivityEvent } from "@zentro/db/schema";
 
+import { enqueueWebhooks } from "./webhooks";
+
 export type AuditEventInput = Omit<
   RecordEventInput,
   "organizationId" | "actorUserId" | "request"
@@ -59,6 +61,12 @@ export function createAuditContext(options: {
           actorUserId: options.userId,
           request,
         });
+
+        // Queue webhooks in the same transaction as the change itself.
+        await enqueueWebhooks(
+          handle as unknown as Parameters<typeof enqueueWebhooks>[0],
+          event,
+        );
 
         recorded.push(event.action);
 

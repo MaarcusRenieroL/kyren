@@ -38,6 +38,7 @@ const targetTypes = [
   "leave",
   "payroll",
   "api_key",
+  "webhook",
 ];
 
 describe("event catalog", () => {

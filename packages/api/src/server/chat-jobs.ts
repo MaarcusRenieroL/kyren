@@ -10,6 +10,7 @@ import {
 import type { DbHandle } from "./access";
 import { postOverdueEvents } from "./chat-events";
 import { postChatMessage } from "./chat-post";
+import { deliverDueWebhooks } from "./webhooks";
 
 type Db = DbHandle & {
   transaction: <T>(run: (tx: DbHandle) => Promise<T>) => Promise<T>;
@@ -144,7 +145,12 @@ export async function runChatJobs(db: Db, options: { heavy?: boolean } = {}) {
   const purged = options.heavy ? await purgeExpired(db) : 0;
   const overdue = options.heavy ? await postOverdueEvents(db) : 0;
 
-  return { sent, reminded, purged, overdue };
+  // Webhook deliveries ride along with the same schedule.
+  const webhooks = await deliverDueWebhooks(
+    db as unknown as Parameters<typeof deliverDueWebhooks>[0],
+  );
+
+  return { sent, reminded, purged, overdue, webhooks };
 }
 
 let lastLazyRun = 0;

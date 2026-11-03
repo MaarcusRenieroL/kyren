@@ -22,7 +22,8 @@ export type AuditTargetType =
   | "employee"
   | "leave"
   | "payroll"
-  | "api_key";
+  | "api_key"
+  | "webhook";
 
 /** Where an event belongs: a module id, or the platform itself. */
 export type AuditModule =

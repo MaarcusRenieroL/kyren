@@ -720,4 +720,11 @@ export const adminPermissions: PermissionDefinition[] = [
     "Administration",
     org,
   ),
+  definePermission(
+    "admin.manage_webhooks",
+    "Manage webhooks",
+    "Choose where organization events are sent, and see their deliveries.",
+    "Administration",
+    org,
+  ),
 ];

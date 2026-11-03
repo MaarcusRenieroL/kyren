@@ -250,3 +250,40 @@ export function externalUrls(body: string) {
     3,
   );
 }
+
+/**
+ * Sends a POST to a public address and reports the status. Used for
+ * webhooks: the connection is pinned to checked addresses, redirects are not
+ * followed (a 3xx counts as a failure) and a slow receiver is cut off.
+ */
+export async function postSafely(
+  value: string,
+  body: string,
+  headers: Record<string, string>,
+  timeoutMs = 8000,
+) {
+  if (!(await isSafeUrl(value))) {
+    throw new Error("That address is not allowed.");
+  }
+
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+
+  try {
+    const response = await pinnedFetch(value, {
+      method: "POST",
+      dispatcher: agent,
+      signal: controller.signal,
+      redirect: "manual",
+      headers,
+      body,
+    });
+
+    // The body is not needed; free the socket.
+    await response.body?.cancel().catch(() => undefined);
+
+    return response.status;
+  } finally {
+    clearTimeout(timer);
+  }
+}
