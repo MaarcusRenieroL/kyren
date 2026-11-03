@@ -135,10 +135,24 @@ export const whiteboardRouter = router({
         throw new TRPCError({ code: "NOT_FOUND", message: "Board not found." });
       }
 
+      // An unreadable drawing must not open as a blank board: the next
+      // autosave would overwrite what is still stored.
+      const parsed = z.array(boardElement).safeParse(board.elements);
+
+      if (!parsed.success) {
+        console.error(`Whiteboard ${board.id} holds unreadable data`);
+
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message:
+            "This board's data couldn't be read. It has not been changed.",
+        });
+      }
+
       return {
         id: board.id,
         title: board.title,
-        elements: z.array(boardElement).catch([]).parse(board.elements),
+        elements: parsed.data,
         updatedAt: board.updatedAt.toISOString(),
         canEdit: await ctx.permissions.can("whiteboards.edit"),
       };

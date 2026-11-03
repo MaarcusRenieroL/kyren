@@ -730,7 +730,10 @@ export function NotionEditorPage({ slug }: { slug: string }) {
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [isLoading, setIsLoading] = useState(true);
-  const [saveStatus, setSaveStatus] = useState<"saved" | "saving">("saved");
+  const [saveStatus, setSaveStatus] = useState<"saved" | "saving" | "error">(
+    "saved",
+  );
+  const [retryTick, setRetryTick] = useState(0);
   const [createTaskOpen, setCreateTaskOpen] = useState(false);
   const [splitCanvas, setSplitCanvas] = useState(false);
   const [prefillTaskName, setPrefillTaskName] = useState("");
@@ -900,12 +903,26 @@ export function NotionEditorPage({ slug }: { slug: string }) {
         setSaveStatus("saved");
       } catch (error) {
         toastError(error, "Failed to save doc content");
-        setSaveStatus("saved");
+        // The edits are not on the server yet, so say so and try again.
+        setSaveStatus("error");
       }
     }, 700);
 
     return () => window.clearTimeout(timeout);
-  }, [content, doc, trpc]);
+  }, [content, doc, trpc, retryTick]);
+
+  useEffect(() => {
+    if (saveStatus !== "error") {
+      return;
+    }
+
+    const retry = window.setTimeout(
+      () => setRetryTick((tick) => tick + 1),
+      5000,
+    );
+
+    return () => window.clearTimeout(retry);
+  }, [saveStatus]);
 
   async function saveTitle() {
     if (!doc || title.trim() === doc.title) {
@@ -931,7 +948,7 @@ export function NotionEditorPage({ slug }: { slug: string }) {
       setSaveStatus("saved");
     } catch (error) {
       toastError(error, "Failed to save doc title");
-      setSaveStatus("saved");
+      setSaveStatus("error");
     }
   }
 
@@ -1109,7 +1126,15 @@ export function NotionEditorPage({ slug }: { slug: string }) {
               className="ml-2 flex items-center gap-1.5 font-mono text-xs text-ink-3"
               suppressHydrationWarning
             >
-              {saveStatus === "saving" ? (
+              {saveStatus === "error" ? (
+                <>
+                  <span
+                    aria-hidden="true"
+                    className="size-2 rounded-full bg-danger"
+                  />
+                  Not saved. Retrying…
+                </>
+              ) : saveStatus === "saving" ? (
                 <>
                   <span
                     aria-hidden="true"

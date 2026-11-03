@@ -17,7 +17,7 @@ export type FavoriteItem = {
 
 // One list per page load, shared by every star and list that shows it.
 let cache: FavoriteItem[] | null = null;
-let inflight: Promise<FavoriteItem[]> | null = null;
+let inflight: Promise<FavoriteItem[] | null> | null = null;
 const listeners = new Set<(items: FavoriteItem[]) => void>();
 
 function publish(items: FavoriteItem[]) {
@@ -37,10 +37,13 @@ export function useFavorites() {
       inflight ??= trpc.favorite.list
         .query()
         .then((rows) => rows as FavoriteItem[])
-        .catch(() => []);
+        .catch(() => null);
       void inflight.then((rows) => {
         inflight = null;
-        publish(rows);
+
+        // A failed load is not "no favorites": leave the cache empty so the
+        // next mount tries again, and a toggle never starts from a false list.
+        if (rows) publish(rows);
       });
     }
 
@@ -51,7 +54,17 @@ export function useFavorites() {
 
   const toggle = useCallback(
     async (target: Omit<FavoriteItem, "key"> & { key?: string | null }) => {
-      const current = cache ?? [];
+      // The server flips the star, so toggling from a list that never loaded
+      // could undo the wrong thing.
+      if (!cache) {
+        toastError(
+          new Error("Stars haven't loaded yet."),
+          "Try again in a moment.",
+        );
+        return;
+      }
+
+      const current = cache;
       const starred = current.some(
         (item) => item.type === target.type && item.id === target.id,
       );

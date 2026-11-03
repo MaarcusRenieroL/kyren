@@ -12,7 +12,7 @@ describe("router inputs are bounded", () => {
       const lines = readFileSync(join(dir, file), "utf8").split("\n");
       const loose = lines.filter(
         (line) =>
-          !/size-capped|\.parse\(/.test(line) &&
+          !/size-capped|\.(safeP|p)arse\(/.test(line) &&
           ((/z\.string\(\)/.test(line) &&
             !/\.max\(|\.uuid\(|\.length\(|\.email\(|\.regex\(|\.datetime|\.date\(\)/.test(
               line,
