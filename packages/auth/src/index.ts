@@ -19,6 +19,7 @@ import {
 } from "./lib/email";
 import { validateProductionEnv } from "./lib/env";
 import { trustedOriginsFor } from "./lib/origins";
+import { isBreachedPassword, passwordFieldFor } from "./lib/breached-password";
 import { twoFactorChallenge } from "./lib/two-factor-challenge";
 import { betterAuthAc, betterAuthRoles } from "./access-control";
 import { ensureSystemRoles, removeMemberAccess } from "./seed";
@@ -90,6 +91,30 @@ export const auth = betterAuth({
               message: "Too many attempts. Sign in again to get a new code.",
             });
           }
+        }
+      }
+
+      // Refuse passwords that appear in public breach lists. Production only,
+      // so test fixtures with simple passwords keep working.
+      const field = passwordFieldFor(ctx.path);
+
+      if (
+        field &&
+        process.env.NODE_ENV === "production" &&
+        process.env.PASSWORD_BREACH_CHECK !== "off"
+      ) {
+        const candidate = (ctx.body as Record<string, unknown> | undefined)?.[
+          field
+        ];
+
+        if (
+          typeof candidate === "string" &&
+          (await isBreachedPassword(candidate))
+        ) {
+          throw new APIError("BAD_REQUEST", {
+            message:
+              "That password has appeared in a data breach. Choose a different one.",
+          });
         }
       }
 
