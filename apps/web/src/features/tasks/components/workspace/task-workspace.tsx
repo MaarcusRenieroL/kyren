@@ -34,6 +34,8 @@ import type {
 import { FC } from "react";
 import { statusLabels } from "~/src/features/tasks/lib/constants";
 
+import { SavedViewsMenu, type ViewConfig } from "./saved-views-menu";
+
 type Props = {
   title: string;
   tasks: WorkspaceTask[];
@@ -210,6 +212,29 @@ export const TaskWorkspace: FC<Props> = ({
     teamFilter !== "all" ||
     sprintScope !== "all";
 
+  const currentConfig = {
+    search: searchQuery.trim(),
+    status: statusFilter,
+    priority: priorityFilter,
+    assignee: assigneeFilter,
+    team: teamFilter,
+    group,
+    sort,
+    view: chosenView,
+  };
+
+  const applyConfig = (config: ViewConfig) => {
+    setSearchQuery(config.search);
+    setStatusFilter(config.status as TaskStatus | "all");
+    setPriorityFilter(config.priority as TaskPriority | "all");
+    setAssigneeFilter(config.assignee);
+    setTeamFilter(config.team);
+    setGroup(config.group as TaskGroup);
+    setSort(config.sort as TaskSort);
+    setView(config.view as TaskView);
+    setSavedView("all");
+  };
+
   const clearFilters = () => {
     setSearchQuery("");
     setStatusFilter("all");
@@ -298,30 +323,33 @@ export const TaskWorkspace: FC<Props> = ({
         onSavedViewChange={setSavedView}
         compact={isMobile}
         viewControl={
-          <div
-            role="radiogroup"
-            aria-label="View"
-            className="flex gap-0.5 rounded-xl border border-hairline bg-surface p-[3px]"
-          >
-            {views.map(({ value, label, Icon }) => (
-              <button
-                key={value}
-                type="button"
-                role="radio"
-                aria-checked={view === value}
-                onClick={() => setView(value)}
-                className={cn(
-                  "flex h-[26px] items-center gap-1.5 rounded-[9px] px-2.5 text-[13px] outline-none focus-visible:ring-2 focus-visible:ring-ring",
-                  view === value
-                    ? "bg-ink text-ink-inverse"
-                    : "text-ink-2 hover:text-ink",
-                )}
-              >
-                <Icon className="size-3.5" aria-hidden="true" />
-                {label}
-              </button>
-            ))}
-          </div>
+          <>
+            <SavedViewsMenu current={currentConfig} onApply={applyConfig} />
+            <div
+              role="radiogroup"
+              aria-label="View"
+              className="flex gap-0.5 rounded-xl border border-hairline bg-surface p-[3px]"
+            >
+              {views.map(({ value, label, Icon }) => (
+                <button
+                  key={value}
+                  type="button"
+                  role="radio"
+                  aria-checked={view === value}
+                  onClick={() => setView(value)}
+                  className={cn(
+                    "flex h-[26px] items-center gap-1.5 rounded-[9px] px-2.5 text-[13px] outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                    view === value
+                      ? "bg-ink text-ink-inverse"
+                      : "text-ink-2 hover:text-ink",
+                  )}
+                >
+                  <Icon className="size-3.5" aria-hidden="true" />
+                  {label}
+                </button>
+              ))}
+            </div>
+          </>
         }
         onSearchQueryChange={setSearchQuery}
         onStatusFilterChange={setStatusFilter}

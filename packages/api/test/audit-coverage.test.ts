@@ -59,6 +59,9 @@ const recordsNothing: Record<string, string> = {
   "chat.openDm": "Starting a direct message between the people in it.",
   "chat.requestAccess":
     "Sends a direct message to a channel admin; nothing changes until they add the person.",
+  "taskView.create":
+    "A saved filter set; it holds no task data, only the settings of the list.",
+  "taskView.remove": "Removes a person's own saved filter set.",
   "favorite.toggle": "A personal star; it changes nothing anyone else sees.",
   "notification.markRead":
     "A personal read mark on your own inbox; it changes nothing anyone else sees.",
