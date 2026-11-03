@@ -35,3 +35,4 @@ export * from "./task-view";
 export * from "./sprint";
 export * from "./meeting";
 export * from "./running-timer";
+export * from "./goal";

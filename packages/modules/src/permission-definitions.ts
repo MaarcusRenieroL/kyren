@@ -307,6 +307,13 @@ export const tasksPermissions: PermissionDefinition[] = [
     org,
   ),
   definePermission(
+    "tasks.manage_goals",
+    "Manage goals",
+    "Create, edit and delete goals and their key results, and link tasks to them.",
+    "Tasks",
+    org,
+  ),
+  definePermission(
     "tasks.update_own",
     "Edit own tasks",
     "Edit tasks the user created.",

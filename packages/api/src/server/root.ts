@@ -12,6 +12,7 @@ import { meetingRouter } from "./routers/meeting";
 import { sprintRouter } from "./routers/sprint";
 import { taskViewRouter } from "./routers/task-view";
 import { timesheetRouter } from "./routers/timesheet";
+import { goalsRouter } from "./routers/goals";
 import { taskTemplateRouter } from "./routers/task-template";
 import { intakeRouter } from "./routers/intake";
 import { ipAccessRouter } from "./routers/ip-access";
@@ -70,6 +71,7 @@ export const appRouter = router({
   retention: retentionRouter,
   ipAccess: ipAccessRouter,
   intake: intakeRouter,
+  goals: goalsRouter,
   taskTemplate: taskTemplateRouter,
   audit: auditRouter,
   automation: automationRouter,

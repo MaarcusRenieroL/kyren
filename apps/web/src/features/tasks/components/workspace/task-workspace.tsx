@@ -297,6 +297,12 @@ export const TaskWorkspace: FC<Props> = ({
             >
               Timesheet
             </Link>
+            <Link
+              href="/tasks/goals"
+              className="rounded-xl border border-hairline bg-surface px-3 py-1.5 text-sm text-ink-2 hover:text-ink"
+            >
+              Goals
+            </Link>
             <div
               role="radiogroup"
               aria-label="View"
