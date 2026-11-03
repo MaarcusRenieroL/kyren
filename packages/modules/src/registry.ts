@@ -512,7 +512,7 @@ export const moduleRegistry: readonly ModuleManifest[] = [
     core: false,
     defaultEnabled: true,
     dependsOn: [],
-    permissionNamespaces: ["admin"],
+    permissionNamespaces: ["admin", "time"],
     permissions: adminPermissions,
     nav: [
       {
