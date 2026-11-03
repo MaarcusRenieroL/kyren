@@ -663,6 +663,13 @@ export const ticketsPermissions: PermissionDefinition[] = [
     org,
   ),
   definePermission(
+    "tickets.manage_forms",
+    "Manage intake forms",
+    "Build public forms whose answers open tickets.",
+    "Tickets",
+    org,
+  ),
+  definePermission(
     "tickets.manage_articles",
     "Manage help articles",
     "Write, publish and delete knowledge base articles.",

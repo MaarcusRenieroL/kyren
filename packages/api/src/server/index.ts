@@ -18,3 +18,4 @@ export { portalReply, portalView } from "./ticket-portal";
 export { publicArticle, publicArticles } from "./kb-public";
 export { reportError } from "./error-report";
 export { runDueJobs } from "./jobs";
+export { publicForm, submitIntake } from "./intake-forms";
