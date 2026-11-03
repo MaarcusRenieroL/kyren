@@ -40,6 +40,7 @@ export default function LoginPage() {
   const router = useRouter();
   const pause = useCountdown();
   const [signInError, setSignInError] = useState<string | null>(null);
+  const [needsCode, setNeedsCode] = useState(false);
 
   const {
     handleSubmit,
@@ -55,7 +56,7 @@ export default function LoginPage() {
     setSignInError(null);
 
     let retryAfter = 0;
-    const { error } = await authClient.signIn.email(
+    const { data, error } = await authClient.signIn.email(
       { email: formValues.email, password: formValues.password },
       {
         onError(context) {
@@ -81,6 +82,12 @@ export default function LoginPage() {
       return;
     }
 
+    // The password was right but this account also needs a code.
+    if (data && "twoFactorRedirect" in data && data.twoFactorRedirect) {
+      setNeedsCode(true);
+      return;
+    }
+
     // The dashboard sends users without an organization or a verified email
     // to the matching onboarding step.
     router.replace(getRedirectTarget());
@@ -88,6 +95,17 @@ export default function LoginPage() {
   };
 
   const paused = !pause.done;
+
+  if (needsCode) {
+    return (
+      <TwoFactorStep
+        onVerified={() => {
+          router.replace(getRedirectTarget());
+          router.refresh();
+        }}
+      />
+    );
+  }
 
   return (
     <form noValidate onSubmit={handleSubmit(onSubmit)}>
@@ -175,6 +193,88 @@ export default function LoginPage() {
             ends.
           </AuthNote>
         ) : null}
+      </div>
+    </form>
+  );
+}
+
+/** The second step for accounts with an authenticator app. */
+function TwoFactorStep({ onVerified }: { onVerified: () => void }) {
+  const [code, setCode] = useState("");
+  const [backup, setBackup] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+
+  async function submit(event: React.FormEvent) {
+    event.preventDefault();
+    setError(null);
+    setBusy(true);
+
+    const { error: failure } = backup
+      ? await authClient.twoFactor.verifyBackupCode({ code: code.trim() })
+      : await authClient.twoFactor.verifyTotp({ code: code.trim() });
+
+    setBusy(false);
+
+    if (failure) {
+      setError(
+        failure.status === 429
+          ? "Too many attempts. Wait a minute and try again."
+          : "That code didn’t work. Try again.",
+      );
+      return;
+    }
+
+    onVerified();
+  }
+
+  return (
+    <form noValidate onSubmit={submit}>
+      <div className="flex flex-col gap-5">
+        <AuthHeading
+          title="Enter your code"
+          description={
+            backup
+              ? "Use one of the backup codes you saved. Each works once."
+              : "Open your authenticator app and enter the 6-digit code."
+          }
+        />
+        <AuthField
+          label={backup ? "Backup code" : "6-digit code"}
+          htmlFor="two-factor-code"
+          error={error ?? undefined}
+        >
+          <Input
+            id="two-factor-code"
+            inputMode={backup ? "text" : "numeric"}
+            autoComplete="one-time-code"
+            autoFocus
+            aria-invalid={Boolean(error) || undefined}
+            aria-describedby={error ? "two-factor-code-error" : undefined}
+            className="font-mono text-sm"
+            value={code}
+            onChange={(e) => setCode(e.target.value)}
+          />
+        </AuthField>
+        <Button
+          type="submit"
+          loading={busy}
+          disabled={!code.trim()}
+          className="w-full"
+        >
+          Verify
+        </Button>
+        <button
+          type="button"
+          className="text-sm text-ink-2 underline-offset-2 hover:underline"
+          onClick={() => {
+            setBackup((value) => !value);
+            setCode("");
+            setError(null);
+          }}
+        >
+          {backup ? "Use my authenticator app" : "Use a backup code"}
+        </button>
       </div>
     </form>
   );

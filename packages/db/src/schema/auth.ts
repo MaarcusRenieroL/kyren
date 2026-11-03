@@ -16,6 +16,7 @@ export const users = pgTable("user", {
   emailVerified: boolean("emailVerified").notNull().default(false),
   image: text("image"),
   role: text("role").notNull().default("member"),
+  twoFactorEnabled: boolean("twoFactorEnabled").default(false),
   createdAt: timestamp("createdAt").notNull().defaultNow(),
   updatedAt: timestamp("updatedAt").notNull().defaultNow(),
 });
@@ -105,6 +106,17 @@ export const verifications = pgTable("verification", {
 });
 
 // Request counters for Better Auth's rate limiter, shared by every instance
+/** Authenticator-app secrets and backup codes (encrypted by Better Auth). */
+export const twoFactors = pgTable("twoFactor", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  secret: text("secret").notNull(),
+  backupCodes: text("backupCodes").notNull(),
+  userId: uuid("userId")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  verified: boolean("verified").default(true),
+});
+
 export const rateLimits = pgTable("rateLimit", {
   id: uuid("id").defaultRandom().primaryKey(),
   key: text("key").notNull().unique(),

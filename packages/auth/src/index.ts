@@ -2,7 +2,7 @@ import { betterAuth } from "better-auth";
 import { createAuthMiddleware, getSessionFromCtx } from "better-auth/api";
 import { auditAfter, auditBefore } from "./audit-hooks";
 import { drizzleAdapter } from "@better-auth/drizzle-adapter";
-import { emailOTP, organization } from "better-auth/plugins";
+import { emailOTP, organization, twoFactor } from "better-auth/plugins";
 
 import { db } from "@zentro/db";
 import { desc, eq } from "@zentro/db/drizzle";
@@ -150,6 +150,7 @@ export const auth = betterAuth({
       member: schema.members,
       invitation: schema.invitations,
       rateLimit: schema.rateLimits,
+      twoFactor: schema.twoFactors,
     },
   }),
 
@@ -162,6 +163,8 @@ export const auth = betterAuth({
     max: 100,
     customRules: {
       "/sign-in/email": { window: 60, max: 10 },
+      "/two-factor/verify-totp": { window: 60, max: 5 },
+      "/two-factor/verify-backup-code": { window: 60, max: 5 },
       "/sign-up/email": { window: 60, max: 5 },
       "/request-password-reset": { window: 60, max: 3 },
       "/email-otp/send-verification-otp": { window: 60, max: 3 },
@@ -176,6 +179,8 @@ export const auth = betterAuth({
   },
 
   plugins: [
+    // Opt-in authenticator-app codes. Backup codes cover a lost phone.
+    twoFactor({ issuer: "Zentro" }),
     organization({
       ac: betterAuthAc,
       roles: betterAuthRoles,

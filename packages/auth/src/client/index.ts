@@ -3,6 +3,7 @@ import {
   emailOTPClient,
   inferAdditionalFields,
   organizationClient,
+  twoFactorClient,
 } from "better-auth/client/plugins";
 import { betterAuthAc, betterAuthRoles } from "../access-control";
 import { userAdditionalFields } from "../additional-fields";
@@ -19,6 +20,7 @@ export const authClient = createAuthClient({
   ),
   plugins: [
     emailOTPClient(),
+    twoFactorClient(),
     organizationClient({
       ac: betterAuthAc,
       roles: betterAuthRoles,
