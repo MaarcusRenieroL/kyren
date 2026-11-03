@@ -210,19 +210,31 @@ export const memberRouter = router({
       const label = await userLabel(ctx, target.userId);
 
       await db.transaction(async (tx) => {
-        await tx
-          .update(members)
-          .set({ role: "owner" })
-          .where(eq(members.id, target.id));
-        await tx
+        // Step down first, and only while still the owner: a second transfer
+        // submitted at the same moment finds nothing to demote and stops.
+        const stepped = await tx
           .update(members)
           .set({ role: "admin" })
           .where(
             and(
               eq(members.userId, user.id),
               eq(members.organizationId, activeOrganization.id),
+              eq(members.role, "owner"),
             ),
-          );
+          )
+          .returning({ id: members.id });
+
+        if (!stepped.length) {
+          throw new TRPCError({
+            code: "CONFLICT",
+            message: "Ownership has already been transferred.",
+          });
+        }
+
+        await tx
+          .update(members)
+          .set({ role: "owner" })
+          .where(eq(members.id, target.id));
 
         await ctx.audit.record(tx, {
           action: "org.ownership_transferred",
