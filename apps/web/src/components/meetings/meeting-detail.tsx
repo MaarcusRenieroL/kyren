@@ -24,6 +24,93 @@ const when = new Intl.DateTimeFormat(undefined, {
 
 const answers = ["yes", "maybe", "no"] as const;
 
+/** Action items from the AI recap, ready to become tasks in a chosen project. */
+function ActionItems({
+  meetingId,
+  items,
+}: {
+  meetingId: string;
+  items: string[];
+}) {
+  const trpc = useTrpcClient();
+  const projects = useAsyncData(
+    () => trpc.project.getProjectsByOrgId.query(),
+    [trpc],
+  );
+  const [picked, setPicked] = useState<string[]>(items);
+  const [projectId, setProjectId] = useState("");
+  const [made, setMade] = useState<string[]>([]);
+  const [busy, setBusy] = useState(false);
+
+  if (!items.length) return null;
+
+  async function create() {
+    setBusy(true);
+
+    try {
+      const result = await trpc.meeting.createTasks.mutate({
+        id: meetingId,
+        projectId,
+        titles: picked,
+      });
+
+      setMade(result.keys);
+      toastSuccess(`Created ${result.keys.length} tasks`);
+    } catch (error) {
+      toastError(error, "Could not create the tasks.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <div className="mt-3 flex flex-col gap-2 border-t border-line pt-3">
+      <h3 className="text-xs font-semibold text-ink-2">Action items</h3>
+      {items.map((item) => (
+        <label key={item} className="flex items-center gap-2 text-sm">
+          <input
+            type="checkbox"
+            checked={picked.includes(item)}
+            onChange={(event) =>
+              setPicked((current) =>
+                event.target.checked
+                  ? [...current, item]
+                  : current.filter((value) => value !== item),
+              )
+            }
+          />
+          {item}
+        </label>
+      ))}
+      <div className="flex flex-wrap items-center gap-2">
+        <select
+          aria-label="Project for the tasks"
+          className="h-8 rounded-md border border-line bg-surface px-2 text-sm"
+          value={projectId}
+          onChange={(event) => setProjectId(event.target.value)}
+        >
+          <option value="">Choose a project</option>
+          {(projects.data ?? []).map((project) => (
+            <option key={project.id} value={project.id}>
+              {project.name}
+            </option>
+          ))}
+        </select>
+        <Button
+          size="sm"
+          disabled={busy || !projectId || !picked.length}
+          onClick={() => void create()}
+        >
+          Create {picked.length} tasks
+        </Button>
+        {made.length ? (
+          <span className="text-xs text-ink-2">Created {made.join(", ")}</span>
+        ) : null}
+      </div>
+    </div>
+  );
+}
+
 /** One meeting: the join link, who is coming, shared notes and the AI recap. */
 export function MeetingDetail({ id }: { id: string }) {
   const trpc = useTrpcClient();

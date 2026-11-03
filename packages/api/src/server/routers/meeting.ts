@@ -6,9 +6,13 @@ import { meetingAttendees, meetings, members, users } from "@zentro/db/schema";
 import { z } from "zod";
 
 import { askClaude } from "../chat-ai";
+import { actionItemsOf } from "../meeting-actions";
+import { projectFromInput } from "../resources";
 import { mailMeeting } from "../meeting-mail";
 import { sendDueMeetingRemindersLazily } from "../meeting-reminders";
 import { permissionProcedure, router, type OrganizationContext } from "../trpc";
+import type { TRPCContext } from "../../types";
+import { taskRouter } from "./task";
 import { uuid } from "../zod-common";
 
 const MAX_ATTENDEES = 100;
@@ -139,6 +143,7 @@ export const meetingRouter = router({
         status: meeting.status,
         notes: meeting.notes,
         summary: meeting.summary,
+        actionItems: actionItemsOf(meeting.summary),
         organizerUserId: meeting.organizerUserId,
         joinUrl: joinUrl(meeting.roomSlug),
         attendees,
@@ -290,6 +295,39 @@ export const meetingRouter = router({
       await mailMeeting(ctx.db, meeting, "cancel");
 
       return { ok: true };
+    }),
+
+  /**
+   * Makes a task for each action item in a project the person may add tasks
+   * to. Each task goes through the normal task creation, so keys, permissions
+   * and audit entries are the same as when it is created by hand.
+   */
+  createTasks: permissionProcedure("tasks.create", projectFromInput, {
+    module: "tasks",
+  })
+    .input(
+      z.object({
+        id: uuid,
+        projectId: uuid,
+        titles: z.array(z.string().trim().min(1).max(200)).min(1).max(20),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const meeting = await visible(ctx, input.id);
+      const tasksApi = taskRouter.createCaller(ctx as unknown as TRPCContext);
+      const keys: string[] = [];
+
+      for (const name of input.titles) {
+        const task = await tasksApi.createTask({
+          projectId: input.projectId,
+          name,
+          description: `From the meeting "${meeting.title}".`,
+        });
+
+        keys.push(task.key);
+      }
+
+      return { keys };
     }),
 
   /** Turns the notes into a short recap with decisions and action items. */
