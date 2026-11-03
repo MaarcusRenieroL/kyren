@@ -35,7 +35,9 @@ const kinds: { id: Kind; label: string }[] = [
 function formatSize(bytes: number) {
   if (bytes < 1024) return `${bytes} B`;
   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-  return `${(bytes / 1024 / 1024).toFixed(1)} MB`;
+  if (bytes < 1024 * 1024 * 1024)
+    return `${(bytes / 1024 / 1024).toFixed(1)} MB`;
+  return `${(bytes / 1024 / 1024 / 1024).toFixed(1)} GB`;
 }
 
 const dateFormat = new Intl.DateTimeFormat(undefined, {
@@ -81,6 +83,9 @@ export function FilesLibrary() {
   const inputRef = useRef<HTMLInputElement>(null);
   const [files, setFiles] = useState<LibraryFile[] | null>(null);
   const [failed, setFailed] = useState(false);
+  const [usage, setUsage] = useState<{ used: number; limit: number } | null>(
+    null,
+  );
   const [search, setSearch] = useState("");
   const [kind, setKind] = useState<Kind>("all");
   const [view, setView] = useState<"list" | "grid">("list");
@@ -97,6 +102,7 @@ export function FilesLibrary() {
         }),
       );
       setFailed(false);
+      setUsage(await trpc.files.usage.query().catch(() => null));
     } catch {
       setFailed(true);
     }
@@ -244,7 +250,11 @@ export function FilesLibrary() {
     <div className="flex min-w-0 flex-1 flex-col gap-6 overflow-y-auto p-6">
       <PageHeader
         title="Files"
-        description="Everything your team has shared, in one place."
+        description={`Everything your team has shared, in one place.${
+          usage
+            ? ` ${formatSize(usage.used)} of ${formatSize(usage.limit)} used.`
+            : ""
+        }`}
         actions={
           <>
             <input
