@@ -24,6 +24,8 @@ import {
 
 import type { db as database } from "@zentro/db";
 
+import { isUnderHold } from "./retention";
+
 type Db = typeof database;
 
 const REMOVED = "[removed]";
@@ -234,6 +236,14 @@ export async function eraseMember(
   },
 ) {
   const { organizationId, memberId } = input;
+
+  if (await isUnderHold(db, organizationId)) {
+    throw new TRPCError({
+      code: "BAD_REQUEST",
+      message:
+        "A legal hold is on, so nobody can be erased until it is lifted.",
+    });
+  }
 
   return db.transaction(async (tx) => {
     const [row] = await tx

@@ -763,6 +763,13 @@ export const adminPermissions: PermissionDefinition[] = [
     org,
   ),
   definePermission(
+    "admin.manage_retention",
+    "Manage data retention",
+    "Choose how long chat and closed tickets are kept, and place a legal hold.",
+    "Administration",
+    org,
+  ),
+  definePermission(
     "time.view_report",
     "View the time report",
     "See how much time everyone logged on tasks.",

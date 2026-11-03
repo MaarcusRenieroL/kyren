@@ -43,7 +43,11 @@ export function nextOccurrence(from: Date, cadence: Cadence, after: Date) {
  * is weeks late still creates just one, then moves on past `now`. Returns how
  * many tasks were created.
  */
-export async function createDueRecurringTasks(db: Db, now = new Date()) {
+export async function createDueRecurringTasks(
+  db: Db,
+  now = new Date(),
+  organizationId?: string,
+) {
   const due = await db
     .select()
     .from(taskRecurrences)

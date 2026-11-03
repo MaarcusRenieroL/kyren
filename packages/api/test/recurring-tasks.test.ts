@@ -20,18 +20,18 @@ const at = (iso: string) => new Date(`${iso}T09:00:00.000Z`);
 
 describe("when the next task is due", () => {
   it("steps by the cadence, never into the past", () => {
-    expect(nextOccurrence(at("2026-01-01"), "daily", at("2026-01-01"))).toEqual(
-      at("2026-01-02"),
+    expect(nextOccurrence(at("2037-01-01"), "daily", at("2037-01-01"))).toEqual(
+      at("2037-01-02"),
     );
     expect(
-      nextOccurrence(at("2026-01-01"), "weekly", at("2026-01-10")),
-    ).toEqual(at("2026-01-15"));
+      nextOccurrence(at("2037-01-01"), "weekly", at("2037-01-10")),
+    ).toEqual(at("2037-01-15"));
     expect(
-      nextOccurrence(at("2026-01-31"), "monthly", at("2026-01-31")),
-    ).toEqual(at("2026-02-28"));
+      nextOccurrence(at("2037-01-31"), "monthly", at("2037-01-31")),
+    ).toEqual(at("2037-02-28"));
     expect(
-      nextOccurrence(at("2026-01-15"), "monthly", at("2026-04-20")),
-    ).toEqual(at("2026-05-15"));
+      nextOccurrence(at("2037-01-15"), "monthly", at("2037-04-20")),
+    ).toEqual(at("2037-05-15"));
   });
 });
 
@@ -63,7 +63,7 @@ describe("recurring tasks", () => {
     projectId,
     name: "Weekly report",
     cadence: "weekly" as const,
-    startsOn: "2026-01-05",
+    startsOn: "2037-01-05",
     ...over,
   });
 
@@ -90,11 +90,11 @@ describe("recurring tasks", () => {
       }),
     );
 
-    expect(created.nextRunAt.toISOString().slice(0, 10)).toBe("2026-01-05");
+    expect(created.nextRunAt.toISOString().slice(0, 10)).toBe("2037-01-05");
 
-    const now = at("2026-03-01"); // seven weeks late
+    const now = at("2037-03-01"); // seven weeks late
 
-    expect(await createDueRecurringTasks(db, now)).toBe(1);
+    expect(await createDueRecurringTasks(db, now, organizationId)).toBe(1);
 
     const [task] = await db
       .select()
@@ -110,7 +110,7 @@ describe("recurring tasks", () => {
     expect(task!.dueAt!.getTime()).toBe(now.getTime() + 2 * 86_400_000);
 
     // Not again until the next due date, which is after now.
-    expect(await createDueRecurringTasks(db, now)).toBe(0);
+    expect(await createDueRecurringTasks(db, now, organizationId)).toBe(0);
     expect(await taskNames()).toEqual(["Weekly report"]);
 
     const [row] = await owner.recurrence.list({ projectId });
@@ -120,7 +120,7 @@ describe("recurring tasks", () => {
   });
 
   it("numbers each new task after the project's last one", async () => {
-    await createDueRecurringTasks(db, at("2026-03-09"));
+    await createDueRecurringTasks(db, at("2037-03-09"), organizationId);
     expect((await taskNames()).length).toBe(2);
 
     const keys = (
@@ -143,7 +143,7 @@ describe("recurring tasks", () => {
       id: paused.id,
       enabled: false,
     });
-    await createDueRecurringTasks(db, at("2026-06-01"));
+    await createDueRecurringTasks(db, at("2037-06-01"), organizationId);
     expect(await taskNames()).not.toContain("Paused chore");
 
     await owner.recurrence.setEnabled({
@@ -160,9 +160,9 @@ describe("recurring tasks", () => {
 
     await db
       .update(taskRecurrences)
-      .set({ nextRunAt: at("2026-06-01") })
+      .set({ nextRunAt: at("2037-06-01") })
       .where(eq(taskRecurrences.id, existing!.id));
-    await createDueRecurringTasks(db, at("2026-06-02"));
+    await createDueRecurringTasks(db, at("2037-06-02"), organizationId);
 
     const orphan = (
       await db.select().from(tasks).where(eq(tasks.projectId, projectId))

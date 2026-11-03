@@ -16,6 +16,7 @@ import { postOverdueEvents } from "./chat-events";
 import { postChatMessage } from "./chat-post";
 import { sendDueMeetingReminders } from "./meeting-reminders";
 import { createDueRecurringTasks } from "./recurring-tasks";
+import { applyRetention, purgeExpired } from "./retention";
 import { deliverDueWebhooks } from "./webhooks";
 
 type Db = DbHandle & {
@@ -115,32 +116,6 @@ export async function markDueReminders(db: Db) {
   return rows.length;
 }
 
-/** Deletes messages past a channel's retention window (pins are kept). */
-export async function purgeExpired(db: Db) {
-  const channels = await db
-    .select({ id: chatChannels.id, days: chatChannels.retentionDays })
-    .from(chatChannels)
-    .where(sql`${chatChannels.retentionDays} is not null`);
-  let removed = 0;
-
-  for (const channel of channels) {
-    const rows = await db
-      .delete(chatMessages)
-      .where(
-        and(
-          eq(chatMessages.channelId, channel.id),
-          isNull(chatMessages.pinnedAt),
-          sql`${chatMessages.createdAt} < now() - (${channel.days} * interval '1 day')`,
-        ),
-      )
-      .returning({ id: chatMessages.id });
-
-    removed += rows.length;
-  }
-
-  return removed;
-}
-
 /** Everything chat does in the background. Safe to run often. */
 export async function runChatJobs(db: Db, options: { heavy?: boolean } = {}) {
   const sent = await sendDueScheduled(db);
@@ -148,7 +123,9 @@ export async function runChatJobs(db: Db, options: { heavy?: boolean } = {}) {
 
   // Retention and overdue sweeps are the expensive ones; the daily cron
   // asks for them, page loads do not.
-  const purged = options.heavy ? await purgeExpired(db) : 0;
+  const purged = options.heavy
+    ? (await applyRetention(db as never)).chatMessages
+    : 0;
   const overdue = options.heavy ? await postOverdueEvents(db) : 0;
 
   const meetingReminders = await sendDueMeetingReminders(db);
@@ -192,3 +169,5 @@ export async function runChatJobsLazily(db: Db) {
     console.error("[chat] background jobs failed", error);
   }
 }
+
+export { purgeExpired };
