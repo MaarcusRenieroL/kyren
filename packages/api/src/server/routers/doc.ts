@@ -99,7 +99,11 @@ export const docsRouter = router({
         await visibleDocsCondition(ctx.permissions, "docs.view"),
       ];
 
-      if (!input.includeDeleted) {
+      // The trash is for people who can restore from it.
+      if (
+        !input.includeDeleted ||
+        !(await ctx.permissions.can("docs.restore"))
+      ) {
         conditions.push(isNull(docs.deletedAt));
       }
 
@@ -150,7 +154,11 @@ export const docsRouter = router({
         await visibleDocsCondition(ctx.permissions, "docs.search"),
       ];
 
-      if (!input.includeDeleted) {
+      // The trash is for people who can restore from it.
+      if (
+        !input.includeDeleted ||
+        !(await ctx.permissions.can("docs.restore"))
+      ) {
         conditions.push(isNull(docs.deletedAt));
       }
 
