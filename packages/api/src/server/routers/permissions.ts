@@ -6,8 +6,10 @@ import {
   desc,
   eq,
   inArray,
+  isNull,
   like,
   or,
+  sql,
 } from "@zentro/db/drizzle";
 import {
   activityEvents,
@@ -1316,6 +1318,21 @@ const logRouter = router({
         ),
         cursorCondition(input.cursor),
       ];
+
+      // Events about a project the reader cannot see stay out of their log.
+      if (!(await ctx.permissions.can("projects.view_private"))) {
+        const visible =
+          await ctx.permissions.viewableProjectIds("projects.view");
+
+        conditions.push(
+          or(
+            isNull(activityEvents.projectId),
+            visible.length
+              ? inArray(activityEvents.projectId, visible)
+              : sql`false`,
+          )!,
+        );
+      }
 
       if (input.actorUserId) {
         conditions.push(eq(activityEvents.actorUserId, input.actorUserId));
