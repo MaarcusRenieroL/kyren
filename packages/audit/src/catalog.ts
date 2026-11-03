@@ -777,6 +777,15 @@ export const auditCatalog: readonly AuditEventDefinition[] = [
     "A support ticket was logged.",
   ),
   event(
+    "ticket.sla_updated",
+    "Ticket targets changed",
+    "tickets",
+    "organization",
+    false,
+    "changed the ticket response targets",
+    "The answer and resolution times promised for a ticket priority were changed.",
+  ),
+  event(
     "ticket.updated",
     "Ticket updated",
     "tickets",

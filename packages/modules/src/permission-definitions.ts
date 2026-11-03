@@ -648,6 +648,13 @@ export const ticketsPermissions: PermissionDefinition[] = [
     "Tickets",
     org,
   ),
+  definePermission(
+    "tickets.manage_sla",
+    "Manage response targets",
+    "Set how fast tickets of each priority must be answered and resolved.",
+    "Tickets",
+    org,
+  ),
 ];
 
 export const hrPermissions: PermissionDefinition[] = [

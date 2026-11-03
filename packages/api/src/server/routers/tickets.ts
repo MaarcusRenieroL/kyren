@@ -14,6 +14,7 @@ import {
   members,
   tasks,
   ticketMessages,
+  ticketSlaPolicies,
   tickets,
   users,
 } from "@zentro/db/schema";
@@ -21,6 +22,7 @@ import { z } from "zod";
 
 import { awayUntilByMember } from "../away";
 import { aiAvailable, askClaude } from "../chat-ai";
+import { serializeSla, slaState, type SlaPolicy } from "../sla";
 import { currentMemberId } from "../chat";
 import { permissionProcedure, router, type OrganizationContext } from "../trpc";
 
@@ -55,6 +57,24 @@ function awayUntil(
   memberId: string | null,
 ): string | null {
   return memberId && away.has(memberId) ? (away.get(memberId) ?? "") : null;
+}
+
+/** The targets for each priority, as the organization set them. */
+async function loadSlaPolicies(ctx: OrganizationContext) {
+  const rows = await ctx.db
+    .select()
+    .from(ticketSlaPolicies)
+    .where(eq(ticketSlaPolicies.organizationId, ctx.activeOrganization.id));
+
+  return new Map<string, SlaPolicy>(
+    rows.map((row) => [
+      row.priority,
+      {
+        firstResponseMinutes: row.firstResponseMinutes,
+        resolutionMinutes: row.resolutionMinutes,
+      },
+    ]),
+  );
 }
 
 const ticketRef = (number: number) => `SUP-${number}`;
@@ -190,10 +210,18 @@ export const ticketsRouter = router({
         .limit(200);
 
       const away = await awayUntilByMember(ctx.db, organizationId);
+      const policies = await loadSlaPolicies(ctx);
 
       return {
         counts,
         tickets: rows.map(({ ticket, assignee }) => ({
+          sla: serializeSla(
+            slaState(
+              ticket,
+              ticket.status,
+              policies.get(ticket.priority) ?? null,
+            ),
+          ),
           id: ticket.id,
           ref: ticketRef(ticket.number),
           subject: ticket.subject,
@@ -283,6 +311,87 @@ export const ticketsRouter = router({
       return { summary };
     }),
 
+  /** The response and resolution targets per priority. */
+  slaPolicy: procedure("tickets.view").query(async ({ ctx }) => {
+    const rows = await ctx.db
+      .select({
+        priority: ticketSlaPolicies.priority,
+        firstResponseMinutes: ticketSlaPolicies.firstResponseMinutes,
+        resolutionMinutes: ticketSlaPolicies.resolutionMinutes,
+      })
+      .from(ticketSlaPolicies)
+      .where(eq(ticketSlaPolicies.organizationId, ctx.activeOrganization.id));
+
+    return rows.sort(
+      (a, b) =>
+        ticketPriorities.indexOf(b.priority as never) -
+        ticketPriorities.indexOf(a.priority as never),
+    );
+  }),
+
+  /** Sets (or, with both empty, clears) the targets for one priority. */
+  setSla: procedure("tickets.manage_sla", ["ticket.sla_updated"])
+    .input(
+      z.object({
+        priority: z.enum(ticketPriorities),
+        firstResponseMinutes: z.number().int().min(1).max(525_600).nullable(),
+        resolutionMinutes: z.number().int().min(1).max(525_600).nullable(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const { firstResponseMinutes: first, resolutionMinutes: last } = input;
+
+      if (first !== null && last !== null && last < first) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Resolving cannot be due before the first answer.",
+        });
+      }
+
+      await ctx.db.transaction(async (tx) => {
+        if (first === null && last === null) {
+          await tx
+            .delete(ticketSlaPolicies)
+            .where(
+              and(
+                eq(ticketSlaPolicies.organizationId, ctx.activeOrganization.id),
+                eq(ticketSlaPolicies.priority, input.priority),
+              ),
+            );
+        } else {
+          await tx
+            .insert(ticketSlaPolicies)
+            .values({
+              organizationId: ctx.activeOrganization.id,
+              priority: input.priority,
+              firstResponseMinutes: first,
+              resolutionMinutes: last,
+            })
+            .onConflictDoUpdate({
+              target: [
+                ticketSlaPolicies.organizationId,
+                ticketSlaPolicies.priority,
+              ],
+              set: {
+                firstResponseMinutes: first,
+                resolutionMinutes: last,
+                updatedAt: new Date(),
+              },
+            });
+        }
+
+        await ctx.audit.record(tx, {
+          action: "ticket.sla_updated",
+          target: {
+            id: ctx.activeOrganization.id,
+            label: `${input.priority} priority`,
+          },
+        });
+      });
+
+      return { priority: input.priority };
+    }),
+
   get: procedure("tickets.view")
     .input(z.object({ id: uuid }))
     .query(async ({ ctx, input }) => {
@@ -304,7 +413,16 @@ export const ticketsRouter = router({
             .limit(1)
         : [];
 
+      const policies = await loadSlaPolicies(ctx);
+
       return {
+        sla: serializeSla(
+          slaState(
+            ticket,
+            ticket.status,
+            policies.get(ticket.priority) ?? null,
+          ),
+        ),
         id: ticket.id,
         ref: ticketRef(ticket.number),
         subject: ticket.subject,
@@ -459,6 +577,13 @@ export const ticketsRouter = router({
         // The status is part of the filter, so a ticket resolved a moment ago
         // is not moved back to pending.
         if (input.kind === "reply") {
+          // The first answer to the requester stops the response clock.
+          await tx
+            .update(tickets)
+            .set({
+              firstRespondedAt: sql`coalesce(${tickets.firstRespondedAt}, now())`,
+            })
+            .where(eq(tickets.id, ticket.id));
           await tx
             .update(tickets)
             .set({ status: "pending" })

@@ -41,6 +41,8 @@ export const tickets = pgTable(
       onDelete: "set null",
     }),
 
+    /** When a team member first answered the requester; stops the response clock. */
+    firstRespondedAt: timestamp("firstRespondedAt"),
     resolvedAt: timestamp("resolvedAt"),
     createdAt: timestamp("createdAt").notNull().defaultNow(),
     updatedAt: timestamp("updatedAt").notNull().defaultNow(),
@@ -82,3 +84,29 @@ export const ticketMessages = pgTable(
 
 export type Ticket = typeof tickets.$inferSelect;
 export type TicketMessage = typeof ticketMessages.$inferSelect;
+
+/** How fast an organization promises to answer and resolve tickets of a priority. */
+export const ticketSlaPolicies = pgTable(
+  "ticketSlaPolicy",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+
+    organizationId: uuid("organizationId")
+      .notNull()
+      .references(() => organizations.id, { onDelete: "cascade" }),
+
+    priority: text("priority").notNull(),
+
+    /** Null means no target for that clock. */
+    firstResponseMinutes: integer("firstResponseMinutes"),
+    resolutionMinutes: integer("resolutionMinutes"),
+
+    updatedAt: timestamp("updatedAt").notNull().defaultNow(),
+  },
+  (table) => [
+    uniqueIndex("ticket_sla_org_priority_unique").on(
+      table.organizationId,
+      table.priority,
+    ),
+  ],
+);
