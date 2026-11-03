@@ -73,7 +73,6 @@ export const AutomationsManager: FC = () => {
     | "task.blockers_resolved"
     | "task.created"
     | "task.due_date_approaching"
-    | "task.sla_breach_risk"
     | "chat.message_contains"
   >("task.subtasks_all_done");
   const [toStatus, setToStatus] = useState("in-progress");
@@ -198,11 +197,11 @@ export const AutomationsManager: FC = () => {
       const res = await trpc.automation.escalateDueSLA.mutate();
       if (res.escalatedCount > 0) {
         toastSuccess(
-          `Escalated ${res.escalatedCount} task(s) approaching deadline to High priority!`,
+          `Escalated ${res.escalatedCount} task(s) approaching deadline to the rule's priority.`,
         );
       } else {
         toastSuccess(
-          "All open tasks are on schedule; zero SLA breaches detected.",
+          "Nothing to escalate. Turn on a due-date rule first if you have not.",
         );
       }
       void fetchRules();
@@ -377,10 +376,7 @@ export const AutomationsManager: FC = () => {
                     </option>
                     <option value="task.created">New Task is Created</option>
                     <option value="task.due_date_approaching">
-                      SLA & Due Date Approaching (&lt;24 hours)
-                    </option>
-                    <option value="task.sla_breach_risk">
-                      SLA Breach Risk (Overdue & Open)
+                      A Task Is Due Within 24 Hours (or Overdue)
                     </option>
                     <option value="chat.message_contains">
                       A Chat Message Contains Some Words

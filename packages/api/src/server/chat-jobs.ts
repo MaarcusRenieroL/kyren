@@ -8,6 +8,10 @@ import {
 } from "@zentro/db/schema";
 
 import type { DbHandle } from "./access";
+import {
+  escalateDueTasks,
+  organizationsWithDueRules,
+} from "./automations/due-escalation";
 import { postOverdueEvents } from "./chat-events";
 import { postChatMessage } from "./chat-post";
 import { deliverDueWebhooks } from "./webhooks";
@@ -145,12 +149,20 @@ export async function runChatJobs(db: Db, options: { heavy?: boolean } = {}) {
   const purged = options.heavy ? await purgeExpired(db) : 0;
   const overdue = options.heavy ? await postOverdueEvents(db) : 0;
 
+  let escalated = 0;
+
+  if (options.heavy) {
+    for (const organizationId of await organizationsWithDueRules(db)) {
+      escalated += (await escalateDueTasks(db, { organizationId })).length;
+    }
+  }
+
   // Webhook deliveries ride along with the same schedule.
   const webhooks = await deliverDueWebhooks(
     db as unknown as Parameters<typeof deliverDueWebhooks>[0],
   );
 
-  return { sent, reminded, purged, overdue, webhooks };
+  return { sent, reminded, purged, overdue, escalated, webhooks };
 }
 
 let lastLazyRun = 0;

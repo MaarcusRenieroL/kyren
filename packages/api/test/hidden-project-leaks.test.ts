@@ -103,6 +103,14 @@ describe("team workload, automation lists and SLA escalation respect project vis
   });
 
   it("SLA escalation skips trashed tasks", async () => {
+    await owner.automation.create({
+      name: "Escalate soon",
+      triggerEvent: "task.due_date_approaching",
+      triggerConfig: { withinHours: 24 },
+      actionType: "set_priority",
+      actionConfig: { priority: "high" },
+    });
+
     const result = await owner.automation.escalateDueSLA();
 
     expect(result.tasks.map((task) => task.name)).toEqual(["Open and due"]);

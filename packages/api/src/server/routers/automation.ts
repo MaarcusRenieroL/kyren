@@ -13,6 +13,7 @@ import {
   sql,
 } from "@zentro/db/drizzle";
 import { automations, projects, tasks } from "@zentro/db/schema";
+import { escalateDueTasks } from "../automations/due-escalation";
 import { channelAccess } from "../chat";
 import { projectFromInput } from "../resources";
 import { listProcedure, permissionProcedure, router } from "../trpc";
@@ -78,7 +79,6 @@ export const automationRouter = router({
           "task.blockers_resolved",
           "task.created",
           "task.due_date_approaching",
-          "task.sla_breach_risk",
           "chat.message_contains",
         ]),
         triggerConfig: smallConfig,
@@ -291,66 +291,15 @@ export const automationRouter = router({
 
   escalateDueSLA: permissionProcedure("tasks.update_any").mutation(
     async ({ ctx }) => {
-      const { db, activeOrganization } = ctx;
-      const now = new Date();
-      const in24Hours = new Date(now.getTime() + 24 * 60 * 60 * 1000);
-
-      // Find open tasks with dueAt in the past or within 24 hours that are not already high priority
-      const urgentTasks = await db
-        .select({
-          id: tasks.id,
-          key: tasks.key,
-          name: tasks.name,
-          priority: tasks.priority,
-          dueAt: tasks.dueAt,
-          projectId: tasks.projectId,
-        })
-        .from(tasks)
-        .where(
-          and(
-            eq(tasks.organizationId, activeOrganization.id),
-            isNull(tasks.deletedAt),
-            isNull(tasks.archivedAt),
-            inArray(
-              tasks.projectId,
-              await ctx.permissions.viewableProjectIds("tasks.update_any"),
-            ),
-            ne(tasks.status, "done"),
-            isNotNull(tasks.dueAt),
-            lte(tasks.dueAt, in24Hours),
-            ne(tasks.priority, "high"),
-          ),
-        );
-
-      let escalatedCount = 0;
-      for (const t of urgentTasks) {
-        await db
-          .update(tasks)
-          .set({ priority: "high", updatedAt: new Date() })
-          .where(eq(tasks.id, t.id));
-        escalatedCount++;
-      }
-
-      // Update runCount on any active SLA automations
-      if (escalatedCount > 0) {
-        await db
-          .update(automations)
-          .set({
-            runCount: sql`${automations.runCount} + ${escalatedCount}`,
-            lastRunAt: new Date(),
-          })
-          .where(
-            and(
-              eq(automations.organizationId, activeOrganization.id),
-              eq(automations.enabled, true),
-              eq(automations.triggerEvent, "task.due_date_approaching"),
-            ),
-          );
-      }
+      const escalated = await escalateDueTasks(ctx.db, {
+        organizationId: ctx.activeOrganization.id,
+        projectIds:
+          await ctx.permissions.viewableProjectIds("tasks.update_any"),
+      });
 
       return {
-        escalatedCount,
-        tasks: urgentTasks.map((t) => ({ key: t.key, name: t.name })),
+        escalatedCount: escalated.length,
+        tasks: escalated.map((t) => ({ key: t.key, name: t.name })),
       };
     },
   ),
