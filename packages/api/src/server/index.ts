@@ -16,3 +16,5 @@ export { enforceRateLimit, hit } from "./rate-limit";
 export { receiveTicketMail } from "./ticket-inbound";
 export { portalReply, portalView } from "./ticket-portal";
 export { publicArticle, publicArticles } from "./kb-public";
+export { reportError } from "./error-report";
+export { runDueJobs } from "./jobs";

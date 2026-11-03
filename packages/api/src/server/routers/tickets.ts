@@ -650,7 +650,8 @@ export const ticketsRouter = router({
       });
 
       // The requester gets an agent's reply by email; internal notes never go out.
-      if (input.kind === "reply") await mailTicketReply(ticket, input.body);
+      if (input.kind === "reply")
+        await mailTicketReply(ticket, input.body, ctx.db);
 
       return { id: ticket.id };
     }),

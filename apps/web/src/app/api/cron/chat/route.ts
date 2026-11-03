@@ -1,6 +1,6 @@
 import { timingSafeEqual } from "node:crypto";
 
-import { runChatJobs } from "@zentro/api/server";
+import { reportError, runChatJobs } from "@zentro/api/server";
 import { db } from "@zentro/db";
 
 export const runtime = "nodejs";
@@ -26,10 +26,16 @@ export async function GET(request: Request) {
     return new Response("Unauthorized", { status: 401 });
   }
 
-  const result = await runChatJobs(
-    db as unknown as Parameters<typeof runChatJobs>[0],
-    { heavy: true },
-  );
+  try {
+    const result = await runChatJobs(
+      db as unknown as Parameters<typeof runChatJobs>[0],
+      { heavy: true },
+    );
 
-  return Response.json(result);
+    return Response.json(result);
+  } catch (error) {
+    await reportError("cron", error);
+
+    return Response.json({ error: "Failed" }, { status: 500 });
+  }
 }

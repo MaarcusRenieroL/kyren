@@ -1,7 +1,10 @@
 import { and, eq, ne } from "@zentro/db/drizzle";
 import { meetingAttendees, users } from "@zentro/db/schema";
 
+import type { db as database } from "@zentro/db";
+
 import type { DbHandle } from "./access";
+import { enqueueJob, registerJobHandler } from "./jobs";
 
 export type MeetingMail = {
   kind: "invite" | "cancel" | "reminder";
@@ -32,6 +35,13 @@ async function realMailer(mail: MeetingMail) {
   await sendMeetingEmail(mail);
 }
 
+registerJobHandler("meeting_mail", async (payload) => {
+  await (override ?? realMailer)({
+    ...(payload as unknown as MeetingMail),
+    startsAt: new Date(String(payload.startsAt)),
+  });
+});
+
 type MeetingRow = {
   id: string;
   title: string;
@@ -41,8 +51,9 @@ type MeetingRow = {
 };
 
 /**
- * Emails a meeting's attendees. A failed send is logged and skipped: mail
- * trouble must never stop a meeting from being scheduled or canceled.
+ * Emails a meeting's attendees. A failed send is logged and, for invites and
+ * cancellations, queued to be tried again: mail trouble must never stop a
+ * meeting from being scheduled or canceled.
  */
 export async function mailMeeting(
   db: DbHandle,
@@ -77,19 +88,30 @@ export async function mailMeeting(
       continue;
     }
 
+    const mail: MeetingMail = {
+      kind,
+      to: person.email,
+      title: meeting.title,
+      startsAt: meeting.startsAt,
+      durationMinutes: meeting.durationMinutes,
+      organizer: organizer?.name ?? "Someone",
+      path: `/calendar/meetings/${meeting.id}`,
+    };
+
     try {
-      await send({
-        kind,
-        to: person.email,
-        title: meeting.title,
-        startsAt: meeting.startsAt,
-        durationMinutes: meeting.durationMinutes,
-        organizer: organizer?.name ?? "Someone",
-        path: `/calendar/meetings/${meeting.id}`,
-      });
+      await send(mail);
       sent += 1;
     } catch (error) {
       console.error("[meetings] could not send a meeting email", error);
+
+      // A reminder that arrives after the meeting started is no use; invites
+      // and cancellations are still worth retrying.
+      if (kind !== "reminder") {
+        await enqueueJob(db as unknown as typeof database, "meeting_mail", {
+          ...mail,
+          startsAt: mail.startsAt.toISOString(),
+        }).catch(() => undefined);
+      }
     }
   }
 

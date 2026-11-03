@@ -4,6 +4,7 @@ import {
   createAuditContext,
   createEnabledModulesLoader,
   createPermissionContext,
+  reportError,
 } from "@zentro/api/server";
 import { auth } from "@zentro/auth";
 import { db } from "@zentro/db";
@@ -13,6 +14,11 @@ const handler = (request: Request) => {
     endpoint: "/api/trpc",
     req: request,
     router: appRouter,
+    onError({ error, path }) {
+      if (error.code === "INTERNAL_SERVER_ERROR") {
+        void reportError("trpc", error.cause ?? error, { path });
+      }
+    },
     createContext: async () => {
       const session = await auth.api.getSession({
         headers: request.headers,

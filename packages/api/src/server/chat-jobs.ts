@@ -16,6 +16,7 @@ import { postOverdueEvents } from "./chat-events";
 import { postChatMessage } from "./chat-post";
 import { sendDueMeetingReminders } from "./meeting-reminders";
 import { createDueRecurringTasks } from "./recurring-tasks";
+import { runDueJobs } from "./jobs";
 import { applyRetention, purgeExpired } from "./retention";
 import { deliverDueWebhooks } from "./webhooks";
 
@@ -130,6 +131,7 @@ export async function runChatJobs(db: Db, options: { heavy?: boolean } = {}) {
 
   const meetingReminders = await sendDueMeetingReminders(db);
   const recurring = await createDueRecurringTasks(db);
+  const queued = await runDueJobs(db as never);
   let escalated = 0;
 
   if (options.heavy) {
@@ -151,6 +153,7 @@ export async function runChatJobs(db: Db, options: { heavy?: boolean } = {}) {
     escalated,
     meetingReminders,
     recurring,
+    queued,
     webhooks,
   };
 }
