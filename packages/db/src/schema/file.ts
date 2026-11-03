@@ -5,6 +5,7 @@ import {
   pgTable,
   text,
   timestamp,
+  uniqueIndex,
   uuid,
 } from "drizzle-orm/pg-core";
 
@@ -38,7 +39,12 @@ export const files = pgTable(
     deletedAt: timestamp("deletedAt"),
     createdAt: timestamp("createdAt").notNull().defaultNow(),
   },
-  (table) => [index("file_organization_idx").on(table.organizationId)],
+  (table) => [
+    index("file_organization_idx").on(table.organizationId),
+    // A stored object belongs to one file record, so a known key cannot be
+    // registered a second time to gain access to it.
+    uniqueIndex("file_storage_key_idx").on(table.storageKey),
+  ],
 );
 
 /** Files attached to a chat message, in the order they were added. */

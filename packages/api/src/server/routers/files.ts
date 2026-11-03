@@ -12,6 +12,7 @@ import {
 import { z } from "zod";
 
 import { currentMemberId, readableChannelIds } from "../chat";
+import { isUniqueViolation } from "../db-errors";
 import { permissionProcedure, type OrganizationContext } from "../trpc";
 
 /** Largest file a person can share in chat. */
@@ -169,16 +170,27 @@ async function registerFile(
     throw new TRPCError({ code: "BAD_REQUEST", message: "Bad file key." });
   }
 
-  const [row] = await ctx.db
-    .insert(files)
-    .values({
-      organizationId: ctx.activeOrganization.id,
-      uploadedByMemberId: memberId,
-      ...input,
-    })
-    .returning({ id: files.id });
+  try {
+    const [row] = await ctx.db
+      .insert(files)
+      .values({
+        organizationId: ctx.activeOrganization.id,
+        uploadedByMemberId: memberId,
+        ...input,
+      })
+      .returning({ id: files.id });
 
-  return { id: row!.id };
+    return { id: row!.id };
+  } catch (error) {
+    if (isUniqueViolation(error)) {
+      throw new TRPCError({
+        code: "CONFLICT",
+        message: "That file has already been registered.",
+      });
+    }
+
+    throw error;
+  }
 }
 
 async function checkSize(ctx: OrganizationContext, size: number) {
