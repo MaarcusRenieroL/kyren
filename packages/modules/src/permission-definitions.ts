@@ -655,6 +655,13 @@ export const ticketsPermissions: PermissionDefinition[] = [
     "Tickets",
     org,
   ),
+  definePermission(
+    "tickets.manage_inbox",
+    "Manage the support email address",
+    "Turn on email to ticket and replace the address.",
+    "Tickets",
+    org,
+  ),
 ];
 
 export const hrPermissions: PermissionDefinition[] = [

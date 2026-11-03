@@ -1,3 +1,5 @@
+import { randomBytes } from "node:crypto";
+
 import { TRPCError } from "@trpc/server";
 import {
   and,
@@ -13,6 +15,7 @@ import {
 import {
   members,
   tasks,
+  ticketInboxes,
   ticketMessages,
   ticketSlaPolicies,
   tickets,
@@ -330,6 +333,56 @@ export const ticketsRouter = router({
   }),
 
   /** Sets (or, with both empty, clears) the targets for one priority. */
+  /** The support email address, for people who manage it. */
+  inbox: procedure("tickets.manage_inbox").query(async ({ ctx }) => {
+    const [row] = await ctx.db
+      .select()
+      .from(ticketInboxes)
+      .where(eq(ticketInboxes.organizationId, ctx.activeOrganization.id))
+      .limit(1);
+
+    return { enabled: row?.enabled ?? false, token: row?.token ?? null };
+  }),
+
+  /** Turns email to ticket on or off. `rotate` replaces the address, retiring the old one. */
+  setInbox: procedure("tickets.manage_inbox", ["ticket.inbox_changed"])
+    .input(z.object({ enabled: z.boolean(), rotate: z.boolean().optional() }))
+    .mutation(async ({ ctx, input }) => {
+      const token = randomBytes(24).toString("hex");
+
+      return ctx.db.transaction(async (tx) => {
+        const [row] = await tx
+          .insert(ticketInboxes)
+          .values({
+            organizationId: ctx.activeOrganization.id,
+            token,
+            enabled: input.enabled,
+          })
+          .onConflictDoUpdate({
+            target: ticketInboxes.organizationId,
+            set: {
+              enabled: input.enabled,
+              ...(input.rotate ? { token } : {}),
+            },
+          })
+          .returning();
+
+        await ctx.audit.record(tx, {
+          action: "ticket.inbox_changed",
+          target: {
+            id: ctx.activeOrganization.id,
+            label: input.rotate
+              ? "replaced the address"
+              : input.enabled
+                ? "turned on"
+                : "turned off",
+          },
+        });
+
+        return { enabled: row!.enabled, token: row!.token };
+      });
+    }),
+
   setSla: procedure("tickets.manage_sla", ["ticket.sla_updated"])
     .input(
       z.object({
@@ -444,7 +497,10 @@ export const ticketsRouter = router({
           id: message.id,
           kind: message.kind,
           body: message.body,
-          author: author ?? "Former member",
+          author:
+            message.kind === "inbound"
+              ? ticket.requesterName
+              : (author ?? "Former member"),
           createdAt: message.createdAt.toISOString(),
         })),
         canReply: await ctx.permissions.can("tickets.reply"),

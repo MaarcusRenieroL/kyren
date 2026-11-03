@@ -231,8 +231,10 @@ export function TicketDetail({ id }: { id: string }) {
                   <span className="font-medium text-ink">{message.author}</span>
                   {message.kind === "note"
                     ? " · internal note"
-                    : " · reply"} ·{" "}
-                  {dateFormat.format(new Date(message.createdAt))}
+                    : message.kind === "inbound"
+                      ? " · by email"
+                      : " · reply"}{" "}
+                  · {dateFormat.format(new Date(message.createdAt))}
                 </p>
                 <p className="text-sm whitespace-pre-wrap text-ink">
                   {message.body}

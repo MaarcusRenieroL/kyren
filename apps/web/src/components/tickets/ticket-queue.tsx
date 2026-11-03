@@ -11,6 +11,7 @@ import type { inferRouterOutputs } from "@trpc/server";
 import { EmptyState } from "@zentro/ui/components/empty-state";
 import { SlaBadge } from "./sla-badge";
 import { SlaTargets } from "./sla-targets";
+import { SupportInbox } from "./support-inbox";
 import { PageHeader } from "@zentro/ui/components/page-header";
 import { usePermission } from "~/src/components/permissions/permission-provider";
 import { Button } from "@zentro/ui/shadcn/button";
@@ -49,6 +50,7 @@ const dateFormat = new Intl.DateTimeFormat(undefined, {
 
 export function TicketQueue({ canCreate }: { canCreate: boolean }) {
   const canManageSla = usePermission("tickets.manage_sla");
+  const canManageInbox = usePermission("tickets.manage_inbox");
   const trpc = useTrpcClient();
   const router = useRouter();
   const [view, setView] = useState<View>("mine");
@@ -86,6 +88,7 @@ export function TicketQueue({ canCreate }: { canCreate: boolean }) {
       />
 
       {canManageSla ? <SlaTargets /> : null}
+      {canManageInbox ? <SupportInbox /> : null}
 
       <div className="flex flex-wrap items-center gap-2">
         <div

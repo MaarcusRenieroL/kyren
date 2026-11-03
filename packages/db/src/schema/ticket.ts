@@ -1,4 +1,5 @@
 import {
+  boolean,
   index,
   integer,
   pgTable,
@@ -107,6 +108,41 @@ export const ticketSlaPolicies = pgTable(
     uniqueIndex("ticket_sla_org_priority_unique").on(
       table.organizationId,
       table.priority,
+    ),
+  ],
+);
+
+/**
+ * The address an organization receives support email on. The token is the
+ * secret part of the address; rotating it retires the old one at once.
+ */
+export const ticketInboxes = pgTable("ticketInbox", {
+  organizationId: uuid("organizationId")
+    .primaryKey()
+    .references(() => organizations.id, { onDelete: "cascade" }),
+  token: text("token").notNull().unique(),
+  enabled: boolean("enabled").notNull().default(true),
+  createdAt: timestamp("createdAt").notNull().defaultNow(),
+});
+
+/** Mail already handled, so a provider that delivers twice opens one ticket. */
+export const ticketInbound = pgTable(
+  "ticketInbound",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    organizationId: uuid("organizationId")
+      .notNull()
+      .references(() => organizations.id, { onDelete: "cascade" }),
+    messageId: text("messageId").notNull(),
+    ticketId: uuid("ticketId")
+      .notNull()
+      .references(() => tickets.id, { onDelete: "cascade" }),
+    createdAt: timestamp("createdAt").notNull().defaultNow(),
+  },
+  (table) => [
+    uniqueIndex("ticket_inbound_message_unique").on(
+      table.organizationId,
+      table.messageId,
     ),
   ],
 );
