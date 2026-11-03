@@ -57,6 +57,13 @@ test.describe("signed out", () => {
     "/tasks",
     "/docs",
     "/settings",
+    "/hr",
+    "/payroll",
+    "/tickets",
+    "/mail",
+    "/calendar",
+    "/whiteboards",
+    "/admin",
   ]) {
     test(`${path} redirects to sign-in`, async ({ page }) => {
       await page.goto(path);
