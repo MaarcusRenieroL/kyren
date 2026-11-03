@@ -41,6 +41,8 @@ const trpc = initTRPC
 
 import { enforceBurstLimit } from "./burst-limit";
 import { isUniqueViolation } from "./db-errors";
+import { clientIp } from "./client-ip";
+import { ipAllowed } from "./ip-policy";
 import { requiresTwoFactor } from "./two-factor-policy";
 
 export const router = trpc.router;
@@ -159,6 +161,16 @@ export const protectedProcedure = baseProcedure.use(async ({ ctx, next }) => {
       code: "FORBIDDEN",
       message:
         "Your organization requires two-factor sign-in. Turn it on in Settings, Security.",
+    });
+  }
+
+  // An organization can limit itself to chosen networks.
+  if (
+    !(await ipAllowed(ctx.db, ctx.activeOrganization.id, clientIp(ctx.headers)))
+  ) {
+    throw new TRPCError({
+      code: "FORBIDDEN",
+      message: "Your network is not allowed to use this organization.",
     });
   }
 

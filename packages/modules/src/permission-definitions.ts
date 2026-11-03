@@ -770,6 +770,13 @@ export const adminPermissions: PermissionDefinition[] = [
     org,
   ),
   definePermission(
+    "admin.manage_ip_access",
+    "Manage network access",
+    "Limit the organization to chosen IP addresses and ranges.",
+    "Administration",
+    org,
+  ),
+  definePermission(
     "time.view_report",
     "View the time report",
     "See how much time everyone logged on tasks.",

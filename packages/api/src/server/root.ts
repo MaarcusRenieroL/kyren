@@ -12,6 +12,7 @@ import { meetingRouter } from "./routers/meeting";
 import { sprintRouter } from "./routers/sprint";
 import { taskViewRouter } from "./routers/task-view";
 import { timesheetRouter } from "./routers/timesheet";
+import { ipAccessRouter } from "./routers/ip-access";
 import { retentionRouter } from "./routers/retention";
 import { privacyRouter } from "./routers/privacy";
 import { recurrenceRouter } from "./routers/recurrence";
@@ -65,6 +66,7 @@ export const appRouter = router({
   recurrence: recurrenceRouter,
   privacy: privacyRouter,
   retention: retentionRouter,
+  ipAccess: ipAccessRouter,
   audit: auditRouter,
   automation: automationRouter,
   calendar: calendarRouter,

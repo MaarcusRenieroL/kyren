@@ -903,6 +903,15 @@ export const auditCatalog: readonly AuditEventDefinition[] = [
     "A legal hold was placed or lifted, which stops or resumes purging and erasure.",
   ),
   event(
+    "ipaccess.changed",
+    "Network access changed",
+    "settings",
+    "organization",
+    true,
+    "changed the allowed networks",
+    "An allowed address range was added or removed, or the allow-list was switched on or off.",
+  ),
+  event(
     "privacy.exported",
     "Personal data exported",
     "settings",

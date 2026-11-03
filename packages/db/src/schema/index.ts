@@ -23,6 +23,7 @@ export * from "./kb-article";
 export * from "./task-recurrence";
 export * from "./retention";
 export * from "./job";
+export * from "./ip-allowlist";
 export * from "./hr";
 export * from "./payroll";
 export * from "./api-key";
