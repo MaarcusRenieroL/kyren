@@ -23,3 +23,4 @@ export * from "./hr";
 export * from "./payroll";
 export * from "./api-key";
 export * from "./webhook";
+export * from "./custom-field";

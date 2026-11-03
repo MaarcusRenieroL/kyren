@@ -7,6 +7,7 @@ import { hrRouter } from "./routers/hr";
 import { payrollRouter } from "./routers/payroll";
 import { apiKeyRouter } from "./routers/api-key";
 import { webhookRouter } from "./routers/webhook";
+import { customFieldRouter } from "./routers/custom-field";
 import { ticketsRouter } from "./routers/tickets";
 import { activityRouter } from "./routers/activity";
 import { auditRouter } from "./routers/audit";
@@ -46,6 +47,7 @@ export const appRouter = router({
   payroll: payrollRouter,
   apiKey: apiKeyRouter,
   webhook: webhookRouter,
+  customField: customFieldRouter,
   tickets: ticketsRouter,
   audit: auditRouter,
   automation: automationRouter,

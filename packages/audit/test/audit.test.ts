@@ -39,6 +39,7 @@ const targetTypes = [
   "payroll",
   "api_key",
   "webhook",
+  "custom_field",
 ];
 
 describe("event catalog", () => {

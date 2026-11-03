@@ -727,4 +727,11 @@ export const adminPermissions: PermissionDefinition[] = [
     "Administration",
     org,
   ),
+  definePermission(
+    "admin.manage_custom_fields",
+    "Manage task fields",
+    "Add and remove the extra fields every task carries.",
+    "Administration",
+    org,
+  ),
 ];
