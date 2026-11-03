@@ -9,8 +9,12 @@ import { permissionProcedure, router } from "../trpc";
 import { uuid } from "../zod-common";
 import { generateWebhookSecret } from "../webhooks";
 
-const procedure = (permission: string, audit?: string[]) =>
-  permissionProcedure(permission, undefined, { module: "admin", audit });
+const procedure = (permission: string, audit?: string[], fresh?: boolean) =>
+  permissionProcedure(permission, undefined, {
+    module: "admin",
+    audit,
+    fresh,
+  });
 
 const production = () => process.env.NODE_ENV === "production";
 
@@ -30,7 +34,7 @@ export const webhookRouter = router({
   }),
 
   /** The signing secret comes back once, here, and is never listed. */
-  create: procedure("admin.manage_webhooks", ["webhook.created"])
+  create: procedure("admin.manage_webhooks", ["webhook.created"], true)
     .input(
       z.object({
         url: z.string().trim().url().max(500),

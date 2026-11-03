@@ -238,6 +238,25 @@ export async function assertAnyPermission(
   throw denialFor(last ?? { allowed: false, reasons: [] });
 }
 
+/** How recently someone must have signed in to do something hard to undo. */
+const FRESH_SIGN_IN_MS = 30 * 60 * 1000;
+
+/**
+ * A stolen or forgotten session should not be able to mint API keys, open
+ * webhooks or hand over the organization. Signing in again fixes it.
+ */
+function assertRecentSignIn(startedAt: Date | string | undefined) {
+  const started = startedAt ? new Date(startedAt).getTime() : 0;
+
+  if (Date.now() - started > FRESH_SIGN_IN_MS) {
+    throw new TRPCError({
+      code: "FORBIDDEN",
+      message:
+        "For your security, sign in again to do this. Sign out, sign back in, then retry.",
+    });
+  }
+}
+
 /**
  * The one way to protect a procedure: the module (when given) must be on, then
  * the caller must hold the permission for the resource the resolver names.
@@ -251,6 +270,8 @@ export const permissionProcedure = (
     also?: string[];
     /** Activity events a mutation records (see `ProcedureMeta.audit`). */
     audit?: string[];
+    /** Refuses a session that began long ago; for actions that are hard to undo. */
+    fresh?: boolean;
   } = {},
 ) => {
   const base = options.module
@@ -264,6 +285,9 @@ export const permissionProcedure = (
     })
     .use(async (opts) => {
       const { ctx, next, getRawInput } = opts;
+
+      if (options.fresh) assertRecentSignIn(ctx.session?.session.createdAt);
+
       const resource = resolve
         ? await resolve({
             ctx: ctx as OrganizationContext,

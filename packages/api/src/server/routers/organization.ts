@@ -60,6 +60,7 @@ export const organizationRouter = router({
   /** Requires every member to sign in with two-factor to use the workspace. */
   setTwoFactorPolicy: permissionProcedure("org.settings.update", undefined, {
     audit: ["org.updated"],
+    fresh: true,
   })
     .input(z.object({ required: z.boolean() }))
     .mutation(async ({ ctx, input }) => {
@@ -129,6 +130,7 @@ export const organizationRouter = router({
   // Owner only (org.delete is an owner-only permission).
   delete: permissionProcedure("org.delete", undefined, {
     audit: ["org.deleted"],
+    fresh: true,
   }).mutation(async ({ ctx }) => {
     // Written first: deleting the organization removes its events with it, so
     // this is the last entry the organization's log ever holds.

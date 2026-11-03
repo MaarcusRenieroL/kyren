@@ -194,6 +194,7 @@ export const memberRouter = router({
   // Owner only: the target becomes an owner and the caller steps down to admin.
   transferOwnership: permissionProcedure("org.ownership.transfer", undefined, {
     audit: ["org.ownership_transferred"],
+    fresh: true,
   })
     .input(memberIdSchema)
     .mutation(async ({ ctx, input }) => {

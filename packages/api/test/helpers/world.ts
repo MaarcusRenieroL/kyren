@@ -295,6 +295,8 @@ export class World {
       headers?: Record<string, string>;
       /** Wraps the audit context, for tests that make recording fail. */
       wrapAudit?: (audit: AuditContext) => AuditContext;
+      /** How long ago the session began; defaults to just now. */
+      sessionAgeMs?: number;
     } = {},
   ) {
     const rows = await db
@@ -342,7 +344,7 @@ export class World {
           userId: user.id,
           activeOrganizationId: org.id,
           expiresAt: new Date(Date.now() + 60_000),
-          createdAt: new Date(),
+          createdAt: new Date(Date.now() - (options.sessionAgeMs ?? 0)),
           updatedAt: new Date(),
         },
         user,

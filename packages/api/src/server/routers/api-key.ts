@@ -6,8 +6,12 @@ import { z } from "zod";
 import { generateApiKey } from "../api-keys";
 import { permissionProcedure, router } from "../trpc";
 
-const procedure = (permission: string, audit?: string[]) =>
-  permissionProcedure(permission, undefined, { module: "admin", audit });
+const procedure = (permission: string, audit?: string[], fresh?: boolean) =>
+  permissionProcedure(permission, undefined, {
+    module: "admin",
+    audit,
+    fresh,
+  });
 
 export const apiKeyRouter = router({
   list: procedure("admin.manage_api_keys").query(async ({ ctx }) => {
@@ -33,7 +37,7 @@ export const apiKeyRouter = router({
   }),
 
   /** Returns the key once. It cannot be read again. */
-  create: procedure("admin.manage_api_keys", ["apikey.created"])
+  create: procedure("admin.manage_api_keys", ["apikey.created"], true)
     .input(
       z.object({
         name: z.string().trim().min(1).max(80),
