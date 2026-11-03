@@ -300,6 +300,13 @@ export const tasksPermissions: PermissionDefinition[] = [
     all,
   ),
   definePermission(
+    "tasks.manage_templates",
+    "Manage task templates",
+    "Create, edit and delete the templates people start tasks from.",
+    "Tasks",
+    org,
+  ),
+  definePermission(
     "tasks.update_own",
     "Edit own tasks",
     "Edit tasks the user created.",

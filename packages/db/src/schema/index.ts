@@ -25,6 +25,7 @@ export * from "./retention";
 export * from "./job";
 export * from "./ip-allowlist";
 export * from "./intake-form";
+export * from "./task-template";
 export * from "./hr";
 export * from "./payroll";
 export * from "./api-key";
