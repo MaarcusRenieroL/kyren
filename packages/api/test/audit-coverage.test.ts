@@ -55,8 +55,6 @@ const recordsNothing: Record<string, string> = {
   "chat.unfurl": "Caches a link preview; no one's data changes.",
   "chat.emojiCreate": "A custom emoji is visible to the whole organization.",
   "chat.emojiDelete": "A custom emoji is visible to the whole organization.",
-  "chat.summarize": "Reads a conversation; changes nothing.",
-  "chat.translate": "Reads a message; changes nothing.",
   "chat.setPreferences": "Personal notification and pin settings.",
   "chat.openDm": "Starting a direct message between the people in it.",
   "chat.requestAccess":

@@ -228,7 +228,10 @@ export const adminRouter = router({
       );
 
     const [policy] = await ctx.db
-      .select({ required: organizations.requireTwoFactor })
+      .select({
+        required: organizations.requireTwoFactor,
+        aiEnabled: organizations.aiEnabled,
+      })
       .from(organizations)
       .where(eq(organizations.id, ctx.activeOrganization.id));
     const [coverage] = await ctx.db
@@ -245,6 +248,7 @@ export const adminRouter = router({
 
     return {
       requireTwoFactor: policy?.required ?? false,
+      aiEnabled: policy?.aiEnabled ?? false,
       memberCount: coverage?.total ?? 0,
       withTwoFactor: coverage?.withTwoFactor ?? 0,
       privileged: privileged.map((row) => ({

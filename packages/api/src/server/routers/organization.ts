@@ -95,6 +95,37 @@ export const organizationRouter = router({
       return { required: input.required };
     }),
 
+  /**
+   * Lets the workspace's text (chat, tickets) be sent to an AI model for
+   * summaries and translation. Off by default.
+   */
+  setAiPolicy: permissionProcedure("org.settings.update", undefined, {
+    audit: ["org.updated"],
+  })
+    .input(z.object({ enabled: z.boolean() }))
+    .mutation(async ({ ctx, input }) => {
+      const { db, activeOrganization } = ctx;
+
+      await db
+        .update(organizations)
+        .set({ aiEnabled: input.enabled })
+        .where(eq(organizations.id, activeOrganization.id));
+
+      await ctx.audit.record(db, {
+        action: "org.updated",
+        target: { id: activeOrganization.id, label: activeOrganization.name },
+        changes: [
+          {
+            field: "aiEnabled",
+            from: String(!input.enabled),
+            to: String(input.enabled),
+          },
+        ],
+      });
+
+      return { enabled: input.enabled };
+    }),
+
   // Owner only (org.delete is an owner-only permission).
   delete: permissionProcedure("org.delete", undefined, {
     audit: ["org.deleted"],

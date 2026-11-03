@@ -428,7 +428,7 @@ describe("chat: polls, forwarding, status and channel extras", () => {
           .messages[0]!.id,
         language: "French",
       }),
-    ).rejects.toThrow(/ANTHROPIC_API_KEY/);
+    ).rejects.toThrow(/turn on AI/);
   });
 });
 

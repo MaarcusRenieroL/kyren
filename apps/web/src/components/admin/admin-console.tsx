@@ -253,6 +253,18 @@ export function AdminSecurity() {
   const trpc = useTrpcClient();
   const [required, setRequired] = useState<boolean | null>(null);
   const requireTwoFactor = required ?? data?.requireTwoFactor ?? false;
+  const [ai, setAi] = useState<boolean | null>(null);
+  const aiEnabled = ai ?? data?.aiEnabled ?? false;
+
+  async function changeAi(next: boolean) {
+    try {
+      await trpc.organization.setAiPolicy.mutate({ enabled: next });
+      setAi(next);
+      toastSuccess(next ? "AI features are on" : "AI features are off");
+    } catch (error) {
+      toastError(error, "Could not change the AI setting.");
+    }
+  }
 
   async function changePolicy(next: boolean) {
     try {
@@ -307,6 +319,30 @@ export function AdminSecurity() {
                 <span className="text-xs text-ink-3">
                   {data.withTwoFactor} of {data.memberCount} people have it on.
                   Others are asked to turn it on before they can continue.
+                </span>
+              </span>
+            </label>
+          </section>
+
+          <section aria-labelledby="ai" className="flex flex-col gap-2">
+            <h2 id="ai" className="text-sm font-semibold text-ink">
+              AI features
+            </h2>
+            <label className="flex items-start gap-3 text-sm">
+              <input
+                type="checkbox"
+                className="mt-0.5"
+                checked={aiEnabled}
+                onChange={(event) => void changeAi(event.target.checked)}
+              />
+              <span>
+                <span className="block text-ink">
+                  Let AI summarize and translate workspace text
+                </span>
+                <span className="text-xs text-ink-3">
+                  When on, the chat or ticket text you ask about is sent to
+                  Anthropic to produce the answer. Each use is listed in the
+                  audit log by feature, never with the text. Off by default.
                 </span>
               </span>
             </label>

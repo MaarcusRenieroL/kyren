@@ -48,6 +48,8 @@ export const organizations = pgTable("organization", {
   metadata: text("metadata"),
   /** When true, every member must sign in with two-factor to use the workspace. */
   requireTwoFactor: boolean("requireTwoFactor").notNull().default(false),
+  /** Workplace text is sent to an AI model only while this is on. */
+  aiEnabled: boolean("aiEnabled").notNull().default(false),
   createdAt: timestamp("createdAt").notNull().defaultNow(),
   updatedAt: timestamp("updatedAt").notNull().defaultNow(),
 });

@@ -804,6 +804,15 @@ export const auditCatalog: readonly AuditEventDefinition[] = [
     "A key for the public API was revoked.",
   ),
   event(
+    "ai.used",
+    "AI used",
+    "settings",
+    "organization",
+    true,
+    "used AI to {target}",
+    "Workplace text was sent to an AI model. The text itself is never stored here.",
+  ),
+  event(
     "webhook.created",
     "Webhook created",
     "settings",
