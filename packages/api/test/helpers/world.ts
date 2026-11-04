@@ -360,7 +360,7 @@ export class World {
   }
 
   /** A signed-in caller who has no active organization (a brand new user). */
-  sessionCaller(user: TestUser) {
+  sessionCaller(user: TestUser, options: { sessionAgeMs?: number } = {}) {
     return appRouter.createCaller({
       db,
       headers: new Headers(),
@@ -376,7 +376,7 @@ export class World {
           userId: user.id,
           activeOrganizationId: null,
           expiresAt: new Date(Date.now() + 60_000),
-          createdAt: new Date(),
+          createdAt: new Date(Date.now() - (options.sessionAgeMs ?? 0)),
           updatedAt: new Date(),
         },
         user,

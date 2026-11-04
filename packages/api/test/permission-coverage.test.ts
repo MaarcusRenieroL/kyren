@@ -18,6 +18,8 @@ const procedures = Object.entries(appRouter._def.procedures).map(
 // listProcedure) or be added here on purpose; the test fails otherwise.
 const unmanaged: Record<string, string> = {
   health: "Public liveness probe; returns a static payload.",
+  "platform.me":
+    "Guarded by platformProcedure: platform_admin role, two-factor and a recent sign-in, outside any organization.",
   "organization.getInviteDetails":
     "Authenticated only; returns an invitation to the user it was sent to.",
   "user.listPendingInvites":

@@ -185,6 +185,37 @@ export const protectedProcedure = baseProcedure.use(async ({ ctx, next }) => {
 
 export const organizationProcedure = protectedProcedure;
 
+/** The role that grants access to the platform console. Only set by an operator on the database. */
+export const PLATFORM_ADMIN_ROLE = "platform_admin";
+
+/**
+ * For the platform console, which runs above every organization. The caller
+ * must be a platform admin with a verified email, two-factor turned on and a
+ * recent sign-in. Anyone else gets "not found", so the console cannot be probed.
+ */
+export const platformProcedure = baseProcedure.use(({ ctx, next }) => {
+  const user = ctx.user;
+
+  if (
+    !user?.id ||
+    user.role !== PLATFORM_ADMIN_ROLE ||
+    user.emailVerified === false
+  ) {
+    throw new TRPCError({ code: "NOT_FOUND", message: "Not found." });
+  }
+
+  if (!user.twoFactorEnabled) {
+    throw new TRPCError({
+      code: "FORBIDDEN",
+      message: "Platform access needs two-factor sign-in. Turn it on first.",
+    });
+  }
+
+  assertRecentSignIn(ctx.session?.session.createdAt);
+
+  return next({ ctx: { ...ctx, user } });
+});
+
 /**
  * Rejects the call when the module is turned off for the caller's active
  * organization. The enabled set is loaded once per request by the context.
