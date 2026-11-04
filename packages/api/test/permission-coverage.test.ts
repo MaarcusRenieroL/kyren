@@ -20,6 +20,8 @@ const procedures = Object.entries(appRouter._def.procedures).map(
 // listProcedure) or be added here on purpose; the test fails otherwise.
 const unmanaged: Record<string, string> = {
   health: "Public liveness probe; returns a static payload.",
+  "organization.flags":
+    "Any member reads the feature flags set for their own organization; they hold nothing secret.",
   "announcement.active":
     "Any signed-in user reads the notices the platform has published for everyone.",
   "organization.getInviteDetails":

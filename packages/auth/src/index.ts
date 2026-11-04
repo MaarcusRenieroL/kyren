@@ -71,6 +71,29 @@ const disabledOrganizationPaths = [
   "/update-session",
 ];
 
+/** Throws when an operator's member limit for the organization is already reached. */
+async function assertSeatAvailable(organizationId: string) {
+  const [row] = await db
+    .select({ limits: schema.organizations.limits })
+    .from(schema.organizations)
+    .where(eq(schema.organizations.id, organizationId))
+    .limit(1);
+  const seats = row?.limits.members;
+
+  if (!seats) return;
+
+  const joined = await db
+    .select({ id: schema.members.id })
+    .from(schema.members)
+    .where(eq(schema.members.organizationId, organizationId));
+
+  if (joined.length >= seats) {
+    throw new APIError("FORBIDDEN", {
+      message: `This organization has reached its limit of ${seats} members.`,
+    });
+  }
+}
+
 export const auth = betterAuth({
   disabledPaths: disabledOrganizationPaths,
   hooks: {
@@ -245,6 +268,15 @@ export const auth = betterAuth({
       },
       invitationExpiresIn: 60 * 60 * 24 * 7,
       organizationHooks: {
+        // A platform operator can cap an organization's seats; the cap is
+        // checked when someone is added and again when an invitation is
+        // accepted (Better Auth runs a separate hook for each).
+        beforeAddMember: async ({ organization }) => {
+          await assertSeatAvailable(organization.id);
+        },
+        beforeAcceptInvitation: async ({ organization }) => {
+          await assertSeatAvailable(organization.id);
+        },
         // Every organization starts with its system roles in place.
         afterCreateOrganization: async ({ organization }) => {
           await ensureSystemRoles(db, organization.id);

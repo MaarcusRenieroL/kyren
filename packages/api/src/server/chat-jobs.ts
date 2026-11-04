@@ -119,7 +119,14 @@ export async function markDueReminders(db: Db) {
 }
 
 /** Everything chat does in the background. Safe to run often. */
-export async function runChatJobs(db: Db, options: { heavy?: boolean } = {}) {
+export async function runChatJobs(
+  db: Db,
+  options: {
+    heavy?: boolean;
+    /** Deletes uploaded bytes by storage key; the web app supplies its storage driver. */
+    removeFiles?: (keys: string[]) => Promise<void>;
+  } = {},
+) {
   const sent = await sendDueScheduled(db);
   const reminded = await markDueReminders(db);
 
@@ -131,7 +138,9 @@ export async function runChatJobs(db: Db, options: { heavy?: boolean } = {}) {
   const overdue = options.heavy ? await postOverdueEvents(db) : 0;
 
   const tenantsPurged = options.heavy
-    ? await purgeScheduledOrganizations(db as never)
+    ? await purgeScheduledOrganizations(db as never, {
+        removeFiles: options.removeFiles,
+      })
     : 0;
   const meetingReminders = await sendDueMeetingReminders(db);
   const recurring = await createDueRecurringTasks(db);

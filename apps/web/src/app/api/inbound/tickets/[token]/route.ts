@@ -1,4 +1,5 @@
 import { hit, receiveTicketMail } from "@zentro/api/server";
+import { maintenanceResponse } from "~/src/lib/maintenance";
 import { db } from "@zentro/db";
 
 export const runtime = "nodejs";
@@ -28,6 +29,9 @@ export async function POST(
   { params }: { params: Promise<{ token: string }> },
 ) {
   const { token } = await params;
+  const paused = await maintenanceResponse();
+
+  if (paused) return paused;
 
   if (!/^[0-9a-f]{48}$/.test(token)) {
     return Response.json({ error: "Not found" }, { status: 404 });

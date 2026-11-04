@@ -3,6 +3,7 @@ import { MAX_FILE_BYTES } from "@zentro/api/server";
 import { TRPCError } from "@trpc/server";
 
 import { createRequestContext } from "~/src/lib/request-context";
+import { maintenanceResponse } from "~/src/lib/maintenance";
 import { BodyTooLargeError, readLimited } from "~/src/lib/read-limited";
 import { newStorageKey, storage } from "~/src/lib/storage";
 
@@ -46,6 +47,10 @@ function imageSize(bytes: Buffer, mime: string) {
 }
 
 export async function POST(request: Request) {
+  const paused = await maintenanceResponse();
+
+  if (paused) return paused;
+
   const ctx = await createRequestContext(request);
   const caller = appRouter.createCaller(ctx);
   const declared = Number(request.headers.get("content-length") ?? 0);

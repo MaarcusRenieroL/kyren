@@ -121,3 +121,21 @@ export async function organizationLimits(db: Db, organizationId: string) {
 
   return row?.limits ?? {};
 }
+
+/**
+ * Whether a platform operator switched a feature on for the organization.
+ * Flags default to off, so a feature gated this way is invisible until enabled.
+ */
+export async function featureEnabled(
+  db: Db,
+  organizationId: string,
+  flag: string,
+) {
+  const [row] = await db
+    .select({ flags: organizations.featureFlags })
+    .from(organizations)
+    .where(eq(organizations.id, organizationId))
+    .limit(1);
+
+  return row?.flags[flag] === true;
+}

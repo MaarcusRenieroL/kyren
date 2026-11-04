@@ -1,4 +1,5 @@
 import { hit, portalReply, portalView } from "@zentro/api/server";
+import { maintenanceResponse } from "~/src/lib/maintenance";
 import { db } from "@zentro/db";
 
 export const runtime = "nodejs";
@@ -49,6 +50,9 @@ export async function POST(
   { params }: { params: Promise<{ token: string }> },
 ) {
   const { token } = await params;
+  const paused = await maintenanceResponse();
+
+  if (paused) return paused;
   const blocked = await limited(token, "write", 10);
 
   if (blocked) return blocked;

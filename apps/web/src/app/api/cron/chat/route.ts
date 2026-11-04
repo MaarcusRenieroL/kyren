@@ -3,6 +3,8 @@ import { timingSafeEqual } from "node:crypto";
 import { reportError, runChatJobs } from "@zentro/api/server";
 import { db } from "@zentro/db";
 
+import { storage } from "../../../../lib/storage";
+
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
@@ -29,7 +31,12 @@ export async function GET(request: Request) {
   try {
     const result = await runChatJobs(
       db as unknown as Parameters<typeof runChatJobs>[0],
-      { heavy: true },
+      {
+        heavy: true,
+        removeFiles: async (keys) => {
+          await Promise.all(keys.map((key) => storage().remove(key)));
+        },
+      },
     );
 
     return Response.json(result);

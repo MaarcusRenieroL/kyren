@@ -3,6 +3,7 @@ import { afterAll, afterEach, beforeAll, describe, expect, it } from "vitest";
 import { db } from "@zentro/db";
 import { eq } from "@zentro/db/drizzle";
 import {
+  files,
   jobs,
   organizations,
   platformAnnouncements,
@@ -19,6 +20,8 @@ import {
   forgetPlatformIpPolicy,
 } from "../src/server/platform-policy";
 import { purgeScheduledOrganizations } from "../src/server/platform-purge";
+import { featureEnabled } from "../src/server/platform-policy";
+import { auth } from "@zentro/auth";
 import { World } from "./helpers";
 
 const world = new World();
@@ -387,5 +390,104 @@ describe("user lookup, forced sign-out and password reset", () => {
     await expect(
       platform.users.lookup({ query: member.user.email }),
     ).resolves.toMatchObject([{ sessions: 0 }]);
+  });
+});
+
+describe("closing the gaps", () => {
+  it("refuses to accept an invitation past the seat limit", async () => {
+    const org = await world.org("Seats Co");
+    const owner = await world.userIn(org, "owner", "Seat Owner");
+    const invitee = await world.user("Invitee");
+    const platform = world.sessionCaller(await operator()).platform;
+
+    await platform.tenants.setLimits({
+      id: org.id,
+      members: 1,
+      storageMb: null,
+    });
+
+    const invitation = await world.invitation(org, owner.user, {
+      email: invitee.email,
+    });
+
+    await expect(
+      auth.api.acceptInvitation({
+        headers: await world.sessionHeaders(invitee),
+        body: { invitationId: invitation.id },
+      }),
+    ).rejects.toMatchObject({
+      message: expect.stringMatching(/reached its limit of 1/i),
+    });
+
+    await platform.tenants.setLimits({
+      id: org.id,
+      members: 2,
+      storageMb: null,
+    });
+    await expect(
+      auth.api.acceptInvitation({
+        headers: await world.sessionHeaders(invitee),
+        body: { invitationId: invitation.id },
+      }),
+    ).resolves.toBeTruthy();
+  });
+
+  it("removes the uploaded bytes of a purged organization", async () => {
+    const org = await world.org("Files Co");
+    const owner = await world.userIn(org, "owner", "Files Owner");
+    const removed: string[] = [];
+
+    await db.insert(files).values({
+      organizationId: org.id,
+      uploadedByMemberId: owner.member.id,
+      name: "a.png",
+      mimeType: "image/png",
+      size: 10,
+      storageKey: `${org.id}/a.png`,
+    });
+    await db
+      .update(organizations)
+      .set({ deletionScheduledFor: new Date(Date.now() - 1000) })
+      .where(eq(organizations.id, org.id));
+
+    await expect(
+      purgeScheduledOrganizations(db, {
+        removeFiles: async (keys) => {
+          removed.push(...keys);
+        },
+      }),
+    ).resolves.toBe(1);
+    expect(removed).toEqual([`${org.id}/a.png`]);
+  });
+
+  it("still purges when removing the bytes fails", async () => {
+    const org = await world.org("Flaky Files Co");
+
+    await db
+      .update(organizations)
+      .set({ deletionScheduledFor: new Date(Date.now() - 1000) })
+      .where(eq(organizations.id, org.id));
+    await world.userIn(org, "owner", "Flaky Owner");
+
+    await expect(
+      purgeScheduledOrganizations(db, {
+        removeFiles: async () => {
+          throw new Error("storage down");
+        },
+      }),
+    ).resolves.toBe(1);
+  });
+
+  it("lets a member read their organization's flags, and code check one", async () => {
+    const org = await world.org("Flags Co");
+    const owner = await world.userIn(org, "owner", "Flags Owner");
+    const platform = world.sessionCaller(await operator()).platform;
+
+    await expect(featureEnabled(db, org.id, "beta")).resolves.toBe(false);
+    await platform.tenants.setFlags({ id: org.id, flags: { beta: true } });
+    await expect(featureEnabled(db, org.id, "beta")).resolves.toBe(true);
+    await expect(
+      (await world.caller(owner.user, org)).organization.flags(),
+    ).resolves.toEqual({ beta: true });
   });
 });

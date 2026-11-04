@@ -10,7 +10,12 @@ import { auth } from "@zentro/auth";
 import { buildChanges } from "@zentro/audit";
 import { forgetTwoFactorPolicy } from "../two-factor-policy";
 import { callAuth } from "../auth-calls";
-import { authenticatedProcedure, permissionProcedure, router } from "../trpc";
+import {
+  authenticatedProcedure,
+  permissionProcedure,
+  protectedProcedure,
+  router,
+} from "../trpc";
 
 export const organizationRouter = router({
   update: permissionProcedure("org.settings.update", undefined, {
@@ -126,6 +131,17 @@ export const organizationRouter = router({
 
       return { enabled: input.enabled };
     }),
+
+  /** The feature flags a platform operator set for the active organization. */
+  flags: protectedProcedure.query(async ({ ctx }) => {
+    const [row] = await ctx.db
+      .select({ flags: organizations.featureFlags })
+      .from(organizations)
+      .where(eq(organizations.id, ctx.activeOrganization.id))
+      .limit(1);
+
+    return row?.flags ?? {};
+  }),
 
   // Owner only (org.delete is an owner-only permission).
   delete: permissionProcedure("org.delete", undefined, {
