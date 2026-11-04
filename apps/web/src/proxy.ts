@@ -74,6 +74,7 @@ export const config = {
     "/files/:path*",
     "/chat/:path*",
     "/admin/:path*",
+    "/platform/:path*",
     "/calendar/:path*",
     "/hr/:path*",
     "/mail/:path*",

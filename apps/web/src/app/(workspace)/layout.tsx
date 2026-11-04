@@ -8,6 +8,7 @@ import { members, tasks } from "@zentro/db/schema";
 import { effectivePermissions, getCatalogKeys } from "@zentro/permissions";
 
 import { PermissionProvider } from "~/src/components/permissions/permission-provider";
+import { AnnouncementBanner } from "~/src/components/shell/announcement-banner";
 import { AppShell } from "~/src/components/shell/app-shell";
 import { getDashboardContext } from "~/src/lib/dashboard-context";
 import { paths } from "~/src/lib/paths";
@@ -87,6 +88,7 @@ export default async function WorkspaceLayout({
         orgSubtitle={`${roleLabel} · ${people} ${people === 1 ? "person" : "people"}`}
         taskCount={taskRow?.value ?? 0}
       >
+        <AnnouncementBanner />
         {children}
       </AppShell>
     </PermissionProvider>
