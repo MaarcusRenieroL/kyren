@@ -7,6 +7,7 @@ import superjson from "superjson";
 
 import { makeQueryClient, TrpcProvider } from "@zentro/api/react";
 import type { AppRouter } from "@zentro/api/server";
+import { apiPath } from "~/src/lib/paths";
 
 type Props = {
   children: ReactNode;
@@ -19,7 +20,7 @@ export const AppTRPCProvider: FC<Props> = ({ children }) => {
     createTRPCClient<AppRouter>({
       links: [
         httpBatchLink({
-          url: "/api/trpc",
+          url: apiPath("/api/trpc"),
           transformer: superjson,
         }),
       ],

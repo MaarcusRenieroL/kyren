@@ -13,6 +13,17 @@ function isOnboardingRoute(pathname: string) {
   );
 }
 
+// NextURL keeps the base path (e.g. /zentro behind the gateway); new URL() would drop it.
+function appUrl(request: NextRequest, path: string) {
+  const url = request.nextUrl.clone();
+  const target = new URL(path, "http://app.invalid");
+
+  url.pathname = target.pathname;
+  url.search = target.search;
+
+  return url;
+}
+
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
@@ -21,7 +32,7 @@ export async function proxy(request: NextRequest) {
   });
 
   if (!session) {
-    const signInUrl = new URL(paths.auth.signIn(), request.url);
+    const signInUrl = appUrl(request, paths.auth.signIn());
 
     // Invite links come back to the invitation after signing in.
     if (pathname.startsWith("/auth/invite/")) {
@@ -33,7 +44,7 @@ export async function proxy(request: NextRequest) {
 
   if (!session.user.emailVerified) {
     return NextResponse.redirect(
-      new URL(paths.auth.verifyEmail(session.user.email), request.url),
+      appUrl(request, paths.auth.verifyEmail(session.user.email)),
     );
   }
 
@@ -43,7 +54,7 @@ export async function proxy(request: NextRequest) {
     });
 
     if (organizations.length > 0) {
-      return NextResponse.redirect(new URL(paths.dashboard(), request.url));
+      return NextResponse.redirect(appUrl(request, paths.dashboard()));
     }
   }
 

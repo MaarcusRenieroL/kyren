@@ -91,3 +91,11 @@ export function getSafeRedirectPath(value: string | null | undefined) {
 
   return value;
 }
+
+// Next adds the base path to links and assets but not to fetch(), so client
+// requests to our own API go through this to work behind a path-prefixed gateway.
+export function apiPath(path: string) {
+  const prefix = (process.env.NEXT_PUBLIC_BASE_PATH ?? "").replace(/\/+$/, "");
+
+  return `${prefix}${path}`;
+}

@@ -21,6 +21,7 @@ import { PageHeader } from "@zentro/ui/components/page-header";
 import { Button } from "@zentro/ui/shadcn/button";
 import { Input } from "@zentro/ui/shadcn/input";
 import { toast, toastError } from "@zentro/ui/index";
+import { apiPath } from "~/src/lib/paths";
 
 type LibraryFile = inferRouterOutputs<AppRouter>["files"]["library"][number];
 type Kind = "all" | "image" | "document" | "other";
@@ -123,7 +124,10 @@ export function FilesLibrary() {
         const body = new FormData();
         body.append("file", file);
         body.append("library", "1");
-        const response = await fetch("/api/files", { method: "POST", body });
+        const response = await fetch(apiPath("/api/files"), {
+          method: "POST",
+          body,
+        });
 
         if (!response.ok) {
           const data = (await response.json().catch(() => null)) as {

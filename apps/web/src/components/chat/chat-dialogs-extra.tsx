@@ -29,6 +29,7 @@ import { useChatSidebar } from "./chat-store";
 import { useCustomEmoji } from "./custom-emoji";
 import { MessageBody } from "./message-body";
 import { Avatar, type MessageView } from "./message-item";
+import { apiPath } from "~/src/lib/paths";
 
 /** Pick a conversation to forward a message to, with an optional note. */
 export function ForwardDialog({
@@ -604,7 +605,7 @@ export function EmojiManagerDialog({
 
       form.append("file", file);
 
-      const response = await fetch("/api/files", {
+      const response = await fetch(apiPath("/api/files"), {
         method: "POST",
         body: form,
       });

@@ -46,6 +46,7 @@ import { ActorAvatar } from "~/src/components/actor-avatar";
 
 import { builtinShortcodes, useCustomEmoji } from "./custom-emoji";
 import { fileSize } from "./message-body";
+import { apiPath } from "~/src/lib/paths";
 
 export type Person = {
   memberId: string;
@@ -119,7 +120,7 @@ function upload(file: File, onProgress: (value: number) => void) {
     const form = new FormData();
 
     form.append("file", file);
-    request.open("POST", "/api/files");
+    request.open("POST", apiPath("/api/files"));
     request.upload.onprogress = (event) => {
       if (event.lengthComputable) onProgress(event.loaded / event.total);
     };

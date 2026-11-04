@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { apiPath } from "~/src/lib/paths";
 
 type View = {
   ref: string;
@@ -32,7 +33,9 @@ export function SupportPortal({ token }: { token: string }) {
   const [error, setError] = useState<string | null>(null);
 
   const load = useCallback(async () => {
-    const response = await fetch(`/api/portal/${token}`, { cache: "no-store" });
+    const response = await fetch(apiPath(`/api/portal/${token}`), {
+      cache: "no-store",
+    });
 
     if (response.status === 404) {
       setMissing(true);
@@ -53,7 +56,7 @@ export function SupportPortal({ token }: { token: string }) {
     setError(null);
 
     try {
-      const response = await fetch(`/api/portal/${token}`, {
+      const response = await fetch(apiPath(`/api/portal/${token}`), {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ body: text }),

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, type FormEvent } from "react";
+import { apiPath } from "~/src/lib/paths";
 
 type Field = {
   id: string;
@@ -26,7 +27,7 @@ export function PublicIntakeForm({ token }: { token: string }) {
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
-    void fetch(`/api/forms/${token}`, { cache: "no-store" }).then(
+    void fetch(apiPath(`/api/forms/${token}`), { cache: "no-store" }).then(
       async (response) => {
         if (response.ok) setForm((await response.json()) as Form);
         else setMissing(true);
@@ -40,7 +41,7 @@ export function PublicIntakeForm({ token }: { token: string }) {
     setErrors({});
 
     try {
-      const response = await fetch(`/api/forms/${token}`, {
+      const response = await fetch(apiPath(`/api/forms/${token}`), {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ answers, website: trap }),
