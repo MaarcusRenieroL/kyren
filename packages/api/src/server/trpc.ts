@@ -191,16 +191,19 @@ export const PLATFORM_ADMIN_ROLE = "platform_admin";
 /**
  * For the platform console, which runs above every organization. The caller
  * must be a platform admin with a verified email, two-factor turned on and a
- * recent sign-in. Anyone else gets "not found", so the console cannot be probed.
+ * recent sign-in. Signed-in callers who are not platform admins get "not found", so the console cannot be probed.
  */
 export const platformProcedure = baseProcedure.use(({ ctx, next }) => {
   const user = ctx.user;
 
-  if (
-    !user?.id ||
-    user.role !== PLATFORM_ADMIN_ROLE ||
-    user.emailVerified === false
-  ) {
+  if (!user?.id) {
+    throw new TRPCError({
+      code: "UNAUTHORIZED",
+      message: "You must be logged in",
+    });
+  }
+
+  if (user.role !== PLATFORM_ADMIN_ROLE || user.emailVerified === false) {
     throw new TRPCError({ code: "NOT_FOUND", message: "Not found." });
   }
 

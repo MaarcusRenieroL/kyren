@@ -22,7 +22,7 @@ async function userWith(values: Partial<typeof users.$inferInsert>) {
 }
 
 describe("the platform console guard", () => {
-  it("shows ordinary members and anonymous callers nothing", async () => {
+  it("shows ordinary members nothing and asks anonymous callers to sign in", async () => {
     const member = await userWith({ twoFactorEnabled: true });
 
     await expect(
@@ -31,7 +31,7 @@ describe("the platform console guard", () => {
       code: "NOT_FOUND",
     });
     await expect(world.anonymousCaller().platform.me()).rejects.toMatchObject({
-      code: "NOT_FOUND",
+      code: "UNAUTHORIZED",
     });
   });
 
