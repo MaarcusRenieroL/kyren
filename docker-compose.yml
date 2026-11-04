@@ -1,4 +1,4 @@
-# Local development:   docker compose up -d db      (Postgres only; run apps with `pnpm dev`)
+# Local development: run `docker compose up -d` in `projects/shared-services` then `pnpm dev`
 # Full stack in Docker: docker compose --profile full up --build
 #
 # Secrets come from a root `.env` file (see .env.example); nothing sensitive is committed.
@@ -6,48 +6,15 @@
 name: zentro
 
 x-app-env: &app-env
-  DATABASE_URL: postgres://zentro:${POSTGRES_PASSWORD:-zentro}@db:5432/zentro
+  DATABASE_URL: ${DATABASE_URL_CONTAINER:-postgres://zentro:${POSTGRES_PASSWORD:-zentro}@root-postgres:5432/zentro}
   BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET:?set BETTER_AUTH_SECRET (32+ chars) in .env}
   BETTER_AUTH_URL: ${BETTER_AUTH_URL:-http://localhost:3000}
   NEXT_PUBLIC_BASE_URL: ${NEXT_PUBLIC_BASE_URL:-http://localhost:3000}
   RESEND_API_KEY: ${RESEND_API_KEY:?set RESEND_API_KEY in .env}
 
 services:
-  db:
-    image: postgres:17-alpine
-    restart: unless-stopped
-    environment:
-      POSTGRES_USER: zentro
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-zentro}
-      POSTGRES_DB: zentro
-    ports:
-      - "127.0.0.1:${POSTGRES_PORT:-5432}:5432"
-    volumes:
-      - pgdata:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U zentro -d zentro"]
-      interval: 5s
-      timeout: 3s
-      retries: 10
-
-  # Throwaway Postgres for the automated tests (never the dev database):
-  #   docker compose --profile test up -d test-db
-  test-db:
-    profiles: [test]
-    image: postgres:17-alpine
-    environment:
-      POSTGRES_USER: zentro
-      POSTGRES_PASSWORD: zentro
-      POSTGRES_DB: postgres
-    ports:
-      - "127.0.0.1:${TEST_POSTGRES_PORT:-5434}:5432"
-    tmpfs:
-      - /var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U zentro -d postgres"]
-      interval: 3s
-      timeout: 3s
-      retries: 10
+  # Automated tests use the zentro_test database on the shared root-postgres
+  # (see TEST_DATABASE_URL in .env.example); no separate Postgres container.
 
   migrate:
     profiles: [full]
@@ -55,10 +22,10 @@ services:
       context: .
       target: migrator
     environment:
-      DATABASE_URL: postgres://zentro:${POSTGRES_PASSWORD:-zentro}@db:5432/zentro
-    depends_on:
-      db:
-        condition: service_healthy
+      DATABASE_URL: ${DATABASE_URL_CONTAINER:-postgres://zentro:${POSTGRES_PASSWORD:-zentro}@root-postgres:5432/zentro}
+    networks:
+      - default
+      - shared-dev-net
     restart: "no"
 
   web:
@@ -72,9 +39,14 @@ services:
       PORT: "3000"
     ports:
       - "3000:3000"
+    networks:
+      - default
+      - shared-dev-net
     depends_on:
       migrate:
         condition: service_completed_successfully
 
-volumes:
-  pgdata:
+networks:
+  default:
+  shared-dev-net:
+    external: true

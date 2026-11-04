@@ -39,7 +39,9 @@ CMD ["pnpm", "db:migrate"]
 # ---- build ----
 FROM deps AS build
 ARG NEXT_PUBLIC_BASE_URL=http://localhost:3000
+ARG NEXT_PUBLIC_BASE_PATH=
 ENV NEXT_PUBLIC_BASE_URL=$NEXT_PUBLIC_BASE_URL \
+    NEXT_PUBLIC_BASE_PATH=$NEXT_PUBLIC_BASE_PATH \
     NEXT_TELEMETRY_DISABLED=1 \
     NODE_ENV=production \
     BETTER_AUTH_URL=http://build.invalid \
