@@ -28,6 +28,7 @@ export * from "./intake-form";
 export * from "./task-template";
 export * from "./hr";
 export * from "./payroll";
+export * from "./platform";
 export * from "./api-key";
 export * from "./webhook";
 export * from "./custom-field";

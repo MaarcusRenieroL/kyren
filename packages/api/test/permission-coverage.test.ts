@@ -3,13 +3,15 @@ import { describe, expect, it } from "vitest";
 
 import { appRouter } from "../src/server/root";
 
-type Meta = { permissions?: string[] } | undefined;
+type Meta = { permissions?: string[]; platform?: boolean } | undefined;
 
 const procedures = Object.entries(appRouter._def.procedures).map(
   ([path, procedure]) => ({
     path,
     permissions: ((procedure as { _def: { meta?: Meta } })._def.meta
       ?.permissions ?? []) as string[],
+    platform:
+      (procedure as { _def: { meta?: Meta } })._def.meta?.platform === true,
   }),
 );
 
@@ -18,8 +20,8 @@ const procedures = Object.entries(appRouter._def.procedures).map(
 // listProcedure) or be added here on purpose; the test fails otherwise.
 const unmanaged: Record<string, string> = {
   health: "Public liveness probe; returns a static payload.",
-  "platform.me":
-    "Guarded by platformProcedure: platform_admin role, two-factor and a recent sign-in, outside any organization.",
+  "announcement.active":
+    "Any signed-in user reads the notices the platform has published for everyone.",
   "organization.getInviteDetails":
     "Authenticated only; returns an invitation to the user it was sent to.",
   "user.listPendingInvites":
@@ -75,7 +77,17 @@ describe("permission coverage", () => {
     }
   });
 
-  for (const { path, permissions } of procedures) {
+  for (const { path, permissions, platform } of procedures) {
+    if (path.startsWith("platform.")) {
+      it(`${path} is guarded by platformProcedure`, () => {
+        expect(platform, `${path} must be built on platformProcedure`).toBe(
+          true,
+        );
+      });
+
+      continue;
+    }
+
     if (path in unmanaged && !metaOnly.has(path)) {
       it(`${path} is an allowlisted unmanaged procedure`, () => {
         expect(

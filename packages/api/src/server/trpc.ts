@@ -20,6 +20,8 @@ export type ProcedureMeta = {
    * `ctx.audit`. The sweep test requires every mutation to declare keys.
    */
   audit?: string[];
+  /** Set by platformProcedure: the call is for platform operators, outside any organization. */
+  platform?: boolean;
 };
 
 const trpc = initTRPC
@@ -44,6 +46,11 @@ import { isUniqueViolation } from "./db-errors";
 import { clientIp } from "./client-ip";
 import { ipAllowed } from "./ip-policy";
 import { requiresTwoFactor } from "./two-factor-policy";
+import {
+  maintenanceState,
+  organizationStatus,
+  platformIpAllowed,
+} from "./platform-policy";
 
 export const router = trpc.router;
 
@@ -103,8 +110,30 @@ const conflictMapper = trpc.middleware(async ({ next }) => {
   return result;
 });
 
+/**
+ * While the platform is in maintenance mode it answers reads but refuses
+ * changes, except the platform console's own, so operators can end it.
+ */
+const maintenanceGuard = trpc.middleware(async ({ ctx, type, path, next }) => {
+  if (type === "mutation" && !path.startsWith("platform.")) {
+    const state = await maintenanceState(ctx.db);
+
+    if (state.enabled) {
+      throw new TRPCError({
+        code: "SERVICE_UNAVAILABLE",
+        message:
+          state.message ||
+          "Zentro is in maintenance and read-only for now. Try again soon.",
+      });
+    }
+  }
+
+  return next();
+});
+
 const baseProcedure = trpc.procedure
   .use(burstLimit)
+  .use(maintenanceGuard)
   .use(conflictMapper)
   .use(auditGuard);
 
@@ -164,6 +193,18 @@ export const protectedProcedure = baseProcedure.use(async ({ ctx, next }) => {
     });
   }
 
+  // A platform operator can suspend an organization.
+  const status = await organizationStatus(ctx.db, ctx.activeOrganization.id);
+
+  if (status.suspended) {
+    throw new TRPCError({
+      code: "FORBIDDEN",
+      message: status.reason
+        ? `This organization is suspended: ${status.reason}`
+        : "This organization is suspended. Contact support.",
+    });
+  }
+
   // An organization can limit itself to chosen networks.
   if (
     !(await ipAllowed(ctx.db, ctx.activeOrganization.id, clientIp(ctx.headers)))
@@ -193,31 +234,52 @@ export const PLATFORM_ADMIN_ROLE = "platform_admin";
  * must be a platform admin with a verified email, two-factor turned on and a
  * recent sign-in. Signed-in callers who are not platform admins get "not found", so the console cannot be probed.
  */
-export const platformProcedure = baseProcedure.use(({ ctx, next }) => {
-  const user = ctx.user;
+export const platformProcedure = baseProcedure
+  .meta({ platform: true })
+  .use(async ({ ctx, next, type, path }) => {
+    const user = ctx.user;
 
-  if (!user?.id) {
-    throw new TRPCError({
-      code: "UNAUTHORIZED",
-      message: "You must be logged in",
-    });
-  }
+    if (!user?.id) {
+      throw new TRPCError({
+        code: "UNAUTHORIZED",
+        message: "You must be logged in",
+      });
+    }
 
-  if (user.role !== PLATFORM_ADMIN_ROLE || user.emailVerified === false) {
-    throw new TRPCError({ code: "NOT_FOUND", message: "Not found." });
-  }
+    if (user.role !== PLATFORM_ADMIN_ROLE || user.emailVerified === false) {
+      throw new TRPCError({ code: "NOT_FOUND", message: "Not found." });
+    }
 
-  if (!user.twoFactorEnabled) {
-    throw new TRPCError({
-      code: "FORBIDDEN",
-      message: "Platform access needs two-factor sign-in. Turn it on first.",
-    });
-  }
+    if (!user.twoFactorEnabled) {
+      throw new TRPCError({
+        code: "FORBIDDEN",
+        message: "Platform access needs two-factor sign-in. Turn it on first.",
+      });
+    }
 
-  assertRecentSignIn(ctx.session?.session.createdAt);
+    // The console can be limited to chosen networks, like an organization.
+    if (!(await platformIpAllowed(ctx.db, clientIp(ctx.headers)))) {
+      throw new TRPCError({ code: "NOT_FOUND", message: "Not found." });
+    }
 
-  return next({ ctx: { ...ctx, user } });
-});
+    assertRecentSignIn(ctx.session?.session.createdAt);
+
+    // Every platform change must leave a line in the operator trail.
+    const platformAudit = { recorded: 0 };
+    const result = await next({ ctx: { ...ctx, user, platformAudit } });
+
+    if (result.ok && type === "mutation" && platformAudit.recorded === 0) {
+      const message = `${path} succeeded without writing to the platform audit trail`;
+
+      if (process.env.NODE_ENV === "production") {
+        console.error(`[platform-audit] ${message}`);
+      } else {
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message });
+      }
+    }
+
+    return result;
+  });
 
 /**
  * Rejects the call when the module is turned off for the caller's active

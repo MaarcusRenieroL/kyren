@@ -13,6 +13,7 @@ import { z } from "zod";
 
 import { currentMemberId, readableChannelIds } from "../chat";
 import { isUniqueViolation } from "../db-errors";
+import { organizationLimits } from "../platform-policy";
 import { permissionProcedure, type OrganizationContext } from "../trpc";
 
 /** Largest file a person can share in chat. */
@@ -43,8 +44,18 @@ async function storageUsed(ctx: OrganizationContext) {
   return row?.used ?? 0;
 }
 
+/** The storage ceiling for the organization: an operator's override, else the default. */
+async function storageCeiling(ctx: OrganizationContext) {
+  const { storageMb } = await organizationLimits(
+    ctx.db,
+    ctx.activeOrganization.id,
+  );
+
+  return storageMb ? storageMb * 1024 * 1024 : storageLimitBytes();
+}
+
 async function assertRoom(ctx: OrganizationContext, size: number) {
-  if ((await storageUsed(ctx)) + size > storageLimitBytes()) {
+  if ((await storageUsed(ctx)) + size > (await storageCeiling(ctx))) {
     throw new TRPCError({
       code: "PAYLOAD_TOO_LARGE",
       message:
@@ -215,7 +226,7 @@ export const filesRouterProcedures = {
   /** How much of the organization's storage is in use. */
   usage: filesProcedure("files.view").query(async ({ ctx }) => ({
     used: await storageUsed(ctx),
-    limit: storageLimitBytes(),
+    limit: await storageCeiling(ctx),
   })),
 
   /** Records a file once its bytes are stored. */

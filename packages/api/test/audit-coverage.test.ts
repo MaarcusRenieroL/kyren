@@ -14,7 +14,10 @@ const procedures = Object.entries(appRouter._def.procedures).map(
     def: (procedure as unknown as { _def: Def })._def,
   }),
 );
-const mutations = procedures.filter(({ def }) => def.type === "mutation");
+// Platform mutations log to the platform trail, which platformProcedure enforces.
+const mutations = procedures.filter(
+  ({ path, def }) => def.type === "mutation" && !path.startsWith("platform."),
+);
 
 // Mutations that legitimately record no event, each with the reason. A new
 // mutation must declare `meta.audit` or be added here on purpose.

@@ -360,10 +360,13 @@ export class World {
   }
 
   /** A signed-in caller who has no active organization (a brand new user). */
-  sessionCaller(user: TestUser, options: { sessionAgeMs?: number } = {}) {
+  sessionCaller(
+    user: TestUser,
+    options: { sessionAgeMs?: number; ip?: string } = {},
+  ) {
     return appRouter.createCaller({
       db,
-      headers: new Headers(),
+      headers: new Headers(options.ip ? { "x-forwarded-for": options.ip } : {}),
       permissions: createPermissionContext(db, null, user.id),
       audit: createAuditContext({
         organizationId: null,

@@ -2,6 +2,7 @@ import {
   bigint,
   boolean,
   integer,
+  jsonb,
   pgTable,
   text,
   timestamp,
@@ -52,6 +53,21 @@ export const organizations = pgTable("organization", {
   ipAllowlistEnabled: boolean("ipAllowlistEnabled").notNull().default(false),
   /** Workplace text is sent to an AI model only while this is on. */
   aiEnabled: boolean("aiEnabled").notNull().default(false),
+  /** Set by a platform operator; a suspended organization cannot be used. */
+  suspendedAt: timestamp("suspendedAt"),
+  suspendedReason: text("suspendedReason"),
+  /** Set when deletion is requested; the data is purged once the grace period ends. */
+  deletionScheduledFor: timestamp("deletionScheduledFor"),
+  /** Per-organization switches an operator sets, keyed by flag name. */
+  featureFlags: jsonb("featureFlags")
+    .$type<Record<string, boolean>>()
+    .notNull()
+    .default({}),
+  /** Per-organization ceilings an operator sets (members, storageMb). */
+  limits: jsonb("limits")
+    .$type<{ members?: number; storageMb?: number }>()
+    .notNull()
+    .default({}),
   createdAt: timestamp("createdAt").notNull().defaultNow(),
   updatedAt: timestamp("updatedAt").notNull().defaultNow(),
 });

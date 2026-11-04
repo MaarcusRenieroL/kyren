@@ -1,11 +1,12 @@
 import { TRPCError } from "@trpc/server";
 import { auth } from "@zentro/auth";
-import { and, desc, eq } from "@zentro/db/drizzle";
-import { invitations, roles, users } from "@zentro/db/schema";
+import { and, count, desc, eq } from "@zentro/db/drizzle";
+import { invitations, members, roles, users } from "@zentro/db/schema";
 import { z } from "zod";
 
 import { assertHoldsAll } from "../access";
 import { callAuth } from "../auth-calls";
+import { organizationLimits } from "../platform-policy";
 import { permissionProcedure, router } from "../trpc";
 
 const invitationIdSchema = z.object({ invitationId: z.string().uuid() });
@@ -53,6 +54,35 @@ export const invitationRouter = router({
         .limit(1);
 
       await assertHoldsAll(ctx.permissions, role?.permissions ?? []);
+
+      // A seat ceiling set by a platform operator counts members and open invitations.
+      const { members: seats } = await organizationLimits(
+        db,
+        activeOrganization.id,
+      );
+
+      if (seats) {
+        const [joined] = await db
+          .select({ value: count() })
+          .from(members)
+          .where(eq(members.organizationId, activeOrganization.id));
+        const [waiting] = await db
+          .select({ value: count() })
+          .from(invitations)
+          .where(
+            and(
+              eq(invitations.organizationId, activeOrganization.id),
+              eq(invitations.status, "pending"),
+            ),
+          );
+
+        if ((joined?.value ?? 0) + (waiting?.value ?? 0) >= seats) {
+          throw new TRPCError({
+            code: "FORBIDDEN",
+            message: `Your plan allows ${seats} members. Contact support to add more.`,
+          });
+        }
+      }
 
       const invitation = await callAuth(() =>
         auth.api.createInvitation({
