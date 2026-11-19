@@ -14,6 +14,7 @@ import { Button } from "@zentro/ui/shadcn/button";
 import { toast, toastError } from "@zentro/ui/index";
 
 type Board = inferRouterOutputs<AppRouter>["whiteboard"]["list"][number];
+type Trashed = inferRouterOutputs<AppRouter>["whiteboard"]["trash"][number];
 
 const dateFormat = new Intl.DateTimeFormat(undefined, {
   month: "short",
@@ -29,12 +30,19 @@ export function BoardList() {
   const trpc = useTrpcClient();
   const router = useRouter();
   const [boards, setBoards] = useState<Board[] | null>(null);
+  const [trash, setTrash] = useState<Trashed[]>([]);
   const [failed, setFailed] = useState(false);
   const [creating, setCreating] = useState(false);
 
   const load = useCallback(async () => {
     try {
-      setBoards(await trpc.whiteboard.list.query());
+      const [live, trashed] = await Promise.all([
+        trpc.whiteboard.list.query(),
+        trpc.whiteboard.trash.query(),
+      ]);
+
+      setBoards(live);
+      setTrash(trashed);
       setFailed(false);
     } catch {
       setFailed(true);
@@ -74,15 +82,29 @@ export function BoardList() {
   }
 
   async function remove(board: Board) {
-    if (!window.confirm(`Delete “${board.title}”? This cannot be undone.`))
+    if (
+      !window.confirm(
+        `Move “${board.title}” to the trash? You can restore it from there.`,
+      )
+    )
       return;
 
     try {
       await trpc.whiteboard.remove.mutate({ id: board.id });
-      toast.success("Board deleted");
+      toast.success("Board moved to the trash");
       await load();
     } catch (error) {
       toastError("Could not delete the board", message(error));
+    }
+  }
+
+  async function restore(board: Trashed) {
+    try {
+      await trpc.whiteboard.restore.mutate({ id: board.id });
+      toast.success(`“${board.title}” restored`);
+      await load();
+    } catch (error) {
+      toastError("Could not restore the board", message(error));
     }
   }
 
@@ -163,6 +185,34 @@ export function BoardList() {
           ))}
         </ul>
       )}
+
+      {trash.length ? (
+        <section aria-labelledby="board-trash" className="flex flex-col gap-2">
+          <h2 id="board-trash" className="text-sm font-medium text-ink-2">
+            Trash
+          </h2>
+          <ul className="flex flex-col divide-y divide-hairline rounded-xl border border-hairline">
+            {trash.map((board) => (
+              <li key={board.id} className="flex items-center gap-3 px-4 py-2">
+                <span className="min-w-0 flex-1 truncate text-sm text-ink-2">
+                  {board.title}
+                </span>
+                <span className="text-xs text-ink-3">
+                  deleted {dateFormat.format(new Date(board.deletedAt))}
+                </span>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  aria-label={`Restore ${board.title}`}
+                  onClick={() => void restore(board)}
+                >
+                  Restore
+                </Button>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
     </div>
   );
 }
