@@ -40,7 +40,7 @@ async function addPerson(
   await expect(page.getByText(fields.name).first()).toBeVisible();
 }
 
-test("the directory starts empty and a manager adds, edits and removes people", async ({
+test("the directory starts empty and a manager adds, edits and removes people @hr", async ({
   page,
 }) => {
   await registerWithOrganization(page, {
@@ -122,7 +122,7 @@ test("the directory starts empty and a manager adds, edits and removes people", 
   await expect(page.getByText("1 of 1")).toBeVisible();
 });
 
-test("the form validates the name and email", async ({ page }) => {
+test("the form validates the name and email @hr", async ({ page }) => {
   await registerWithOrganization(page, {
     label: "hrvalid",
     orgName: uniqueName("HR valid"),
@@ -143,7 +143,7 @@ test("the form validates the name and email", async ({ page }) => {
   await expect(dialog.getByRole("alert")).toContainText("email");
 });
 
-test("an account can be linked to one person only", async ({
+test("an account can be linked to one person only @hr", async ({
   page,
   browser,
 }) => {
@@ -168,7 +168,7 @@ test("an account can be linked to one person only", async ({
   await team.close();
 });
 
-test("time off: a member requests, cancels and re-requests; a manager approves and rejects", async ({
+test("time off: a member requests, cancels and re-requests; a manager approves and rejects @hr", async ({
   page,
   browser,
 }) => {
@@ -264,7 +264,7 @@ test("time off: a member requests, cancels and re-requests; a manager approves a
   await team.close();
 });
 
-test("members read the directory but cannot manage people or see others' leave", async ({
+test("members read the directory but cannot manage people or see others' leave @hr", async ({
   page,
   browser,
 }) => {
@@ -290,7 +290,9 @@ test("members read the directory but cannot manage people or see others' leave",
   await team.close();
 });
 
-test("HR pages pass accessibility checks and fit a phone", async ({ page }) => {
+test("HR pages pass accessibility checks and fit a phone @hr", async ({
+  page,
+}) => {
   await registerWithOrganization(page, {
     label: "hra11y",
     orgName: uniqueName("HR a11y"),
@@ -313,7 +315,7 @@ test("HR pages pass accessibility checks and fit a phone", async ({ page }) => {
   expect(overflow, "no horizontal page scroll on a phone").toBe(false);
 });
 
-test("an empty directory offers one Add person button, in the empty state", async ({
+test("an empty directory offers one Add person button, in the empty state @hr", async ({
   page,
 }) => {
   await registerWithOrganization(page, {

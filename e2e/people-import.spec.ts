@@ -3,7 +3,7 @@ import { expect, test } from "./fixtures";
 import { registerWithOrganization, uniqueName } from "./helpers";
 import { expectNoSeriousA11yIssues } from "./people-helpers";
 
-test("people import from a CSV file and re-uploading skips duplicates", async ({
+test("people import from a CSV file and re-uploading skips duplicates @hr", async ({
   page,
 }) => {
   await registerWithOrganization(page, {

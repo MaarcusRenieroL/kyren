@@ -13,7 +13,7 @@ import {
 
 const modulesPath = "/settings/organization/modules";
 
-test("an admin turns Tasks off and on; dependencies are enforced", async ({
+test("an admin turns Tasks off and on; dependencies are enforced @settings", async ({
   page,
 }) => {
   await registerWithOrganization(page, {
@@ -88,7 +88,7 @@ test("an admin turns Tasks off and on; dependencies are enforced", async ({
   await expect(page.getByText(taskName).first()).toBeVisible();
 });
 
-test("a plain member sees the modules page read-only", async ({
+test("a plain member sees the modules page read-only @settings", async ({
   page,
   browser,
 }) => {

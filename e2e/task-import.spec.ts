@@ -3,7 +3,9 @@ import { expect, test } from "./fixtures";
 import { registerWithOrganization, trpcMutation, uniqueName } from "./helpers";
 import { expectNoSeriousA11yIssues } from "./people-helpers";
 
-test("tasks import from a CSV file into a chosen project", async ({ page }) => {
+test("tasks import from a CSV file into a chosen project @tasks", async ({
+  page,
+}) => {
   await registerWithOrganization(page, {
     label: "import",
     orgName: uniqueName("Import org"),

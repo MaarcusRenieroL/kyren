@@ -2,7 +2,7 @@ import { expect, test } from "./fixtures";
 
 import { registerWithOrganization, uniqueName } from "./helpers";
 
-test("a signed-out visitor fills in a public form and an agent finds the ticket", async ({
+test("a signed-out visitor fills in a public form and an agent finds the ticket @tickets", async ({
   page,
 }) => {
   await registerWithOrganization(page, {

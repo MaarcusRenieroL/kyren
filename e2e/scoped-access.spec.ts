@@ -70,7 +70,7 @@ async function createProject(admin: Page, name: string) {
   return project;
 }
 
-test("a user whose only access is a project role sees that module and only that project", async ({
+test("a user whose only access is a project role sees that module and only that project @projects @tasks", async ({
   page,
   browser,
 }) => {
@@ -162,7 +162,7 @@ test("a user whose only access is a project role sees that module and only that 
   await worker.context.close();
 });
 
-test("a team lead manages their own team without any organization-wide role access", async ({
+test("a team lead manages their own team without any organization-wide role access @projects @tasks", async ({
   page,
   browser,
 }) => {
@@ -259,7 +259,7 @@ test("a team lead manages their own team without any organization-wide role acce
   await mate.context.close();
 });
 
-test("edit and delete controls follow who created the task or doc", async ({
+test("edit and delete controls follow who created the task or doc @projects @tasks", async ({
   page,
   browser,
 }) => {

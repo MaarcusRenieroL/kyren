@@ -2,7 +2,7 @@ import { expect, test } from "./fixtures";
 
 import { registerWithOrganization, uniqueName } from "./helpers";
 
-test("an admin adds an allowed range, and cannot switch it on when it would lock them out", async ({
+test("an admin adds an allowed range, and cannot switch it on when it would lock them out @admin", async ({
   page,
 }) => {
   await registerWithOrganization(page, {

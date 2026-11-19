@@ -3,7 +3,7 @@ import { expect, test } from "./fixtures";
 import { password, registerWithOrganization, uniqueName } from "./helpers";
 import { totp } from "./totp";
 
-test("two-factor sign-in: set up, sign in with a code, then with a backup code, then turn off", async ({
+test("two-factor sign-in: set up, sign in with a code, then with a backup code, then turn off @auth", async ({
   page,
   context,
 }) => {
@@ -73,7 +73,7 @@ test("two-factor sign-in: set up, sign in with a code, then with a backup code, 
   await expect(page).not.toHaveURL(/\/auth\/sign-in/);
 });
 
-test("a sign-in challenge allows only a few code guesses", async ({
+test("a sign-in challenge allows only a few code guesses @auth", async ({
   page,
   context,
 }) => {

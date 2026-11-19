@@ -2,7 +2,7 @@ import { expect, test } from "./fixtures";
 
 import { registerWithOrganization, uniqueName } from "./helpers";
 
-test("a person downloads their data, and the only owner cannot delete themselves", async ({
+test("a person downloads their data, and the only owner cannot delete themselves @admin", async ({
   page,
 }) => {
   const { email } = await registerWithOrganization(page, {

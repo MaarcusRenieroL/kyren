@@ -38,7 +38,7 @@ async function newTicket(
   ).toBeVisible();
 }
 
-test("the queue is empty at first, and new tickets are numbered SUP-1, SUP-2", async ({
+test("the queue is empty at first, and new tickets are numbered SUP-1, SUP-2 @tickets", async ({
   page,
 }) => {
   await registerWithOrganization(page, {
@@ -67,7 +67,7 @@ test("the queue is empty at first, and new tickets are numbered SUP-1, SUP-2", a
   await expect(page.getByText("SUP-2", { exact: true }).first()).toBeVisible();
 });
 
-test("the dialog reports a missing subject, requester and a bad email", async ({
+test("the dialog reports a missing subject, requester and a bad email @tickets", async ({
   page,
 }) => {
   await registerWithOrganization(page, {
@@ -98,7 +98,7 @@ test("the dialog reports a missing subject, requester and a bad email", async ({
   await expect(dialog).toHaveCount(0);
 });
 
-test("views, counts, search and assignment move tickets between queues", async ({
+test("views, counts, search and assignment move tickets between queues @tickets", async ({
   page,
 }) => {
   await registerWithOrganization(page, {
@@ -170,7 +170,7 @@ test("views, counts, search and assignment move tickets between queues", async (
   await expect(page.getByRole("link").getByText("Urgent")).toBeVisible();
 });
 
-test("replies park a ticket as pending, notes stay internal, resolving stamps it", async ({
+test("replies park a ticket as pending, notes stay internal, resolving stamps it @tickets", async ({
   page,
 }) => {
   await registerWithOrganization(page, {
@@ -231,7 +231,9 @@ test("replies park a ticket as pending, notes stay internal, resolving stamps it
     .toBeNull();
 });
 
-test("a ticket links to a task by key and unlinks again", async ({ page }) => {
+test("a ticket links to a task by key and unlinks again @tickets", async ({
+  page,
+}) => {
   await registerWithOrganization(page, {
     label: "tklink",
     orgName: uniqueName("Tickets link"),
@@ -267,7 +269,9 @@ test("a ticket links to a task by key and unlinks again", async ({ page }) => {
   await expect(page.getByLabel("Task key")).toBeVisible();
 });
 
-test("deleting a ticket asks first, then removes it", async ({ page }) => {
+test("deleting a ticket asks first, then removes it @tickets", async ({
+  page,
+}) => {
   await registerWithOrganization(page, {
     label: "tkdel",
     orgName: uniqueName("Tickets delete"),
@@ -292,7 +296,9 @@ test("deleting a ticket asks first, then removes it", async ({ page }) => {
   expect(rows).toHaveLength(0);
 });
 
-test("an unknown ticket id shows a not-found state", async ({ page }) => {
+test("an unknown ticket id shows a not-found state @tickets", async ({
+  page,
+}) => {
   await registerWithOrganization(page, {
     label: "tk404",
     orgName: uniqueName("Tickets 404"),
@@ -304,7 +310,7 @@ test("an unknown ticket id shows a not-found state", async ({ page }) => {
   await expect(page).toHaveURL(/\/tickets$/);
 });
 
-test("members work tickets but cannot delete them, and tickets stay in their organization", async ({
+test("members work tickets but cannot delete them, and tickets stay in their organization @tickets", async ({
   page,
   browser,
 }) => {
@@ -350,7 +356,7 @@ test("members work tickets but cannot delete them, and tickets stay in their org
   await team.close();
 });
 
-test("ticket changes are audited and the module can be switched off", async ({
+test("ticket changes are audited and the module can be switched off @tickets", async ({
   page,
 }) => {
   await registerWithOrganization(page, {
@@ -385,7 +391,7 @@ test("ticket changes are audited and the module can be switched off", async ({
   await expect(page).toHaveURL(/\/module-disabled\?module=tickets/);
 });
 
-test("the queue and a ticket page pass accessibility checks and fit a phone", async ({
+test("the queue and a ticket page pass accessibility checks and fit a phone @tickets", async ({
   page,
 }) => {
   await registerWithOrganization(page, {
@@ -416,7 +422,7 @@ test("the queue and a ticket page pass accessibility checks and fit a phone", as
   expect(overflow, "no horizontal page scroll on a phone").toBe(false);
 });
 
-test("an empty queue offers one New ticket button, in the empty state", async ({
+test("an empty queue offers one New ticket button, in the empty state @tickets", async ({
   page,
 }) => {
   await registerWithOrganization(page, {
@@ -431,7 +437,7 @@ test("an empty queue offers one New ticket button, in the empty state", async ({
   ).toHaveCount(1);
 });
 
-test("an admin sets a response target and the ticket shows when it is answered in time", async ({
+test("an admin sets a response target and the ticket shows when it is answered in time @tickets", async ({
   page,
 }) => {
   await registerWithOrganization(page, {

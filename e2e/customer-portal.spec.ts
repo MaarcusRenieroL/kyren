@@ -2,7 +2,7 @@ import { expect, test } from "./fixtures";
 
 import { registerWithOrganization, uniqueName } from "./helpers";
 
-test("a customer follows and answers their ticket through a private link, signed out", async ({
+test("a customer follows and answers their ticket through a private link, signed out @tickets", async ({
   page,
 }) => {
   await registerWithOrganization(page, {

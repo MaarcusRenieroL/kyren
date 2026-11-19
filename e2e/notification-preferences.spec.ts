@@ -3,7 +3,9 @@ import { expect, test } from "./fixtures";
 import { registerWithOrganization, uniqueName } from "./helpers";
 import { expectNoSeriousA11yIssues } from "./people-helpers";
 
-test("notification choices save and survive a reload", async ({ page }) => {
+test("notification choices save and survive a reload @settings", async ({
+  page,
+}) => {
   await registerWithOrganization(page, {
     label: "notif",
     orgName: uniqueName("Notif org"),
@@ -27,7 +29,7 @@ test("notification choices save and survive a reload", async ({ page }) => {
   await expect(mentions).toBeChecked();
 });
 
-test("a person can download their own data", async ({ page }) => {
+test("a person can download their own data @settings", async ({ page }) => {
   await registerWithOrganization(page, {
     label: "export",
     orgName: uniqueName("Export org"),

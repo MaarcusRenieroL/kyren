@@ -3,7 +3,7 @@ import { expect, test } from "./fixtures";
 import { registerWithOrganization, uniqueName } from "./helpers";
 import { expectNoSeriousA11yIssues } from "./people-helpers";
 
-test("an admin makes an API key, reads data with it, and revoking it cuts access", async ({
+test("an admin makes an API key, reads data with it, and revoking it cuts access @admin", async ({
   page,
   request,
 }) => {

@@ -7,7 +7,7 @@ import {
   uniqueName,
 } from "./helpers";
 
-test("a template creates a task and its steps in a project", async ({
+test("a template creates a task and its steps in a project @tasks", async ({
   page,
 }) => {
   await registerWithOrganization(page, {

@@ -31,7 +31,7 @@ async function joinAsMember(
   return { ...session, email };
 }
 
-test("actions show up in the feeds and the audit log, and exports download", async ({
+test("actions show up in the feeds and the audit log, and exports download @tasks @dashboard @admin", async ({
   page,
 }) => {
   const orgName = uniqueName("Activity");
@@ -130,7 +130,7 @@ test("actions show up in the feeds and the audit log, and exports download", asy
   await expect(page.getByText("role.created").first()).toBeVisible();
 });
 
-test("a plain member has no audit log, and a private project's events stay hidden", async ({
+test("a plain member has no audit log, and a private project's events stay hidden @tasks @dashboard @admin", async ({
   page,
   browser,
 }) => {

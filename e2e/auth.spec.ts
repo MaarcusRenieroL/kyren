@@ -12,8 +12,8 @@ import {
   verifyEmail,
 } from "./helpers";
 
-test.describe("sign-up and session", () => {
-  test("sign up, verify the OTP, create an organization, sign out and back in", async ({
+test.describe("sign-up and session @auth", () => {
+  test("sign up, verify the OTP, create an organization, sign out and back in @auth", async ({
     page,
   }) => {
     const email = uniqueEmail("alice");
@@ -38,7 +38,7 @@ test.describe("sign-up and session", () => {
     );
   });
 
-  test("a wrong password does not sign in", async ({ page }) => {
+  test("a wrong password does not sign in @auth", async ({ page }) => {
     const { email } = await registerWithOrganization(page, {
       label: "wrongpass",
       orgName: uniqueName("Wrong"),
@@ -50,7 +50,7 @@ test.describe("sign-up and session", () => {
   });
 });
 
-test.describe("signed out", () => {
+test.describe("signed out @auth", () => {
   for (const path of [
     "/dashboard",
     "/projects",
@@ -65,7 +65,7 @@ test.describe("signed out", () => {
     "/whiteboards",
     "/admin",
   ]) {
-    test(`${path} redirects to sign-in`, async ({ page }) => {
+    test(`${path} redirects to sign-in @auth`, async ({ page }) => {
       await page.goto(path);
       await expect(page).toHaveURL(/\/auth\/sign-in/);
     });

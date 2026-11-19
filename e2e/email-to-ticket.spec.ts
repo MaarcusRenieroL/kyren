@@ -2,7 +2,7 @@ import { expect, test } from "./fixtures";
 
 import { registerWithOrganization, uniqueName } from "./helpers";
 
-test("an admin turns on email to ticket and a posted email becomes a ticket", async ({
+test("an admin turns on email to ticket and a posted email becomes a ticket @tickets", async ({
   page,
 }) => {
   await registerWithOrganization(page, {

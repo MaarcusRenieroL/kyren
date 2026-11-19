@@ -97,7 +97,7 @@ async function joinAsMember(
   return { ...session, email, name };
 }
 
-test("an admin builds a custom role and assigns it to a member", async ({
+test("an admin builds a custom role and assigns it to a member @settings", async ({
   page,
   browser,
 }) => {
@@ -153,7 +153,7 @@ test("an admin builds a custom role and assigns it to a member", async ({
   await member.context.close();
 });
 
-test("a private project is hidden from members until they get a role on it", async ({
+test("a private project is hidden from members until they get a role on it @settings", async ({
   page,
   browser,
 }) => {
@@ -204,7 +204,7 @@ test("a private project is hidden from members until they get a role on it", asy
   await member.context.close();
 });
 
-test("a role given to a team applies to its members", async ({
+test("a role given to a team applies to its members @settings", async ({
   page,
   browser,
 }) => {
@@ -262,7 +262,7 @@ test("a role given to a team applies to its members", async ({
   await member.context.close();
 });
 
-test("the access check explains a decision and the log records changes", async ({
+test("the access check explains a decision and the log records changes @settings", async ({
   page,
   browser,
 }) => {

@@ -29,8 +29,10 @@ async function createProject(
   });
 }
 
-test.describe("task overview", () => {
-  test("shows only the current organization's data", async ({ page }) => {
+test.describe("task overview @tasks @projects @dashboard", () => {
+  test("shows only the current organization's data @tasks @projects @dashboard", async ({
+    page,
+  }) => {
     const orgA = uniqueName("OverviewA");
     const orgB = uniqueName("OverviewB");
     const taskA = uniqueName("Overview task A");
@@ -57,7 +59,7 @@ test.describe("task overview", () => {
     await expect(page.getByText(taskB)).toHaveCount(0);
   });
 
-  test("an empty organization shows empty states, not sample data", async ({
+  test("an empty organization shows empty states, not sample data @tasks @projects @dashboard", async ({
     page,
   }) => {
     await registerWithOrganization(page, {
@@ -74,7 +76,7 @@ test.describe("task overview", () => {
   });
 });
 
-test("the old task project routes redirect permanently to /projects", async ({
+test("the old task project routes redirect permanently to /projects @tasks @projects @dashboard", async ({
   page,
 }) => {
   const list = await page.request.get("/tasks/projects", { maxRedirects: 0 });
@@ -94,7 +96,7 @@ test("the old task project routes redirect permanently to /projects", async ({
   ).toBe("/projects/some-project");
 });
 
-test("the dashboard shows numbers computed from the database", async ({
+test("the dashboard shows numbers computed from the database @tasks @projects @dashboard", async ({
   page,
 }) => {
   await registerWithOrganization(page, {
@@ -146,7 +148,7 @@ test("the dashboard shows numbers computed from the database", async ({
   await expect(page.getByText(/events today/i)).toHaveCount(0);
 });
 
-test("the sidebar has one level and exactly one active item per route", async ({
+test("the sidebar has one level and exactly one active item per route @tasks @projects @dashboard", async ({
   page,
 }) => {
   await registerWithOrganization(page, {
@@ -199,7 +201,7 @@ test("the sidebar has one level and exactly one active item per route", async ({
   }
 });
 
-test("the calendar opens on the current month and places tasks by due date", async ({
+test("the calendar opens on the current month and places tasks by due date @tasks @projects @dashboard", async ({
   page,
 }) => {
   await registerWithOrganization(page, {
@@ -246,7 +248,7 @@ test("the calendar opens on the current month and places tasks by due date", asy
   ).toHaveCount(0);
 });
 
-test("every page of a fresh account shows empty states without sample data", async ({
+test("every page of a fresh account shows empty states without sample data @tasks @projects @dashboard", async ({
   page,
 }) => {
   await registerWithOrganization(page, {

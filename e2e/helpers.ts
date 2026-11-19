@@ -182,7 +182,14 @@ export async function createDocViaUi(page: Page, title: string) {
 
 /** Opens the org switcher in the sidebar. */
 export async function openOrgSwitcher(page: Page) {
-  await page.getByRole("button", { name: /^Organization:/ }).click();
+  const orgBtn = page.getByRole("button", { name: /^Organization:/ });
+  if (!(await orgBtn.isVisible())) {
+    const toggle = page.getByRole("button", { name: "Toggle Sidebar" });
+    if (await toggle.isVisible()) {
+      await toggle.click();
+    }
+  }
+  await orgBtn.click();
 }
 
 export async function switchOrganization(page: Page, name: string) {

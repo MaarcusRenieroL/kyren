@@ -11,8 +11,10 @@ import {
   uniqueName,
 } from "./helpers";
 
-test.describe("projects, tasks and docs", () => {
-  test("create and open a project, a task and a doc", async ({ page }) => {
+test.describe("projects, tasks and docs @projects @tasks @docs @dashboard", () => {
+  test("create and open a project, a task and a doc @projects @tasks @docs @dashboard", async ({
+    page,
+  }) => {
     await registerWithOrganization(page, {
       label: "builder",
       orgName: uniqueName("Builders"),
@@ -42,8 +44,10 @@ test.describe("projects, tasks and docs", () => {
   });
 });
 
-test.describe("two organizations", () => {
-  test("switching organizations switches the data", async ({ page }) => {
+test.describe("two organizations @projects @tasks @docs @dashboard", () => {
+  test("switching organizations switches the data @projects @tasks @docs @dashboard", async ({
+    page,
+  }) => {
     const orgA = uniqueName("Alpha");
     const orgB = uniqueName("Beta");
 

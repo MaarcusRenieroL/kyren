@@ -3,7 +3,7 @@ import { expect, test } from "./fixtures";
 import { registerWithOrganization, uniqueName } from "./helpers";
 import { expectNoSeriousA11yIssues } from "./people-helpers";
 
-test("requiring two-factor needs it on your own account first, and the enrollment page works", async ({
+test("requiring two-factor needs it on your own account first, and the enrollment page works @settings @auth", async ({
   page,
 }) => {
   await registerWithOrganization(page, {

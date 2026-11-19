@@ -7,7 +7,7 @@ import {
   uniqueName,
 } from "./helpers";
 
-test("an admin adds a task field, fills it in, and saves and reuses a view", async ({
+test("an admin adds a task field, fills it in, and saves and reuses a view @tasks", async ({
   page,
 }) => {
   await registerWithOrganization(page, {

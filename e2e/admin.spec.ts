@@ -3,7 +3,7 @@ import { expect, test } from "./fixtures";
 import { registerWithOrganization, trpcMutation, uniqueName } from "./helpers";
 import { expectNoSeriousA11yIssues, orgWithMember } from "./people-helpers";
 
-test("the overview shows totals, a setup checklist and recent actions", async ({
+test("the overview shows totals, a setup checklist and recent actions @admin", async ({
   page,
 }) => {
   await registerWithOrganization(page, {
@@ -55,7 +55,7 @@ test("the overview shows totals, a setup checklist and recent actions", async ({
   await expect(page).toHaveURL(/\/settings\/organization\/audit-log/);
 });
 
-test("usage and security pages report real figures", async ({
+test("usage and security pages report real figures @admin", async ({
   page,
   browser,
 }) => {
@@ -90,7 +90,7 @@ test("usage and security pages report real figures", async ({
   await team.close();
 });
 
-test("a plain member cannot open Administration, in the UI or the API", async ({
+test("a plain member cannot open Administration, in the UI or the API @admin", async ({
   page,
   browser,
 }) => {
@@ -118,7 +118,7 @@ test("a plain member cannot open Administration, in the UI or the API", async ({
   await team.close();
 });
 
-test("the module can be switched off and on, and the sidebar follows", async ({
+test("the module can be switched off and on, and the sidebar follows @admin", async ({
   page,
 }) => {
   await registerWithOrganization(page, {
@@ -157,7 +157,7 @@ test("the module can be switched off and on, and the sidebar follows", async ({
   await expect(page).toHaveURL(/\/admin$/);
 });
 
-test("HR and Payroll turn off independently and keep their data", async ({
+test("HR and Payroll turn off independently and keep their data @admin", async ({
   page,
 }) => {
   await registerWithOrganization(page, {
@@ -201,7 +201,7 @@ test("HR and Payroll turn off independently and keep their data", async ({
   await expect(page.getByText(name)).toBeVisible();
 });
 
-test("administration pages pass accessibility checks and fit a phone", async ({
+test("administration pages pass accessibility checks and fit a phone @admin", async ({
   page,
 }) => {
   await registerWithOrganization(page, {

@@ -7,7 +7,7 @@ import {
   uniqueName,
 } from "./helpers";
 
-test("a repeating task creates its first task once it falls due", async ({
+test("a repeating task creates its first task once it falls due @tasks", async ({
   page,
 }) => {
   await registerWithOrganization(page, {

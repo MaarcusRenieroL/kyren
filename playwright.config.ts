@@ -10,7 +10,11 @@ const testDatabaseUrl = getTestDatabaseUrl();
 
 assertTestDatabaseUrl(testDatabaseUrl);
 
-const baseURL = "http://localhost:3000";
+const port = process.env.PLAYWRIGHT_PORT ?? "3199";
+const baseURL = `http://localhost:${port}`;
+
+// Shared with the fixtures through the environment; enables /api/test/seed.
+process.env.E2E_SEED_SECRET ??= "e2e-seed-secret-e2e-seed-secret";
 
 export default defineConfig({
   testDir: "./e2e",
@@ -33,19 +37,21 @@ export default defineConfig({
   webServer: {
     // E2E_SKIP_BUILD=1 reuses the last build for quick local reruns.
     command: process.env.E2E_SKIP_BUILD
-      ? "pnpm --filter @zentro/web start"
-      : "pnpm --filter @zentro/web build && pnpm --filter @zentro/web start",
+      ? `pnpm --filter @zentro/web start -p ${port}`
+      : `pnpm --filter @zentro/web build && pnpm --filter @zentro/web start -p ${port}`,
     url: `${baseURL}/auth/sign-in`,
     timeout: 600_000,
     reuseExistingServer: false,
     stdout: "pipe",
     stderr: "pipe",
     env: {
+      PORT: port,
       DATABASE_URL: testDatabaseUrl,
       TEST_DATABASE_URL: testDatabaseUrl,
       BETTER_AUTH_SECRET: "e2e-secret-e2e-secret-e2e-secret-e2e-1",
       BETTER_AUTH_URL: baseURL,
       NEXT_PUBLIC_BASE_URL: baseURL,
+      E2E_SEED_SECRET: process.env.E2E_SEED_SECRET,
       RESEND_API_KEY: "re_e2e_placeholder",
       // Mail goes nowhere; codes and tokens are read from the database.
       RESEND_BASE_URL: "http://127.0.0.1:9",

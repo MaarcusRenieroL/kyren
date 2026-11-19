@@ -14,7 +14,7 @@ import {
   uniqueName,
 } from "./helpers";
 
-test("a user who already belongs to an organization accepts an invitation by link", async ({
+test("a user who already belongs to an organization accepts an invitation by link @settings @auth", async ({
   page,
   browser,
 }) => {
@@ -80,7 +80,7 @@ test("a user who already belongs to an organization accepts an invitation by lin
   await invitee.context.close();
 });
 
-test("a password reset link still works after more than 60 seconds", async ({
+test("a password reset link still works after more than 60 seconds @settings @auth", async ({
   page,
 }) => {
   test.setTimeout(180_000);
@@ -121,7 +121,7 @@ test("a password reset link still works after more than 60 seconds", async ({
   await expect(page).toHaveURL(/\/dashboard/);
 });
 
-test("a new user without an organization sees and accepts pending invitations", async ({
+test("a new user without an organization sees and accepts pending invitations @settings @auth", async ({
   page,
   browser,
 }) => {

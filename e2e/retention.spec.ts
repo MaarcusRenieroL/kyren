@@ -2,7 +2,7 @@ import { expect, test } from "./fixtures";
 
 import { registerWithOrganization, uniqueName } from "./helpers";
 
-test("an admin sets a retention period and places, then lifts, a legal hold", async ({
+test("an admin sets a retention period and places, then lifts, a legal hold @admin", async ({
   page,
 }) => {
   await registerWithOrganization(page, {

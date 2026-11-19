@@ -7,7 +7,7 @@ import {
   uniqueName,
 } from "./helpers";
 
-test("a timer survives a reload, stopping it logs the time, and the timesheet shows it", async ({
+test("a timer survives a reload, stopping it logs the time, and the timesheet shows it @tasks", async ({
   page,
 }) => {
   await registerWithOrganization(page, {

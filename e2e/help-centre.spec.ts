@@ -2,7 +2,7 @@ import { expect, test } from "./fixtures";
 
 import { registerWithOrganization, uniqueName } from "./helpers";
 
-test("a published article appears on the public help centre, a draft does not", async ({
+test("a published article appears on the public help centre, a draft does not @tickets", async ({
   page,
 }) => {
   const orgName = uniqueName("Help org");
@@ -21,12 +21,16 @@ test("a published article appears on the public help centre, a draft does not", 
   await page.getByLabel("Article text").fill("Open Settings > Security.");
   await page.getByLabel("Status").selectOption("published");
   await page.getByRole("button", { name: "Add article" }).click();
-  await expect(page.getByRole("button", { name: published })).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: published, exact: true }),
+  ).toBeVisible();
 
   await page.getByLabel("Article title").fill(draft);
   await page.getByLabel("Article text").fill("Not ready.");
   await page.getByRole("button", { name: "Add article" }).click();
-  await expect(page.getByRole("button", { name: draft })).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: draft, exact: true }),
+  ).toBeVisible();
 
   // Anyone, signed out, sees the published one and only that one.
   const visitor = await page.context().browser()!.newContext();
@@ -42,4 +46,45 @@ test("a published article appears on the public help centre, a draft does not", 
 
   expect(missing!.status()).toBe(404);
   await visitor.close();
+});
+
+test("an edited article keeps its earlier version, which can be restored @tickets", async ({
+  page,
+}) => {
+  await registerWithOrganization(page, {
+    label: "help-history",
+    orgName: uniqueName("Help history org"),
+  });
+
+  await page.goto("/tickets");
+  await page.getByText("Help articles").click();
+
+  const title = uniqueName("Billing FAQ");
+
+  await page.getByLabel("Article title").fill(title);
+  await page.getByLabel("Article text").fill("Invoices go out on the 1st.");
+  await page.getByRole("button", { name: "Add article" }).click();
+  await expect(page.getByLabel("Article title")).toHaveValue("");
+  await page.getByRole("button", { name: title, exact: true }).click();
+
+  const history = page.getByRole("region", { name: "Earlier versions" });
+
+  await expect(history.getByText("No earlier versions yet.")).toBeVisible();
+
+  await page.getByLabel("Article text").fill("Invoices go out on the 5th.");
+  await page.getByRole("button", { name: "Save changes" }).click();
+  // Saving clears the form; open the article again once it has.
+  await expect(page.getByRole("button", { name: "Add article" })).toBeVisible();
+  await page.getByRole("button", { name: title, exact: true }).click();
+  await expect(history.getByText("Invoices go out on the 1st.")).toBeVisible();
+
+  await history
+    .getByRole("button", { name: /^Restore the version from/ })
+    .click();
+  await expect(page.getByLabel("Article text")).toHaveValue(
+    "Invoices go out on the 1st.",
+  );
+
+  // The replaced text is kept too, so the restore can be undone.
+  await expect(history.getByText("Invoices go out on the 5th.")).toBeVisible();
 });

@@ -7,7 +7,7 @@ import {
   uniqueName,
 } from "./helpers";
 
-test("a project plans a sprint, runs it, and completes it", async ({
+test("a project plans a sprint, runs it, and completes it @tasks", async ({
   page,
 }) => {
   await registerWithOrganization(page, {

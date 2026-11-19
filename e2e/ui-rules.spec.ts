@@ -22,7 +22,7 @@ async function noErrorsVisible(page: Page, where: string) {
   await expect(page.locator(dangerText), where).toHaveCount(0);
 }
 
-test("signed-out forms show no errors on open or on focus", async ({
+test("signed-out forms show no errors on open or on focus @ui", async ({
   page,
 }) => {
   for (const [path, first] of [
@@ -36,7 +36,7 @@ test("signed-out forms show no errors on open or on focus", async ({
   }
 });
 
-test("a failed submit shows errors and focuses the first invalid field", async ({
+test("a failed submit shows errors and focuses the first invalid field @ui", async ({
   page,
 }) => {
   await page.goto("/auth/sign-in");
@@ -45,7 +45,7 @@ test("a failed submit shows errors and focuses the first invalid field", async (
   await expect(page.getByLabel("Email")).toBeFocused();
 });
 
-test("dialogs open clean, and errors wait for blur or submit", async ({
+test("dialogs open clean, and errors wait for blur or submit @ui", async ({
   page,
 }) => {
   await registerWithOrganization(page, {
@@ -105,7 +105,7 @@ test("dialogs open clean, and errors wait for blur or submit", async ({
   await noErrorsVisible(page, "security");
 });
 
-test("landing sections are visible after a jump to the bottom", async ({
+test("landing sections are visible after a jump to the bottom @ui", async ({
   page,
 }) => {
   await page.goto("/");
@@ -142,7 +142,7 @@ test("landing sections are visible after a jump to the bottom", async ({
   expect(faint).toEqual([]);
 });
 
-test("no screen shows more than one filled primary button", async ({
+test("no screen shows more than one filled primary button @ui", async ({
   page,
 }) => {
   test.setTimeout(240_000);
@@ -212,7 +212,7 @@ test("no screen shows more than one filled primary button", async ({
   }
 });
 
-test("Today: an empty workspace asks for a task, then start and finish work", async ({
+test("Today: an empty workspace asks for a task, then start and finish work @ui", async ({
   page,
 }) => {
   await registerWithOrganization(page, {
@@ -256,7 +256,7 @@ test("Today: an empty workspace asks for a task, then start and finish work", as
   });
 });
 
-test("keyboard focus is visible on sign-in", async ({ page }) => {
+test("keyboard focus is visible on sign-in @ui", async ({ page }) => {
   await page.goto("/auth/sign-in");
   await page.keyboard.press("Tab");
 
