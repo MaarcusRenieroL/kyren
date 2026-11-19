@@ -103,7 +103,7 @@ const SettingsNav: FC<{ children: ReactNode }> = ({ children }) => {
 
           <nav
             aria-label="Settings sections"
-            className="hide-scrollbar flex gap-5 overflow-x-auto border-b border-hairline text-[15px]"
+            className="tab-scroll flex gap-5 border-b border-hairline text-[15px]"
           >
             {visibleTabs.map((item) => {
               const active = isActive(item);

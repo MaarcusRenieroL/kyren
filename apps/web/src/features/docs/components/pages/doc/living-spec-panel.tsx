@@ -24,6 +24,7 @@ import { StatusGlyph, PriorityMeter } from "@zentro/ui/components/status-glyph";
 import { toastError, toastSuccess } from "@zentro/ui/index";
 import { cn } from "@zentro/ui/lib/utils";
 import { ActorAvatar } from "~/src/components/actor-avatar";
+import type { TaskStatus } from "~/src/features/tasks/lib/types";
 
 export interface LivingSpecTask {
   linkId: string;
@@ -162,7 +163,7 @@ export function LivingSpecPanel({
       setUpdatingTaskKey(taskKey);
       await trpc.task.updateTaskByKey.mutate({
         key: taskKey,
-        status: newStatus as any,
+        status: newStatus as TaskStatus,
       });
       // Optimistically update
       setTasks((prev) =>
@@ -372,7 +373,7 @@ export function LivingSpecPanel({
       <div className="flex-1 overflow-y-auto p-3 space-y-2">
         {filteredTasks.length === 0 ? (
           <div className="py-12 text-center text-ink-3 space-y-2">
-            <ListTodoIcon className="size-8 mx-auto stroke-1 text-ink-4" />
+            <ListTodoIcon className="size-8 mx-auto stroke-1 text-ink-3" />
             <p className="text-xs">
               {totalTasks === 0
                 ? "No tasks linked to this spec yet."

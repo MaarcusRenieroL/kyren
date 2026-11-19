@@ -55,7 +55,10 @@ const dateFormat = new Intl.DateTimeFormat(undefined, {
 });
 
 function Thumb({ file, large }: { file: LibraryFile; large?: boolean }) {
-  const isImage = file.mimeType.startsWith("image/");
+  // A picture that can't be loaded (gone from storage) shows the plain
+  // file icon instead of a broken image.
+  const [failed, setFailed] = useState(false);
+  const isImage = file.mimeType.startsWith("image/") && !failed;
 
   if (isImage) {
     return (
@@ -64,6 +67,7 @@ function Thumb({ file, large }: { file: LibraryFile; large?: boolean }) {
         src={file.url}
         alt=""
         loading="lazy"
+        onError={() => setFailed(true)}
         className={
           large
             ? "size-full object-cover"
@@ -336,7 +340,7 @@ export function FilesLibrary() {
         href={file.url}
         target="_blank"
         rel="noreferrer"
-        className="truncate text-sm font-medium text-ink hover:underline"
+        className="line-clamp-2 text-sm font-medium break-all text-ink hover:underline sm:line-clamp-1"
       >
         {file.name}
       </a>

@@ -102,11 +102,11 @@ export const AccessCheck: FC = () => {
       </div>
 
       <Card>
-        <CardContent className="grid gap-4 pt-6 md:grid-cols-4">
+        <CardContent className="grid gap-4 pt-6 sm:grid-cols-2 xl:grid-cols-4">
           <div className="space-y-2">
             <Label>Member</Label>
             <Select value={userId} onValueChange={setUserId}>
-              <SelectTrigger aria-label="Member">
+              <SelectTrigger aria-label="Member" className="w-full">
                 <SelectValue placeholder="Choose a member" />
               </SelectTrigger>
               <SelectContent>
@@ -121,7 +121,7 @@ export const AccessCheck: FC = () => {
           <div className="space-y-2">
             <Label>Permission</Label>
             <Select value={permission} onValueChange={setPermission}>
-              <SelectTrigger aria-label="Permission">
+              <SelectTrigger aria-label="Permission" className="w-full">
                 <SelectValue placeholder="Choose a permission" />
               </SelectTrigger>
               <SelectContent>
@@ -138,7 +138,7 @@ export const AccessCheck: FC = () => {
           <div className="space-y-2">
             <Label>Project (optional)</Label>
             <Select value={projectId} onValueChange={setProjectId}>
-              <SelectTrigger aria-label="Project">
+              <SelectTrigger aria-label="Project" className="w-full">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -154,7 +154,7 @@ export const AccessCheck: FC = () => {
           <div className="space-y-2">
             <Label>Team (optional)</Label>
             <Select value={teamId} onValueChange={setTeamId}>
-              <SelectTrigger aria-label="Team">
+              <SelectTrigger aria-label="Team" className="w-full">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>

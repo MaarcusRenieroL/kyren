@@ -1,13 +1,12 @@
 "use client";
 
-import { paths } from "~/src/lib/paths";
 import { useTrpcClient } from "@zentro/api/react";
-import { toastError } from "@zentro/ui/index";
-import { useParams, useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
 import { ReactNode, useEffect, useState } from "react";
 import { SettingsShell } from "~/src/components/project-detail/settings/settings-shell";
 import { ProjectDetail } from "~/src/lib/types";
 import { ProjectSettingsLoading } from "~/src/components/project-detail/project-loading";
+import { NotFoundContent } from "~/src/components/system/not-found-content";
 
 export default function ProjectSettingsLayout({
   children,
@@ -15,10 +14,10 @@ export default function ProjectSettingsLayout({
   children: ReactNode;
 }>) {
   const [project, setProject] = useState<ProjectDetail | null>(null);
+  const [missing, setMissing] = useState(false);
 
   const trpc = useTrpcClient();
   const params = useParams<{ slug: string }>();
-  const router = useRouter();
 
   const slug = params.slug;
 
@@ -35,8 +34,7 @@ export default function ProjectSettingsLayout({
           setProject(data as ProjectDetail);
         }
       } catch {
-        toastError("Error", "Project not found");
-        router.replace(paths.projects());
+        if (isMounted) setMissing(true);
       }
     }
 
@@ -45,7 +43,16 @@ export default function ProjectSettingsLayout({
     return () => {
       isMounted = false;
     };
-  }, [slug, router, trpc]);
+  }, [slug, trpc]);
+
+  if (missing) {
+    return (
+      <NotFoundContent
+        inShell
+        description="This project doesn’t exist, or you don’t have access to it."
+      />
+    );
+  }
 
   if (!project) {
     return <ProjectSettingsLoading />;

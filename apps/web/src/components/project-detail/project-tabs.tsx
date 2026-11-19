@@ -190,7 +190,7 @@ export const ProjectTabs: FC<Props> = ({
       <div
         role="tablist"
         aria-label="Project sections"
-        className="hide-scrollbar flex gap-5 overflow-x-auto border-b border-hairline text-[15px]"
+        className="tab-scroll flex gap-5 border-b border-hairline text-[15px]"
       >
         {tabs.map(({ id, label, count }) => (
           <button

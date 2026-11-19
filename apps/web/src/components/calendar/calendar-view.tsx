@@ -384,15 +384,20 @@ export function CalendarView() {
   const today = new Date();
 
   function chip(event: CalendarEventItem) {
+    const label = `${event.allDay ? "" : `${timeFormat.format(new Date(event.startsAt))} `}${event.title}`;
+
+    // A phone's month cell is too narrow for text: the event shows as a
+    // coloured bar there, and the name stays the button's label.
     return (
       <button
         key={`${event.id}-${event.startsAt}`}
         type="button"
         onClick={() => open(event)}
-        className={`w-full truncate rounded border px-1.5 py-0.5 text-left text-xs ${colorClass(event.color)}`}
+        aria-label={label}
+        title={label}
+        className={`h-2 w-full truncate rounded border text-left text-xs sm:h-auto sm:px-1.5 sm:py-0.5 ${colorClass(event.color)}`}
       >
-        {event.allDay ? "" : `${timeFormat.format(new Date(event.startsAt))} `}
-        {event.title}
+        <span className="hidden sm:inline">{label}</span>
       </button>
     );
   }

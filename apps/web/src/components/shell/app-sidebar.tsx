@@ -80,12 +80,9 @@ export function AppSidebar({
   const active = findActiveModule(modules, pathname);
   const listRef = useRef<HTMLUListElement>(null);
   const box = useActiveBox(listRef, '[data-active="true"]');
-  const { isMobile, setOpen, setOpenMobile } = useSidebar();
+  const { isMobile, setOpenMobile } = useSidebar();
   const itemSize = isMobile ? "h-11 text-[15px]" : "h-9";
-  const close = () => {
-    setOpen(false);
-    setOpenMobile(false);
-  };
+  const close = () => setOpenMobile(false);
   const switchOrganization = async (organizationId: string) => {
     const { error } = await authClient.organization.setActive({
       organizationId,
@@ -122,14 +119,18 @@ export function AppSidebar({
             className="h-12 w-full rounded-md border border-hairline bg-surface px-2"
           />
         </div>
-        <button
-          type="button"
-          onClick={close}
-          aria-label="Close navigation"
-          className="flex size-9 shrink-0 items-center justify-center rounded-md text-ink-2 outline-none transition-colors hover:bg-hover hover:text-ink focus-visible:ring-2 focus-visible:ring-ring"
-        >
-          <XIcon className="size-4" aria-hidden="true" />
-        </button>
+        {/* Only the phone drawer needs its own close button; on wider
+            screens the top bar's sidebar toggle (or ⌘B) collapses it. */}
+        {isMobile ? (
+          <button
+            type="button"
+            onClick={close}
+            aria-label="Close navigation"
+            className="flex size-9 shrink-0 items-center justify-center rounded-md text-ink-2 outline-none transition-colors hover:bg-hover hover:text-ink focus-visible:ring-2 focus-visible:ring-ring group-data-[collapsible=icon]:hidden"
+          >
+            <XIcon className="size-4" aria-hidden="true" />
+          </button>
+        ) : null}
       </SidebarHeader>
 
       <SidebarContent className="gap-0 px-3 pt-3.5 pb-3">

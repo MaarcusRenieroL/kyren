@@ -38,6 +38,7 @@ import { paths } from "~/src/lib/paths";
 
 import type { ShellModule } from "./app-sidebar";
 import { useCrumbs } from "./breadcrumb-context";
+import { AiCopilotBubble } from "./ai-copilot-bubble";
 import { CommandPalette } from "./command-palette";
 import { isRecentPath, useRecent } from "./use-recent";
 import { OPEN_PALETTE_EVENT } from "~/src/components/system/open-palette-button";
@@ -189,11 +190,13 @@ export function TopBar({
                 // One filled primary per screen: the page owns it, so the
                 // global Create is always the quiet one.
                 variant="outline"
-                className="hidden h-8 border-hairline bg-transparent px-2.5 text-[13px] md:inline-flex"
+                aria-label="Create"
+                className="h-8 border-hairline bg-transparent px-2 text-[13px] md:px-2.5"
               >
                 <PlusIcon />
-                Create
-                <ChevronDownIcon className="size-3.5" />
+                {/* Just the + on a phone, where the top bar is narrow. */}
+                <span className="hidden md:inline">Create</span>
+                <ChevronDownIcon className="hidden size-3.5 md:inline" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent
@@ -229,6 +232,7 @@ export function TopBar({
           <CompassIcon className="size-3.5" />
           <span>Tour</span>
         </Button>
+        <AiCopilotBubble />
         <NotificationBell />
         <UserMenu user={user} links={links} />
       </div>

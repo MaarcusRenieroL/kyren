@@ -15,7 +15,7 @@ import { Button } from "@zentro/ui/shadcn/button";
 import { Input } from "@zentro/ui/shadcn/input";
 import { Textarea } from "@zentro/ui/shadcn/textarea";
 import { NativeSelect } from "@zentro/ui/shadcn/native-select";
-import { toast, toastError } from "@zentro/ui/index";
+import { toast, toastError, toastSuccess } from "@zentro/ui/index";
 
 import { SuggestedArticles } from "./suggested-articles";
 
@@ -30,6 +30,8 @@ import {
   priorityLabels,
   statusLabels,
 } from "./labels";
+import { copyText } from "~/src/lib/clipboard";
+import { apiPath } from "~/src/lib/paths";
 
 type Ticket = inferRouterOutputs<AppRouter>["tickets"]["get"];
 type People = inferRouterOutputs<AppRouter>["tickets"]["assignees"];
@@ -123,6 +125,11 @@ export function TicketDetail({ id }: { id: string }) {
       "Could not update the ticket",
     );
 
+  const portalLink =
+    typeof window === "undefined"
+      ? ""
+      : `${window.location.origin}${apiPath(`/support/${ticket.portalToken}`)}`;
+
   return (
     <div className="flex min-w-0 flex-1 flex-col gap-6 overflow-y-auto p-6">
       <PageHeader
@@ -188,7 +195,12 @@ export function TicketDetail({ id }: { id: string }) {
                 type="button"
                 variant="outline"
                 size="sm"
-                disabled={summarizing}
+                disabled={summarizing || !ticket.aiAvailable}
+                title={
+                  ticket.aiAvailable
+                    ? undefined
+                    : "An administrator needs to turn on AI for this workspace."
+                }
                 onClick={async () => {
                   setSummarizing(true);
 
@@ -220,13 +232,29 @@ export function TicketDetail({ id }: { id: string }) {
           ) : null}
 
           <p className="text-xs text-ink-2">
-            Customer link (no sign-in needed):{" "}
-            <code className="break-all rounded bg-sunken px-1">
-              {typeof window === "undefined"
-                ? ""
-                : `${window.location.origin}/support/${ticket.portalToken}`}
-            </code>
+            The customer can follow this ticket without signing in:
           </p>
+          <div className="flex items-center gap-2">
+            <Input
+              readOnly
+              aria-label="Customer link"
+              className="h-8 font-mono text-xs"
+              value={portalLink}
+              onFocus={(event) => event.currentTarget.select()}
+            />
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() =>
+                void copyText(portalLink).then((done) => {
+                  if (done) toastSuccess("Customer link copied");
+                })
+              }
+            >
+              Copy
+            </Button>
+          </div>
           <ol className="flex flex-col gap-3">
             {ticket.messages.map((message) => (
               <li

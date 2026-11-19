@@ -569,23 +569,33 @@ export const ListView: FC<Props> = ({
             <Kbd className="text-[10px]">J</Kbd>
             <Kbd className="text-[10px]">K</Kbd> navigate
           </span>
-          <span className="text-hairline hidden sm:inline">•</span>
+          <span aria-hidden="true" className="hidden text-ink-3 sm:inline">
+            •
+          </span>
           <span className="inline-flex items-center gap-1 font-mono text-[11px]">
             <Kbd className="text-[10px]">X</Kbd> select
           </span>
-          <span className="text-hairline hidden sm:inline">•</span>
+          <span aria-hidden="true" className="hidden text-ink-3 sm:inline">
+            •
+          </span>
           <span className="inline-flex items-center gap-1 font-mono text-[11px]">
             <Kbd className="text-[10px]">S</Kbd> status
           </span>
-          <span className="text-hairline hidden sm:inline">•</span>
+          <span aria-hidden="true" className="hidden text-ink-3 sm:inline">
+            •
+          </span>
           <span className="inline-flex items-center gap-1 font-mono text-[11px]">
             <Kbd className="text-[10px]">P</Kbd> priority
           </span>
-          <span className="text-hairline hidden sm:inline">•</span>
+          <span aria-hidden="true" className="hidden text-ink-3 sm:inline">
+            •
+          </span>
           <span className="inline-flex items-center gap-1 font-mono text-[11px]">
             <Kbd className="text-[10px]">E</Kbd> points
           </span>
-          <span className="text-hairline hidden sm:inline">•</span>
+          <span aria-hidden="true" className="hidden text-ink-3 sm:inline">
+            •
+          </span>
           <span className="inline-flex items-center gap-1 font-mono text-[11px]">
             <Kbd className="text-[10px]">C</Kbd> new
           </span>

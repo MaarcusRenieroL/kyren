@@ -49,13 +49,16 @@ export function Shell({ children }: { children: React.ReactNode }) {
         title="Administration"
         description="Usage, security and setup for the whole organization."
       />
-      <nav aria-label="Administration sections" className="flex gap-1">
+      <nav
+        aria-label="Administration sections"
+        className="tab-scroll flex gap-1"
+      >
         {sections.map((section) => (
           <Link
             key={section.href}
             href={section.href}
             aria-current={pathname === section.href ? "page" : undefined}
-            className={`rounded-lg px-3 py-1.5 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring ${
+            className={`shrink-0 rounded-lg px-3 py-1.5 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring ${
               pathname === section.href
                 ? "bg-sunken font-medium text-ink"
                 : "text-ink-2 hover:bg-sunken"

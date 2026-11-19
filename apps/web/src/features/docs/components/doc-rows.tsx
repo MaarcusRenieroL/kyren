@@ -9,7 +9,7 @@ import { toastSuccess } from "@zentro/ui/index";
 
 import { ActorAvatar } from "~/src/components/actor-avatar";
 import { StarButton } from "~/src/components/favorites/star-button";
-import { paths } from "~/src/lib/paths";
+import { apiPath, paths } from "~/src/lib/paths";
 
 import {
   formatDocDate,
@@ -18,6 +18,7 @@ import {
   getDocTitle,
   type DocsListItem,
 } from "../lib/docs";
+import { copyText } from "~/src/lib/clipboard";
 
 const projectTints = [
   "bg-tint-tasks",
@@ -67,9 +68,9 @@ export const DocTiles: FC<{ docs: DocsListItem[]; columns?: string }> = ({
   const handleCopyLink = (e: React.MouseEvent, slug: string) => {
     e.preventDefault();
     e.stopPropagation();
-    const url = `${window.location.origin}/docs/${slug}`;
-    void navigator.clipboard.writeText(url).then(() => {
-      toastSuccess("Link copied to clipboard");
+    const url = `${window.location.origin}${apiPath(`/docs/${slug}`)}`;
+    void copyText(url).then((done) => {
+      if (done) toastSuccess("Link copied to clipboard");
     });
   };
 
@@ -158,9 +159,9 @@ export const DocTable: FC<{ docs: DocsListItem[] }> = ({ docs }) => {
   const handleCopyLink = (e: React.MouseEvent, slug: string) => {
     e.preventDefault();
     e.stopPropagation();
-    const url = `${window.location.origin}/docs/${slug}`;
-    void navigator.clipboard.writeText(url).then(() => {
-      toastSuccess("Link copied to clipboard");
+    const url = `${window.location.origin}${apiPath(`/docs/${slug}`)}`;
+    void copyText(url).then((done) => {
+      if (done) toastSuccess("Link copied to clipboard");
     });
   };
 
@@ -212,12 +213,12 @@ export const DocTable: FC<{ docs: DocsListItem[] }> = ({ docs }) => {
                 />
                 <Link
                   href={paths.doc(doc.slug)}
-                  className="truncate text-[14px] font-medium text-ink hover:text-signal outline-none"
+                  className="line-clamp-2 text-[14px] font-medium break-words text-ink outline-none hover:text-signal sm:line-clamp-1"
                 >
                   {title}
                 </Link>
                 {doc.excerpt && (
-                  <span className="hidden lg:inline truncate text-xs text-ink-4 max-w-xs">
+                  <span className="hidden lg:inline truncate text-xs text-ink-3 max-w-xs">
                     — {doc.excerpt}
                   </span>
                 )}

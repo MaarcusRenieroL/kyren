@@ -150,7 +150,7 @@ export const PermissionLog: FC = () => {
                         <summary className="cursor-pointer text-xs text-muted-foreground">
                           Before and after
                         </summary>
-                        <pre className="mt-2 max-w-md overflow-x-auto rounded bg-muted p-2 text-xs">
+                        <pre className="mt-2 max-w-md min-w-60 overflow-x-auto rounded bg-muted p-2 text-xs">
                           {JSON.stringify(
                             { before: item.before, after: item.after },
                             null,

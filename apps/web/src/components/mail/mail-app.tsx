@@ -321,6 +321,7 @@ export function MailApp() {
 
   return (
     <div className="-mx-4 -mt-5 -mb-12 flex h-[calc(100svh-3.5rem)] min-h-[480px] overflow-hidden border-t border-hairline md:-mx-(--gutter) md:-mt-7 md:-mb-16">
+      <h1 className="sr-only">Mail</h1>
       <nav
         aria-label="Mail folders"
         className="hidden w-52 shrink-0 flex-col gap-1 border-r border-line p-3 lg:flex"

@@ -287,10 +287,10 @@ export const OverviewBoard: FC<Props> = ({
             </div>
             {data.heatmap.length ? (
               <div className="overflow-x-auto">
-                <table className="w-full min-w-[30rem] border-separate border-spacing-1 text-sm">
+                <table className="w-full min-w-[17rem] border-separate border-spacing-1 text-sm sm:min-w-[30rem]">
                   <thead>
                     <tr>
-                      <th className="w-28" />
+                      <th className="w-20 sm:w-28" />
                       {data.days.map((day) => (
                         <th
                           key={day.key}
@@ -311,7 +311,7 @@ export const OverviewBoard: FC<Props> = ({
                       <tr key={row.id}>
                         <th
                           scope="row"
-                          className="truncate pr-2 text-left font-normal text-ink-2"
+                          className="max-w-20 truncate pr-2 text-left font-normal text-ink-2 sm:max-w-28"
                         >
                           {row.name}
                         </th>

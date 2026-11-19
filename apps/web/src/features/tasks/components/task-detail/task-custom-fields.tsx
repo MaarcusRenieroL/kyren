@@ -57,7 +57,7 @@ export function TaskCustomFields({
   if (failed && !fields.length) {
     return (
       <p role="status" className="tile px-[22px] py-[18px] text-sm text-ink-2">
-        This task's details did not load.{" "}
+        This task’s details did not load.{" "}
         <button type="button" className="underline" onClick={() => void load()}>
           Retry
         </button>

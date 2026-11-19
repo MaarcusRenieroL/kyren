@@ -63,6 +63,7 @@ import {
   relativeAgo,
   untilLabel,
 } from "./message-body";
+import { copyText } from "~/src/lib/clipboard";
 
 type Outputs = inferRouterOutputs<AppRouter>;
 export type MessageView = Outputs["chat"]["messages"]["messages"][number];
@@ -410,9 +411,9 @@ export function MessageItem({
     const url = new URL(window.location.href);
 
     url.searchParams.set("m", message.id);
-    void navigator.clipboard
-      .writeText(url.toString())
-      .then(() => toastSuccess("Link copied"));
+    void copyText(url.toString()).then((done) => {
+      if (done) toastSuccess("Link copied");
+    });
   };
 
   return (

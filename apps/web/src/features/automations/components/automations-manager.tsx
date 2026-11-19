@@ -26,15 +26,30 @@ import { NativeSelect } from "@zentro/ui/shadcn/native-select";
 
 import { usePermission } from "~/src/components/permissions/permission-provider";
 
+type TriggerEvent =
+  | "task.status_changed"
+  | "task.subtasks_all_done"
+  | "task.blockers_resolved"
+  | "task.created"
+  | "task.due_date_approaching"
+  | "chat.message_contains";
+
+type ActionType =
+  | "update_status"
+  | "assign_actor"
+  | "set_priority"
+  | "post_to_channel"
+  | "create_task";
+
 type AutomationRule = {
   id: string;
   name: string;
   description: string | null;
   enabled: boolean;
   triggerEvent: string;
-  triggerConfig: any;
+  triggerConfig: Record<string, unknown>;
   actionType: string;
-  actionConfig: any;
+  actionConfig: Record<string, unknown>;
   runCount: number;
   lastRunAt: string | Date | null;
   projectId: string | null;
@@ -68,23 +83,13 @@ export const AutomationsManager: FC = () => {
   const [loading, setLoading] = useState(true);
   const [createOpen, setCreateOpen] = useState(false);
   const [name, setName] = useState("");
+  const [nameError, setNameError] = useState<string | null>(null);
   const [description, setDescription] = useState("");
-  const [triggerEvent, setTriggerEvent] = useState<
-    | "task.status_changed"
-    | "task.subtasks_all_done"
-    | "task.blockers_resolved"
-    | "task.created"
-    | "task.due_date_approaching"
-    | "chat.message_contains"
-  >("task.subtasks_all_done");
+  const [triggerEvent, setTriggerEvent] = useState<TriggerEvent>(
+    "task.subtasks_all_done",
+  );
   const [toStatus, setToStatus] = useState("in-progress");
-  const [actionType, setActionType] = useState<
-    | "update_status"
-    | "assign_actor"
-    | "set_priority"
-    | "post_to_channel"
-    | "create_task"
-  >("update_status");
+  const [actionType, setActionType] = useState<ActionType>("update_status");
   const [contains, setContains] = useState("");
   const [triggerChannelId, setTriggerChannelId] = useState("");
   const [postChannelId, setPostChannelId] = useState("");
@@ -222,7 +227,10 @@ export const AutomationsManager: FC = () => {
 
   const handleCreateCustom = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name.trim()) return;
+    if (!name.trim()) {
+      setNameError("Give the rule a name.");
+      return;
+    }
 
     if (!projectId && (!canRunEverywhere || actionType === "create_task")) {
       toastError("No project picked", "Pick the project this rule runs on.");
@@ -353,10 +361,26 @@ export const AutomationsManager: FC = () => {
                     type="text"
                     required
                     value={name}
-                    onChange={(e) => setName(e.target.value)}
+                    aria-invalid={nameError ? true : undefined}
+                    aria-describedby={
+                      nameError ? "automation-name-error" : undefined
+                    }
+                    onChange={(e) => {
+                      setName(e.target.value);
+                      setNameError(null);
+                    }}
                     placeholder="e.g. Auto-move to Review when done"
                     className="h-9 rounded-lg border border-hairline bg-surface-subtle px-3 text-xs outline-none focus-visible:ring-2 focus-visible:ring-ring"
                   />
+                  {nameError ? (
+                    <p
+                      id="automation-name-error"
+                      role="alert"
+                      className="text-xs text-danger-text"
+                    >
+                      {nameError}
+                    </p>
+                  ) : null}
                 </div>
 
                 <div className="flex flex-col gap-1.5">
@@ -384,7 +408,9 @@ export const AutomationsManager: FC = () => {
                   <NativeSelect
                     aria-label="When"
                     value={triggerEvent}
-                    onChange={(e) => setTriggerEvent(e.target.value as any)}
+                    onChange={(e) =>
+                      setTriggerEvent(e.target.value as TriggerEvent)
+                    }
                   >
                     <option value="task.subtasks_all_done">
                       All Subtasks of a Task are Completed
@@ -456,7 +482,9 @@ export const AutomationsManager: FC = () => {
                   <NativeSelect
                     aria-label="Then"
                     value={actionType}
-                    onChange={(e) => setActionType(e.target.value as any)}
+                    onChange={(e) =>
+                      setActionType(e.target.value as ActionType)
+                    }
                   >
                     <option value="update_status">Update Task Status</option>
                     <option value="assign_actor">

@@ -62,7 +62,7 @@ export const SettingsShell: FC<Props> = ({ project, children }) => {
 
         <nav
           aria-label="Project settings"
-          className="hide-scrollbar flex gap-5 overflow-x-auto border-b border-hairline text-[15px]"
+          className="tab-scroll flex gap-5 border-b border-hairline text-[15px]"
         >
           {settingsNavItems.map((item) => {
             const isActive = pathname === item.href;

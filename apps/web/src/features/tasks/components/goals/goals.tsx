@@ -116,7 +116,7 @@ export function Goals({ canManage }: { canManage: boolean }) {
             aria-label="Goal period"
             placeholder="Period, e.g. Q4 2026"
             maxLength={40}
-            className="w-40"
+            className="w-44"
             value={period}
             onChange={(e) => setPeriod(e.target.value)}
           />
@@ -167,7 +167,7 @@ export function Goals({ canManage }: { canManage: boolean }) {
             {goal.keyResults.map((kr) => (
               <li key={kr.id} className="flex flex-col gap-1 text-sm">
                 <div className="flex items-center gap-2">
-                  <span className="flex-1 text-ink">{kr.title}</span>
+                  <span className="min-w-0 flex-1 text-ink">{kr.title}</span>
                   {kr.confidence ? (
                     <ConfidenceBadge value={kr.confidence} />
                   ) : null}
@@ -428,7 +428,7 @@ function CheckInForm({
         ))}
       </NativeSelect>
       <Input
-        className="h-8 min-w-40 flex-1"
+        className="h-8 min-w-52 flex-1"
         maxLength={1000}
         placeholder="What changed? (optional)"
         aria-label={`Check-in note for ${title}`}
@@ -598,7 +598,10 @@ function GoalHeader({
 
   return (
     <div className="flex flex-wrap items-baseline gap-2">
-      <h2 className="flex-1 text-base font-medium text-ink">{goal.title}</h2>
+      {/* The title keeps a readable width; the rest wraps below it. */}
+      <h2 className="min-w-0 flex-[1_1_14rem] text-base font-medium text-ink">
+        {goal.title}
+      </h2>
       {closed ? (
         <span className="rounded-full border border-hairline px-2 text-xs text-ink-2">
           Closed

@@ -12,6 +12,8 @@ import {
 } from "lucide-react";
 
 import { useTrpcClient } from "@zentro/api/react";
+import type { AppRouter } from "@zentro/api/server";
+import type { inferRouterOutputs } from "@trpc/server";
 import { Button } from "@zentro/ui/shadcn/button";
 import { Input } from "@zentro/ui/shadcn/input";
 import { Textarea } from "@zentro/ui/shadcn/textarea";
@@ -33,6 +35,8 @@ import { toastSuccess, toastError } from "@zentro/ui/index";
 
 import { usePermission } from "~/src/components/permissions/permission-provider";
 
+type Outputs = inferRouterOutputs<AppRouter>;
+
 export function AiCopilotBubble() {
   const [open, setOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("search");
@@ -43,22 +47,30 @@ export function AiCopilotBubble() {
   // Search state
   const [searchQuery, setSearchQuery] = useState("");
   const [searchLoading, setSearchLoading] = useState(false);
-  const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [searchResults, setSearchResults] = useState<
+    Outputs["ai"]["semanticSearch"]
+  >([]);
 
   // Story point estimator state
   const [taskTitle, setTaskTitle] = useState("");
   const [taskDesc, setTaskDesc] = useState("");
-  const [pointResult, setPointResult] = useState<any>(null);
+  const [pointResult, setPointResult] = useState<
+    Outputs["ai"]["suggestStoryPoints"] | null
+  >(null);
   const [pointLoading, setPointLoading] = useState(false);
 
   // Ticket triage state
   const [ticketSubject, setTicketSubject] = useState("");
   const [ticketBody, setTicketBody] = useState("");
-  const [triageResult, setTriageResult] = useState<any>(null);
+  const [triageResult, setTriageResult] = useState<
+    Outputs["ai"]["triageTicket"] | null
+  >(null);
   const [triageLoading, setTriageLoading] = useState(false);
 
   // Custodian sweep state
-  const [sweepResult, setSweepResult] = useState<any>(null);
+  const [sweepResult, setSweepResult] = useState<
+    Outputs["custodian"]["runSweep"] | null
+  >(null);
   const [sweepLoading, setSweepLoading] = useState(false);
 
   // Keyboard shortcut: Cmd/Ctrl + J to toggle
@@ -143,14 +155,15 @@ export function AiCopilotBubble() {
 
   return (
     <>
-      {/* Floating Copilot Button */}
+      {/* In the top bar, so it never sits on top of a page's content. */}
       <button
         type="button"
         onClick={() => setOpen(true)}
         aria-label="Open AI Copilot"
-        className="fixed bottom-6 right-6 z-40 flex size-12 items-center justify-center rounded-full border border-hairline bg-surface text-signal shadow-lg transition-transform hover:scale-105 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        title="AI Copilot"
+        className="flex size-8 items-center justify-center rounded-md text-signal outline-none transition-colors hover:bg-hover focus-visible:ring-2 focus-visible:ring-ring"
       >
-        <SparklesIcon className="size-5" />
+        <SparklesIcon className="size-4" />
       </button>
 
       {/* Copilot Drawer Sheet */}

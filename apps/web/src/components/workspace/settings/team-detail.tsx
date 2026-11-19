@@ -193,7 +193,7 @@ export function TeamDetail({ teamId }: { teamId: string }) {
           >
             {team.name.charAt(0).toUpperCase()}
           </span>
-          <div className="min-w-0 flex-1">
+          <div className="min-w-0 flex-[1_1_12rem]">
             <h1 className="font-display text-[1.75rem] leading-8 sm:text-[length:var(--title-size)] sm:leading-9">
               {team.name}
             </h1>
@@ -335,11 +335,7 @@ export function TeamDetail({ teamId }: { teamId: string }) {
                     key={task.id}
                     className="flex items-center gap-2.5 border-b border-hairline/60 px-1 py-2 hover:bg-hover transition-colors"
                   >
-                    <StatusGlyph
-                      status={task.status as any}
-                      size={12}
-                      decorative
-                    />
+                    <StatusGlyph status={task.status} size={12} decorative />
                     <Link
                       href={paths.task(task.key)}
                       className="font-mono text-xs font-medium text-ink-2 hover:text-ink shrink-0"

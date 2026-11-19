@@ -35,6 +35,15 @@ function weekStart(date: Date) {
 
 const iso = (date: Date) => date.toISOString().slice(0, 10);
 
+/** "Mon 16 Nov": the days are calendar days, so they are read in UTC. */
+const dayLabel = new Intl.DateTimeFormat(undefined, {
+  weekday: "short",
+  day: "numeric",
+  month: "short",
+  timeZone: "UTC",
+});
+const shown = (day: string) => dayLabel.format(new Date(`${day}T00:00:00Z`));
+
 /** Your logged time for a week, and for people who may, everyone's. */
 export function Timesheet({ canSeeReport }: { canSeeReport: boolean }) {
   const trpc = useTrpcClient();
@@ -88,7 +97,7 @@ export function Timesheet({ canSeeReport }: { canSeeReport: boolean }) {
         <div>
           <h1 className="text-xl font-semibold text-ink">Timesheet</h1>
           <p className="text-sm text-ink-2">
-            Time you logged on tasks, {from} to {to}.
+            Time you logged on tasks, {shown(from)} to {shown(to)}.
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -124,7 +133,7 @@ export function Timesheet({ canSeeReport }: { canSeeReport: boolean }) {
           {days.map(({ day, entries, minutes }) => (
             <li key={day} className="py-2">
               <div className="flex items-center justify-between text-sm">
-                <span className="text-ink">{day}</span>
+                <span className="text-ink">{shown(day)}</span>
                 <span className="font-mono text-ink-2">{hours(minutes)}</span>
               </div>
               {entries.length ? (

@@ -12,6 +12,7 @@ import { Textarea } from "@zentro/ui/shadcn/textarea";
 import { NativeSelect } from "@zentro/ui/shadcn/native-select";
 import { toastError, toastSuccess } from "@zentro/ui/index";
 
+import { useCurrentUserId } from "~/src/components/permissions/permission-provider";
 import { usePageCrumb } from "~/src/components/shell/breadcrumb-context";
 import { useAsyncData } from "~/src/lib/use-async-data";
 import { recapActionItems } from "./recap";
@@ -25,6 +26,14 @@ const when = new Intl.DateTimeFormat(undefined, {
 });
 
 const answers = ["yes", "maybe", "no"] as const;
+
+/** How an attendee's answer reads in the list. */
+const answerLabel: Record<string, string> = {
+  yes: "Going",
+  maybe: "Maybe",
+  no: "Not going",
+  invited: "Not answered",
+};
 
 /** Action items from the AI recap, ready to become tasks in a chosen project. */
 function ActionItems({
@@ -117,6 +126,7 @@ function ActionItems({
 /** One meeting: the join link, who is coming, shared notes and the AI recap. */
 export function MeetingDetail({ id }: { id: string }) {
   const trpc = useTrpcClient();
+  const userId = useCurrentUserId();
   const meeting = useAsyncData(
     () => trpc.meeting.get.query({ id }),
     [trpc, id],
@@ -163,6 +173,10 @@ export function MeetingDetail({ id }: { id: string }) {
 
   if (!data) return <div className="p-6 text-sm text-ink-2">Loading…</div>;
 
+  const mine = data.attendees.find(
+    (person) => person.userId === userId,
+  )?.response;
+
   const canceled = data.status === "canceled";
 
   return (
@@ -205,9 +219,7 @@ export function MeetingDetail({ id }: { id: string }) {
             <li key={person.userId} className="flex justify-between">
               <span>{person.name}</span>
               <span className="text-ink-3">
-                {person.response === "invited"
-                  ? "Not answered"
-                  : person.response}
+                {answerLabel[person.response] ?? person.response}
               </span>
             </li>
           ))}
@@ -219,7 +231,8 @@ export function MeetingDetail({ id }: { id: string }) {
               <Button
                 key={response}
                 size="sm"
-                variant="outline"
+                variant={mine === response ? "secondary" : "outline"}
+                aria-pressed={mine === response}
                 disabled={busy !== null}
                 onClick={() =>
                   void run("answer", () =>
@@ -267,7 +280,14 @@ export function MeetingDetail({ id }: { id: string }) {
           <Button
             size="sm"
             variant="outline"
-            disabled={canceled || busy !== null || !notes.trim()}
+            disabled={
+              canceled || busy !== null || !notes.trim() || !data.aiAvailable
+            }
+            title={
+              data.aiAvailable
+                ? undefined
+                : "An administrator needs to turn on AI for this workspace."
+            }
             onClick={() =>
               void run("write the recap", async () => {
                 // Save first so the recap covers what is on screen.

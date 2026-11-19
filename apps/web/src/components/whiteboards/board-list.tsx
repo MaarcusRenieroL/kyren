@@ -147,13 +147,14 @@ export function BoardList() {
           {boards.map((board) => (
             <li
               key={board.id}
-              className="flex flex-col gap-3 rounded-xl border border-line p-4"
+              className="flex min-w-0 flex-col gap-3 rounded-xl border border-line p-4"
             >
               <Link
                 href={`/whiteboards/${board.id}`}
-                className="flex flex-col gap-1 hover:underline"
+                className="flex min-w-0 flex-col gap-1 hover:underline"
               >
-                <span className="truncate font-medium text-ink">
+                {/* Two lines, then an ellipsis: a long title stays readable. */}
+                <span className="line-clamp-2 font-medium break-words text-ink">
                   {board.title}
                 </span>
                 <span className="text-xs text-ink-3">

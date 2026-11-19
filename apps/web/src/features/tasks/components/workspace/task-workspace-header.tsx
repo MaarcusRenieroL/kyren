@@ -223,7 +223,7 @@ export const TaskWorkspaceHeader: FC<Props> = ({
       <div
         className={cn(
           "mt-3.5 mb-3 flex items-center gap-2",
-          compact ? "hide-scrollbar -mx-4 overflow-x-auto px-4" : "flex-wrap",
+          compact ? "tab-scroll -mx-4 px-4" : "flex-wrap",
         )}
       >
         <div

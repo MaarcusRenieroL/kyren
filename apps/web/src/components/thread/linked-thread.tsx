@@ -152,13 +152,17 @@ export function LinkedThread({
     unread: number;
   } | null>(null);
 
+  // The parent passes a fresh object each render; only these two matter.
+  const discussionType = discussion?.type;
+  const discussionId = discussion?.id;
+
   useEffect(() => {
-    if (!discussion || !chatReachable) return;
+    if (!discussionType || !discussionId || !chatReachable) return;
 
     let live = true;
 
     trpc.chat.discussion
-      .query(discussion)
+      .query({ type: discussionType, id: discussionId })
       .then((data) => {
         if (live && data.exists) {
           setChat({
@@ -173,7 +177,7 @@ export function LinkedThread({
     return () => {
       live = false;
     };
-  }, [trpc, discussion?.type, discussion?.id, chatReachable]);
+  }, [trpc, discussionType, discussionId, chatReachable]);
 
   const [related, setRelated] = useState<Related[] | null>(null);
   const [project, setProject] = useState<{

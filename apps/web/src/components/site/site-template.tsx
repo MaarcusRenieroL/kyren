@@ -1,6 +1,7 @@
 // Generated from the Zentro site design (Zentro Site Page). Edit the data and logic in
 // site-page.tsx; this file is markup only.
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import Link from "next/link";
 import { Fragment, type CSSProperties } from "react";
 
 const hrefOf = (fn: any): string => (fn && fn.href) || "#";
@@ -129,7 +130,7 @@ export function SiteTemplate({ v }: { v: any }) {
               borderBottom: "1px solid var(--line2)",
             }}
           >
-            <a
+            <Link
               href="/"
               style={{
                 display: "flex",
@@ -170,18 +171,18 @@ export function SiteTemplate({ v }: { v: any }) {
               >
                 Zentro
               </span>
-            </a>
+            </Link>
             {notM ? (
               <>
                 <nav
                   style={{ display: "flex", gap: "28px", marginLeft: "24px" }}
                 >
-                  <a
+                  <Link
                     href="/"
                     style={{ color: "var(--ink2)", fontSize: "14px" }}
                   >
                     Product
-                  </a>
+                  </Link>
                   {navLinks.map((l: any, i1: number) => (
                     <Fragment key={i1}>
                       <a href={hrefOf(l.go)} onClick={l.go} style={l.st}>
@@ -231,6 +232,7 @@ export function SiteTemplate({ v }: { v: any }) {
                 </div>
                 <a
                   href="/auth/sign-in"
+                  hidden={v.signedIn}
                   style={{
                     color: "var(--ink)",
                     fontSize: "14px",
@@ -242,7 +244,7 @@ export function SiteTemplate({ v }: { v: any }) {
               </>
             ) : null}
             <a
-              href="/auth/sign-up"
+              href={v.signedIn ? "/dashboard" : "/auth/sign-up"}
               style={{
                 display: "inline-flex",
                 alignItems: "center",
@@ -257,7 +259,7 @@ export function SiteTemplate({ v }: { v: any }) {
                 whiteSpace: "nowrap",
               }}
             >
-              Start free
+              {v.signedIn ? "Open Zentro" : "Start free"}
             </a>
             {m ? (
               <>
@@ -383,7 +385,7 @@ export function SiteTemplate({ v }: { v: any }) {
               }}
             >
               <a
-                href="/auth/sign-up"
+                href={v.signedIn ? "/dashboard" : "/auth/sign-up"}
                 style={{
                   display: "flex",
                   alignItems: "center",
@@ -397,10 +399,11 @@ export function SiteTemplate({ v }: { v: any }) {
                   textDecoration: "none",
                 }}
               >
-                Start free
+                {v.signedIn ? "Open Zentro" : "Start free"}
               </a>
               <a
                 href="/auth/sign-in"
+                hidden={v.signedIn}
                 style={{
                   display: "flex",
                   alignItems: "center",
@@ -602,7 +605,7 @@ export function SiteTemplate({ v }: { v: any }) {
                           }}
                         >
                           <a
-                            href="/auth/sign-up"
+                            href={v.signedIn ? "/dashboard" : "/auth/sign-up"}
                             style={{
                               display: "inline-flex",
                               alignItems: "center",
@@ -616,7 +619,7 @@ export function SiteTemplate({ v }: { v: any }) {
                               textDecoration: "none",
                             }}
                           >
-                            Start free
+                            {v.signedIn ? "Open Zentro" : "Start free"}
                           </a>
                           <a
                             href="#compare"
@@ -1648,7 +1651,7 @@ export function SiteTemplate({ v }: { v: any }) {
                           }}
                         >
                           <a
-                            href="/auth/sign-up"
+                            href={v.signedIn ? "/dashboard" : "/auth/sign-up"}
                             style={{
                               display: "inline-flex",
                               alignItems: "center",
@@ -1662,7 +1665,7 @@ export function SiteTemplate({ v }: { v: any }) {
                               textDecoration: "none",
                             }}
                           >
-                            Start free
+                            {v.signedIn ? "Open Zentro" : "Start free"}
                           </a>
                           <a
                             href={hrefOf(go.roadmap)}
@@ -2062,7 +2065,7 @@ export function SiteTemplate({ v }: { v: any }) {
                           }}
                         >
                           <a
-                            href="/auth/sign-up"
+                            href={v.signedIn ? "/dashboard" : "/auth/sign-up"}
                             style={{
                               display: "inline-flex",
                               alignItems: "center",
@@ -2076,7 +2079,7 @@ export function SiteTemplate({ v }: { v: any }) {
                               textDecoration: "none",
                             }}
                           >
-                            Start free
+                            {v.signedIn ? "Open Zentro" : "Start free"}
                           </a>
                           <a
                             href={hrefOf(go.modules)}
@@ -4117,7 +4120,7 @@ export function SiteTemplate({ v }: { v: any }) {
                           }}
                         >
                           <a
-                            href="/auth/sign-up"
+                            href={v.signedIn ? "/dashboard" : "/auth/sign-up"}
                             style={{
                               display: "inline-flex",
                               alignItems: "center",
@@ -4131,7 +4134,7 @@ export function SiteTemplate({ v }: { v: any }) {
                               textDecoration: "none",
                             }}
                           >
-                            Start free
+                            {v.signedIn ? "Open Zentro" : "Start free"}
                           </a>
                           <button
                             onClick={notifyAll}
@@ -5410,7 +5413,7 @@ export function SiteTemplate({ v }: { v: any }) {
                           }}
                         >
                           <a
-                            href="/auth/sign-up"
+                            href={v.signedIn ? "/dashboard" : "/auth/sign-up"}
                             style={{
                               display: "inline-flex",
                               alignItems: "center",
@@ -5424,7 +5427,7 @@ export function SiteTemplate({ v }: { v: any }) {
                               textDecoration: "none",
                             }}
                           >
-                            Start free
+                            {v.signedIn ? "Open Zentro" : "Start free"}
                           </a>
                           <a
                             href="#"
@@ -7393,7 +7396,7 @@ export function SiteTemplate({ v }: { v: any }) {
                 </p>
                 <div style={{ display: "flex", flexWrap: "wrap", gap: "12px" }}>
                   <a
-                    href="/auth/sign-up"
+                    href={v.signedIn ? "/dashboard" : "/auth/sign-up"}
                     style={{
                       display: "inline-flex",
                       alignItems: "center",
@@ -7407,7 +7410,7 @@ export function SiteTemplate({ v }: { v: any }) {
                       textDecoration: "none",
                     }}
                   >
-                    Start free
+                    {v.signedIn ? "Open Zentro" : "Start free"}
                   </a>
                   <a
                     href={hrefOf(close2.go)}
@@ -7543,9 +7546,9 @@ export function SiteTemplate({ v }: { v: any }) {
               >
                 Product
               </span>
-              <a href="/" style={{ color: "var(--ink2)" }}>
+              <Link href="/" style={{ color: "var(--ink2)" }}>
                 Overview
-              </a>
+              </Link>
               {footProduct.map((l: any, i50: number) => (
                 <Fragment key={i50}>
                   <a

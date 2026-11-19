@@ -286,6 +286,7 @@ export const InvitationsSection: FC<Props> = ({
               <label className="flex items-center gap-2 text-[13px] text-ink-2">
                 Several at once
                 <Switch
+                  aria-label="Invite several people at once"
                   checked={several}
                   onCheckedChange={(checked) => {
                     setSeveral(checked);
@@ -433,7 +434,7 @@ export const InvitationsSection: FC<Props> = ({
                     className="flex flex-col gap-2 border-b border-hairline/60 py-3"
                   >
                     <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-                      <div className="min-w-0 flex-1">
+                      <div className="min-w-0 flex-[1_1_14rem]">
                         <p className="truncate font-mono text-sm">
                           {invitation.email}
                         </p>
@@ -485,7 +486,8 @@ export const InvitationsSection: FC<Props> = ({
                         {state === "accepted"
                           ? `Joined ${shortDate(invitation.createdAt)}`
                           : state === "expired"
-                            ? `Expired ${shortDate(invitation.expiresAt!)}`
+                            ? // The badge already says "Expired"; this is when.
+                              shortDate(invitation.expiresAt!)
                             : left === null
                               ? "No expiry"
                               : `Expires in ${left} ${left === 1 ? "day" : "days"}`}

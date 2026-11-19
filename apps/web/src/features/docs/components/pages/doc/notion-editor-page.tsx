@@ -289,7 +289,7 @@ function DocToolbar({
     <div
       role="toolbar"
       aria-label="Formatting"
-      className="tile mb-5 flex items-center gap-1 p-1.5"
+      className="tile tab-scroll mb-5 flex items-center gap-1 p-1.5 [&>*]:shrink-0"
     >
       {button("Bold", BoldIcon, active.bold, () =>
         editor.chain().focus().toggleBold().run(),
@@ -1145,7 +1145,7 @@ export function NotionEditorPage({ slug }: { slug: string }) {
             ) : null}
             <span
               role="status"
-              className="ml-2 flex items-center gap-1.5 font-mono text-xs text-ink-3"
+              className="ml-2 flex items-center gap-1.5 font-mono text-xs whitespace-nowrap text-ink-3"
               suppressHydrationWarning
             >
               {saveStatus === "conflict" ? (
@@ -1180,11 +1180,14 @@ export function NotionEditorPage({ slug }: { slug: string }) {
                   >
                     <CheckIcon className="size-2.5" strokeWidth={3} />
                   </span>
-                  Saved{" "}
-                  {new Date(doc.updatedAt).toLocaleTimeString("en-GB", {
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  })}
+                  {/* Just the tick on a phone; the words stay for screen readers. */}
+                  <span className="sr-only sm:not-sr-only">
+                    Saved{" "}
+                    {new Date(doc.updatedAt).toLocaleTimeString("en-GB", {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}
+                  </span>
                 </>
               )}
             </span>
@@ -1343,6 +1346,7 @@ export function NotionEditorPage({ slug }: { slug: string }) {
                 onBlur={saveTitle}
                 readOnly={!canEdit}
                 placeholder="Untitled"
+                aria-label="Doc title"
                 className="!h-auto border-none bg-transparent px-0 py-0 font-display !text-[2.25rem] !leading-10 shadow-none outline-none focus-visible:ring-0 sm:!text-[2.5rem] sm:!leading-[44px]"
               />
             </div>

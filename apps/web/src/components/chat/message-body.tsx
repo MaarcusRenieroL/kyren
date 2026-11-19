@@ -16,6 +16,7 @@ import { cn } from "@zentro/ui/lib/utils";
 import { paths } from "~/src/lib/paths";
 
 import { builtinShortcodes, useCustomEmoji } from "./custom-emoji";
+import { copyText } from "~/src/lib/clipboard";
 
 // Mentions are stored as <@memberId>, <!channel> and <!here>; everything else
 // is plain text with a little formatting: **bold**, _italic_, `code`, links,
@@ -53,7 +54,8 @@ function CodeBlock({ code, lang }: { code: string; lang: string }) {
         <button
           type="button"
           onClick={() => {
-            void navigator.clipboard.writeText(code).then(() => {
+            void copyText(code).then((done) => {
+              if (!done) return;
               setCopied(true);
               setTimeout(() => setCopied(false), 1500);
             });

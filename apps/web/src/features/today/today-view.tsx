@@ -900,7 +900,7 @@ export function TodayView({
                 <span className="font-mono text-[11px] tracking-[0.08em] text-ink-2 uppercase">
                   {item.kind}
                 </span>
-                <span className="text-[15px] leading-5 font-semibold">
+                <span className="line-clamp-3 text-[15px] leading-5 font-semibold break-words">
                   {item.title}
                 </span>
                 <span className="mt-auto font-mono text-xs text-ink-2">

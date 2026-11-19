@@ -158,6 +158,7 @@ function CreateDocModalInner({
                 <FieldLabel>Title</FieldLabel>
                 <Input
                   placeholder="Untitled product note"
+                  aria-label="Doc title"
                   value={title}
                   onChange={(event) => setTitle(event.target.value)}
                 />
@@ -210,6 +211,7 @@ function CreateDocModalInner({
               <Textarea
                 className="min-h-28 resize-none"
                 placeholder="Add the first paragraph, or leave it blank."
+                aria-label="First paragraph"
                 value={content}
                 onChange={(event) => setContent(event.target.value)}
               />

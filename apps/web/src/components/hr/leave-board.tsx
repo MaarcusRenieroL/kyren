@@ -147,7 +147,8 @@ export function LeaveBoard() {
               key={request.id}
               className="flex flex-wrap items-center gap-x-4 gap-y-2 px-4 py-3"
             >
-              <div className="min-w-0 flex-1">
+              {/* On a phone the status and buttons wrap below the text. */}
+              <div className="min-w-0 flex-[1_1_14rem]">
                 <p className="truncate font-medium text-ink">
                   {request.employeeName}
                 </p>

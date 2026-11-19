@@ -90,8 +90,21 @@ export const RoleEditor: FC<{ roleId: string }> = ({ roleId }) => {
     role?.systemKey === "admin" || role?.systemKey === "member";
   const editableRole = role?.kind === "custom" || isBaseRole;
   // You can only edit a role whose permissions you all hold yourself.
+  // Permissions the catalogue still has for this role's scope; older keys
+  // a role may hold are ignored here and dropped when it is saved.
+  const known = useMemo(
+    () =>
+      new Set(
+        (catalog ?? [])
+          .filter((entry) => !role || entry.scopes.includes(role.scope))
+          .map((entry) => entry.key),
+      ),
+    [catalog, role],
+  );
   const holdsAll = role
-    ? role.permissions.every((key) => myPermissions[key])
+    ? role.permissions
+        .filter((key) => known.has(key))
+        .every((key) => myPermissions[key])
     : false;
   // The Admin role is every admin's access, so only an owner changes it.
   const isOwner = useBaseRole() === "owner";
@@ -135,7 +148,7 @@ export const RoleEditor: FC<{ roleId: string }> = ({ roleId }) => {
       trpc.permissions.roles.update.mutate({
         id: role.id,
         ...(isBaseRole ? {} : { name, description }),
-        permissions: [...selected],
+        permissions: [...selected].filter((key) => known.has(key)),
       }),
     );
 

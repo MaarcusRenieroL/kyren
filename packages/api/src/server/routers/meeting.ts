@@ -5,7 +5,7 @@ import { and, asc, desc, eq, gte, inArray, lt } from "@zentro/db/drizzle";
 import { meetingAttendees, meetings, members, users } from "@zentro/db/schema";
 import { z } from "zod";
 
-import { askClaude } from "../chat-ai";
+import { aiAvailable, askClaude } from "../chat-ai";
 import { actionItemsOf } from "../meeting-actions";
 import { projectFromInput } from "../resources";
 import { mailMeeting } from "../meeting-mail";
@@ -181,6 +181,8 @@ export const meetingRouter = router({
         .orderBy(asc(users.name));
 
       return {
+        /** Whether "Recap with AI" can work here. */
+        aiAvailable: await aiAvailable(ctx.db, ctx.activeOrganization.id),
         id: meeting.id,
         title: meeting.title,
         agenda: meeting.agenda,

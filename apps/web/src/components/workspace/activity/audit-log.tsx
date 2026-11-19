@@ -30,6 +30,7 @@ import { usePermission } from "~/src/components/permissions/permission-provider"
 import { sentenceFor } from "~/src/components/workspace/activity/activity-feed";
 import { useFrameAction } from "~/src/components/workspace/settings/frames";
 import { trpcResult } from "~/src/lib/trpc-result";
+import { copyText } from "~/src/lib/clipboard";
 
 type Row = Parameters<typeof sentenceFor>[0] & {
   targetId: string;
@@ -508,9 +509,11 @@ export const AuditLog: FC = () => {
                     variant="outline"
                     size="sm"
                     onClick={() => {
-                      void navigator.clipboard
-                        ?.writeText(JSON.stringify(selected, null, 2))
-                        .then(() => toastSuccess("Event copied"));
+                      void copyText(JSON.stringify(selected, null, 2)).then(
+                        (done) => {
+                          if (done) toastSuccess("Event copied");
+                        },
+                      );
                     }}
                   >
                     Copy event JSON

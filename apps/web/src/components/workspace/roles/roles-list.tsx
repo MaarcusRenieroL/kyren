@@ -185,8 +185,13 @@ export const RolesList: FC = () => {
     );
   }
 
-  const totalFor = (scope: string) =>
-    catalog?.filter((entry) => entry.scopes.includes(scope)).length ?? 0;
+  const keysFor = (scope: string) =>
+    new Set(
+      (catalog ?? [])
+        .filter((entry) => entry.scopes.includes(scope))
+        .map((entry) => entry.key),
+    );
+  const totalFor = (scope: string) => keysFor(scope).size;
   const peopleFor = (role: RoleRow) =>
     role.systemKey === "owner" ||
     role.systemKey === "admin" ||
@@ -227,8 +232,13 @@ export const RolesList: FC = () => {
           const people = peopleFor(role);
           const count = people ? people.length : role.assignmentCount;
           const total = totalFor(role.scope);
+          // Only permissions that exist today count; a role can still hold
+          // keys from an older catalogue until it is next saved.
+          const known = keysFor(role.scope);
           const granted =
-            role.systemKey === "owner" ? total : role.permissions.length;
+            role.systemKey === "owner"
+              ? total
+              : role.permissions.filter((key) => known.has(key)).length;
           const canClone = canCreate;
           const canRemove = canDelete && role.kind === "custom";
 

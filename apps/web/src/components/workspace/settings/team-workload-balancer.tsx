@@ -482,7 +482,7 @@ export const TeamWorkloadBalancer: FC<Props> = ({
                           key={task.id}
                           className="flex items-center gap-2.5 py-2 text-xs hover:bg-hover/40 px-1 rounded transition-colors"
                         >
-                          <StatusGlyph status={task.status as any} size={12} />
+                          <StatusGlyph status={task.status} size={12} />
                           <Link
                             href={paths.task(task.key)}
                             className="font-mono text-ink font-medium hover:underline shrink-0"

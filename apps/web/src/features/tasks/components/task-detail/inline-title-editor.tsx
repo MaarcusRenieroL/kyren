@@ -32,20 +32,24 @@ export function InlineTitleEditor({ value, disabled, onSave }: Props) {
   }
 
   if (!isEditing) {
+    // The page's heading; clicking it turns it into a text box.
     return (
-      <button
-        type="button"
-        disabled={disabled}
-        onClick={() => setIsEditing(true)}
-        className="-mx-2 block w-[calc(100%+1rem)] rounded-md border border-transparent px-2 py-0.5 text-left font-display text-[1.75rem] leading-8 tracking-[-0.03em] text-balance hover:border-hairline focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-default disabled:hover:border-transparent sm:text-[2.25rem] sm:leading-10"
-      >
-        {value}
-      </button>
+      <h1 className="m-0">
+        <button
+          type="button"
+          disabled={disabled}
+          onClick={() => setIsEditing(true)}
+          className="-mx-2 block w-[calc(100%+1rem)] rounded-md border border-transparent px-2 py-0.5 text-left font-display text-[1.75rem] leading-8 tracking-[-0.03em] text-balance hover:border-hairline focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-default disabled:hover:border-transparent sm:text-[2.25rem] sm:leading-10"
+        >
+          {value}
+        </button>
+      </h1>
     );
   }
 
   return (
     <Input
+      aria-label="Task title"
       value={draft}
       disabled={disabled}
       autoFocus

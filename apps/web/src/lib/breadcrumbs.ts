@@ -45,6 +45,20 @@ const labels: Record<string, string> = {
   appearance: "Appearance",
   security: "Security",
   automations: "Automations",
+  notifications: "Notifications",
+  goals: "Goals",
+  import: "Import",
+  "api-keys": "API keys",
+  network: "Network access",
+  retention: "Data retention",
+  webhooks: "Webhooks",
+  "task-fields": "Task fields",
+  "catch-up": "Catch up",
+  drafts: "Drafts & scheduled",
+  mentions: "Mentions",
+  saved: "Saved",
+  threads: "Threads",
+  dm: "Direct messages",
 };
 
 const team = { label: "Team", href: "/settings/organization/members" };

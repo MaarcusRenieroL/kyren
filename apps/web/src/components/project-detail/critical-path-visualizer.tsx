@@ -96,8 +96,9 @@ export const CriticalPathVisualizer: FC<Props> = ({ projectSlug }) => {
     };
   }, [projectSlug, trpc]);
 
-  const nodes = data?.nodes ?? [];
-  const edges = data?.edges ?? [];
+  // Stable between renders, so the views computed from them stay memoised.
+  const nodes = useMemo(() => data?.nodes ?? [], [data]);
+  const edges = useMemo(() => data?.edges ?? [], [data]);
   const metrics = data?.metrics ?? {
     totalTasks: 0,
     totalDependencies: 0,

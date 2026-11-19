@@ -18,6 +18,7 @@ import { Dialog, DialogContent, DialogTitle } from "@zentro/ui/shadcn/dialog";
 
 import { fileSize } from "./message-body";
 import type { AttachmentView } from "./message-item";
+import { copyText } from "~/src/lib/clipboard";
 
 type Info = {
   uploadedBy: string | null;
@@ -181,11 +182,11 @@ export function FilePreviewDialog({
             <Button
               variant="outline"
               onClick={() => {
-                void navigator.clipboard
-                  .writeText(
-                    new URL(current.url, window.location.origin).toString(),
-                  )
-                  .then(() => toastSuccess("Link copied"));
+                void copyText(
+                  new URL(current.url, window.location.origin).toString(),
+                ).then((done) => {
+                  if (done) toastSuccess("Link copied");
+                });
               }}
             >
               <CopyIcon />

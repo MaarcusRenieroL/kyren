@@ -144,7 +144,7 @@ function RunsTab() {
                 href={`/payroll/${run.id}`}
                 className="flex flex-wrap items-center gap-x-4 gap-y-1 px-4 py-3 outline-none hover:bg-sunken focus-visible:ring-2 focus-visible:ring-ring"
               >
-                <span className="min-w-0 flex-1">
+                <span className="min-w-0 flex-[1_1_14rem]">
                   <span className="block truncate font-medium text-ink">
                     {run.label}
                   </span>
@@ -542,7 +542,7 @@ function SalariesTab() {
             key={person.id}
             className="flex flex-wrap items-center gap-x-4 gap-y-2 px-4 py-3"
           >
-            <div className="min-w-0 flex-1">
+            <div className="min-w-0 flex-[1_1_14rem]">
               <p className="truncate font-medium text-ink">{person.name}</p>
               <p className="text-sm text-ink-2">
                 {person.jobTitle || "No title"}
@@ -711,7 +711,7 @@ function MineTab() {
           key={slip.id}
           className="flex flex-wrap items-center gap-x-4 gap-y-1 px-4 py-3"
         >
-          <div className="min-w-0 flex-1">
+          <div className="min-w-0 flex-[1_1_14rem]">
             <p className="truncate font-medium text-ink">{slip.label}</p>
             <p className="text-sm text-ink-2">
               {formatPeriod(slip.periodStart, slip.periodEnd)} · gross{" "}

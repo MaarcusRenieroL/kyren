@@ -235,10 +235,7 @@ export const MentionPopover: FC<MentionPopoverProps> = ({
             >
               {item.type === "task" ? (
                 <div className="flex size-6 shrink-0 items-center justify-center rounded-lg bg-surface-subtle border border-hairline">
-                  <StatusGlyph
-                    status={(item.status as any) ?? "todo"}
-                    size={12}
-                  />
+                  <StatusGlyph status={item.status ?? "todo"} size={12} />
                 </div>
               ) : item.type === "member" ? (
                 <div className="shrink-0">

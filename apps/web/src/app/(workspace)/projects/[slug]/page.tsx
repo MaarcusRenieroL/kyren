@@ -6,8 +6,7 @@ import { useTrpcClient } from "@zentro/api/react";
 import { ProjectDetail } from "~/src/lib/types";
 import { toWorkspaceTask } from "~/src/features/tasks/lib/to-workspace-task";
 import type { WorkspaceTask } from "~/src/features/tasks/lib/types";
-import { toastError } from "@zentro/ui/index";
-import { useParams, useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { ProjectDetails } from "~/src/components/project-detail/project-details";
 import { ProjectHeader } from "~/src/components/project-detail/project-header";
@@ -22,13 +21,14 @@ import { LinkedThread } from "~/src/components/thread/linked-thread";
 import { ProjectSummary } from "~/src/components/project-detail/project-summary";
 import { ProjectTabs } from "~/src/components/project-detail/project-tabs";
 import { ProjectPageLoading } from "~/src/components/project-detail/project-loading";
+import { NotFoundContent } from "~/src/components/system/not-found-content";
 
 export default function ProjectPage() {
   const params = useParams<{ slug: string }>();
-  const router = useRouter();
   const [project, setProject] = useState<ProjectDetail | null>(null);
   const [enabledModules, setEnabledModules] = useState<string[]>([]);
   const [tasks, setTasks] = useState<WorkspaceTask[] | null>(null);
+  const [missing, setMissing] = useState(false);
 
   const trpc = useTrpcClient();
   const canManage = usePermission(
@@ -68,8 +68,7 @@ export default function ProjectPage() {
           );
         }
       } catch {
-        toastError("Error", "Project not found");
-        router.replace(paths.projects());
+        if (isMounted) setMissing(true);
       }
     }
 
@@ -78,7 +77,16 @@ export default function ProjectPage() {
     return () => {
       isMounted = false;
     };
-  }, [params.slug, router, trpc]);
+  }, [params.slug, trpc]);
+
+  if (missing) {
+    return (
+      <NotFoundContent
+        inShell
+        description="This project doesn’t exist, or you don’t have access to it."
+      />
+    );
+  }
 
   if (project == null) {
     return <ProjectPageLoading />;

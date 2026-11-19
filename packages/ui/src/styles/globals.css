@@ -269,6 +269,14 @@
   --sidebar-w: 14rem;
 }
 
+/* Phones: page titles are long sentences (a ticket subject, a pay run). */
+@media (max-width: 639px) {
+  :root,
+  [data-density="compact"] {
+    --title-size: 1.5rem;
+  }
+}
+
 /* Touch devices: controls stay comfortable to hit, whatever the setting. */
 @media (pointer: coarse) {
   :root,
@@ -624,6 +632,30 @@
 
   .hide-scrollbar {
     scrollbar-width: none;
+  }
+
+  /* A tab row that scrolls sideways: on narrow screens its right edge fades
+     out, so a cut-off tab reads as "there is more", not as a mistake. */
+  .tab-scroll {
+    scrollbar-width: none;
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+
+  @media (max-width: 767px) {
+    .tab-scroll {
+      -webkit-mask-image: linear-gradient(
+        to right,
+        black calc(100% - 2rem),
+        transparent
+      );
+      mask-image: linear-gradient(
+        to right,
+        black calc(100% - 2rem),
+        transparent
+      );
+      padding-right: 2rem;
+    }
   }
 }
 

@@ -30,7 +30,9 @@ export function PageHeader({
     >
       {breadcrumbs ? <div className="min-w-0">{breadcrumbs}</div> : null}
       <div className="flex flex-wrap items-end justify-between gap-x-6 gap-y-3">
-        <div className="min-w-0 flex-1 space-y-1.5">
+        {/* At least 18rem wide: when there is no room, the actions wrap
+            below the text instead of squeezing it into a thin column. */}
+        <div className="min-w-0 flex-[1_1_18rem] space-y-1.5">
           <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1">
             <h1 className="font-display text-(length:--title-size) leading-[1.1] tracking-tight text-balance text-ink">
               {title}

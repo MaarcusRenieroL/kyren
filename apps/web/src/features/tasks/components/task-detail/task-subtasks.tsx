@@ -12,6 +12,7 @@ import { paths } from "~/src/lib/paths";
 import { ActorAvatar } from "~/src/components/actor-avatar";
 
 import type { SubtaskItem, TaskDetail } from "./types";
+import type { TaskStatus } from "~/src/features/tasks/lib/types";
 
 export function TaskSubtasks({
   task,
@@ -45,7 +46,7 @@ export function TaskSubtasks({
     try {
       await trpc.task.updateTaskByKey.mutate({
         key: subtask.key,
-        status: nextStatus as any,
+        status: nextStatus as TaskStatus,
       });
       toastSuccess(
         nextStatus === "done" ? "Subtask completed" : "Subtask reopened",
@@ -185,6 +186,7 @@ export function TaskSubtasks({
               value={newTitle}
               onChange={(e) => setNewTitle(e.target.value)}
               placeholder="Add a subtask..."
+              aria-label="New subtask"
               disabled={isCreating}
               className="h-8 w-full rounded-md border border-hairline bg-surface-subtle px-2.5 text-xs text-ink placeholder:text-ink-3 focus:border-ink-3 focus:bg-surface focus:outline-none"
             />

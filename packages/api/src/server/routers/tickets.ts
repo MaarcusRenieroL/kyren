@@ -600,6 +600,8 @@ export const ticketsRouter = router({
       const policies = await loadSlaPolicies(ctx);
 
       return {
+        /** Whether "Summarize with AI" can work here. */
+        aiAvailable: await aiAvailable(ctx.db, ctx.activeOrganization.id),
         sla: serializeSla(
           slaState(
             ticket,

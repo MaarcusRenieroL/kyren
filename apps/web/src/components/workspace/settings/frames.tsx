@@ -120,7 +120,7 @@ export function FrameTabs({ tabs, label }: { tabs: Tab[]; label: string }) {
     <nav
       data-slot="section-nav"
       aria-label={label}
-      className="hide-scrollbar flex gap-5 overflow-x-auto border-b border-hairline text-[15px]"
+      className="tab-scroll flex gap-5 border-b border-hairline text-[15px]"
     >
       {tabs.map((tab) => {
         const active =
@@ -292,7 +292,7 @@ function RoleTabs() {
   return (
     <nav
       aria-label="Roles and access"
-      className="flex w-fit max-w-full gap-0.5 overflow-x-auto rounded-md border border-hairline bg-surface p-1"
+      className="tab-scroll flex w-fit max-w-full gap-0.5 rounded-md border border-hairline bg-surface p-1"
     >
       {roleTabs.map((tab) => {
         const active = pathname === tab.href;

@@ -34,10 +34,7 @@ test("a customer follows and answers their ticket through a private link, signed
   await page.getByRole("tab", { name: /^Unassigned/ }).click();
   await page.getByText(subject).click();
 
-  const link = await page
-    .locator("code")
-    .filter({ hasText: "/support/" })
-    .textContent();
+  const link = await page.getByLabel("Customer link").inputValue();
 
   expect(link).toMatch(/\/support\/[0-9a-f]{64}$/);
 

@@ -14,7 +14,6 @@ import { TooltipProvider } from "@zentro/ui/shadcn/tooltip";
 
 import { AppSidebar, type ShellModule } from "./app-sidebar";
 import { OfflineBanner } from "./offline-banner";
-import { AiCopilotBubble } from "./ai-copilot-bubble";
 import { NotificationsProvider } from "~/src/components/notifications/notifications-provider";
 
 import { BreadcrumbProvider } from "./breadcrumb-context";
@@ -98,7 +97,6 @@ export function AppShell({
                     {children}
                   </div>
                 </main>
-                <AiCopilotBubble />
               </SidebarInset>
             </SidebarProvider>
           </TooltipProvider>

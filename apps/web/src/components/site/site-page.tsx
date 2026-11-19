@@ -5,6 +5,8 @@
 // Changelog, Legal, About, Status). One shared shell, thread and scroll state;
 // the markup is in site-template.tsx and the content in site-data.ts.
 import { useRouter } from "next/navigation";
+
+import { authClient } from "@zentro/auth/client";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import {
@@ -83,6 +85,14 @@ const initialState = {
 };
 
 export function SitePage(props: Props) {
+  const [signedIn, setSignedIn] = useState(false);
+
+  useEffect(() => {
+    void authClient
+      .getSession()
+      .then(({ data }) => setSignedIn(Boolean(data)))
+      .catch(() => undefined);
+  }, []);
   const router = useRouter();
   const rootRef = useRef<HTMLDivElement>(null);
   const lineRef = useRef<HTMLDivElement>(null);
@@ -1380,5 +1390,6 @@ export function SitePage(props: Props) {
     };
   })();
 
-  return <SiteTemplate v={vals} />;
+  // Signed in already: "Open Zentro" instead of "Sign in" / "Start free".
+  return <SiteTemplate v={{ ...vals, signedIn }} />;
 }

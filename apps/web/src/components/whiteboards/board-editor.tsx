@@ -1687,7 +1687,7 @@ export function BoardEditor({ id }: { id: string }) {
           <div
             role="toolbar"
             aria-label="Drawing tools"
-            className="absolute top-3 left-1/2 z-10 flex max-w-[calc(100%-1rem)] -translate-x-1/2 items-center gap-1 overflow-x-auto rounded-xl border border-line bg-canvas p-1 shadow-sm [&>*]:shrink-0"
+            className="tab-scroll absolute top-3 left-1/2 z-10 flex max-w-[calc(100%-1rem)] -translate-x-1/2 items-center gap-1 rounded-xl border border-line bg-canvas p-1 shadow-sm [&>*]:shrink-0"
           >
             {tools.map(({ id: toolId, label, key, icon: Icon }) => (
               <Button
