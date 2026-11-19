@@ -34,3 +34,8 @@ Nothing here is deleted without your `[x]`.
       `organization.flags` / `flags.query`: none); tested only.
 - [ ] packages/api/src/server/routers/team.ts `team.getById` — no caller in apps/web (grep `team.getById` /
       `getById.query`: none). The team page loads its team server-side.
+
+## web assets (found 2026-11-20, UI audit)
+
+- [ ] apps/web/public/file.svg, globe.svg, next.svg, vercel.svg, window.svg — the default `create-next-app` images;
+      nothing references them (grep for each name in apps/web/src: no matches)
