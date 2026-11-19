@@ -7,7 +7,9 @@ import { createCipheriv, createDecipheriv, randomBytes } from "node:crypto";
  *
  * The key is FIELD_ENCRYPTION_KEY: 32 random bytes, base64 (for example
  * `openssl rand -base64 32`). Without it values are stored as plain text so
- * development works; values already encrypted can then no longer be read.
+ * development works; values already encrypted can then no longer be read. A
+ * production server refuses to run without it rather than store private text
+ * unencrypted.
  * Server only (uses node:crypto), so it is not exported from the package index.
  */
 const PREFIX = "enc:v1:";
@@ -15,7 +17,15 @@ const PREFIX = "enc:v1:";
 function key() {
   const raw = process.env.FIELD_ENCRYPTION_KEY;
 
-  if (!raw) return null;
+  if (!raw) {
+    if (process.env.NODE_ENV === "production") {
+      throw new Error(
+        "FIELD_ENCRYPTION_KEY is required in production (openssl rand -base64 32).",
+      );
+    }
+
+    return null;
+  }
 
   const bytes = Buffer.from(raw, "base64");
 

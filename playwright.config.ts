@@ -53,6 +53,8 @@ export default defineConfig({
       NEXT_PUBLIC_BASE_URL: baseURL,
       E2E_SEED_SECRET: process.env.E2E_SEED_SECRET,
       RESEND_API_KEY: "re_e2e_placeholder",
+      // A fixed test key: the production build refuses to run without one.
+      FIELD_ENCRYPTION_KEY: "ZTJlLWZpZWxkLWtleS0zMi1ieXRlcy1sb25nLW9rISE=",
       // Mail goes nowhere; codes and tokens are read from the database.
       RESEND_BASE_URL: "http://127.0.0.1:9",
     },

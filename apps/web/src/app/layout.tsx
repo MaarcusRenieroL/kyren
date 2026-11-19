@@ -53,6 +53,10 @@ const serif = localFont({
 });
 
 export const metadata: Metadata = {
+  // Shared links resolve their preview images against the real address.
+  metadataBase: new URL(
+    process.env.NEXT_PUBLIC_BASE_URL ?? "http://localhost:3000",
+  ),
   title: {
     default: "Zentro",
     template: "%s · Zentro",

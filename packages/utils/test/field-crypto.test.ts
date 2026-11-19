@@ -62,4 +62,18 @@ describe("encrypting a sensitive field", () => {
 
     expect(() => encryptField("x")).toThrow(/32 bytes/);
   });
+
+  it("refuses to store anything unencrypted on a production server", () => {
+    const env = process.env.NODE_ENV;
+
+    process.env.NODE_ENV = "production";
+
+    try {
+      expect(() => encryptField("Bank details")).toThrow(
+        /required in production/,
+      );
+    } finally {
+      process.env.NODE_ENV = env;
+    }
+  });
 });
