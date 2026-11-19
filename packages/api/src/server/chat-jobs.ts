@@ -17,7 +17,7 @@ import { postChatMessage } from "./chat-post";
 import { sendDueMeetingReminders } from "./meeting-reminders";
 import { createDueRecurringTasks } from "./recurring-tasks";
 import { runDueJobs } from "./jobs";
-import { purgeDeletedFiles } from "./file-purge";
+import { purgeDeletedFiles, retireUnsentMailFiles } from "./file-purge";
 import { purgeScheduledOrganizations } from "./platform-purge";
 import { applyRetention, purgeExpired } from "./retention";
 import { deliverDueWebhooks } from "./webhooks";
@@ -152,6 +152,7 @@ export async function runChatJobs(
         removeFiles: options.removeFiles,
       })
     : 0;
+  const mailFilesRetired = heavy ? await retireUnsentMailFiles(db as never) : 0;
   const filesPurged = heavy
     ? await purgeDeletedFiles(db as never, {
         removeFiles: options.removeFiles,
@@ -186,6 +187,7 @@ export async function runChatJobs(
     purged,
     tenantsPurged,
     filesPurged,
+    mailFilesRetired,
     overdue,
     escalated,
     meetingReminders,

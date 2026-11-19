@@ -1,8 +1,10 @@
 import {
   and,
   asc,
+  eq,
   inArray,
   isNotNull,
+  isNull,
   lt,
   notInArray,
   sql,
@@ -13,6 +15,7 @@ import {
   chatEmojis,
   chatMessages,
   files,
+  mailAttachments,
 } from "@zentro/db/schema";
 
 import { reportError } from "./error-report";
@@ -78,4 +81,35 @@ export async function purgeDeletedFiles(
   }
 
   return removed.length;
+}
+
+/** How long a mail upload may wait for a message to carry it. */
+export const unsentMailFileHours = 24;
+
+/**
+ * Deletes mail uploads no message carries: removed from a message before it
+ * was sent, left on a discarded draft, or on mail everyone has deleted for
+ * good. They go through the normal deleted-file path, so the bytes leave
+ * after the grace period and legal holds still apply.
+ */
+export async function retireUnsentMailFiles(
+  db: typeof Database,
+  options: { now?: Date } = {},
+) {
+  const now = options.now ?? new Date();
+  const cutoff = new Date(now.getTime() - unsentMailFileHours * 3_600_000);
+  const rows = await db
+    .update(files)
+    .set({ deletedAt: now })
+    .where(
+      and(
+        eq(files.source, "mail"),
+        isNull(files.deletedAt),
+        lt(files.createdAt, cutoff),
+        sql`not exists (select 1 from ${mailAttachments} where ${mailAttachments.fileId} = ${files.id})`,
+      ),
+    )
+    .returning({ id: files.id });
+
+  return rows.length;
 }
