@@ -23,3 +23,5 @@ Nothing here is deleted without your `[x]`.
       never shown. Tested only for permission scoping (`scoped-access`, `project-visibility`, `activity-feed`). Pages now
       use `getRecentWork` / `getRecentActivity`. Either delete it and move those tests onto the two lean functions, or give
       the stats a screen.
+- [ ] apps/web/src/lib/dashboard-data.ts types `DashboardStat`, `DashboardActivityPill`, `DashboardTaskItem` — used
+      only by `getDashboardData` above; they go with it (found 2026-11-19 by the dashboard harden pass)

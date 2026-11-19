@@ -37,6 +37,7 @@ export default async function OverviewPage(): Promise<JSX.Element> {
       organizationId: organization.id,
       enabledModules: modules,
       timeZone,
+      snapshot,
     }),
     getStarterProgress(organization.id),
   ]);

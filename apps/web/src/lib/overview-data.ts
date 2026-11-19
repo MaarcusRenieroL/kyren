@@ -17,6 +17,8 @@ import {
   tasks,
   teams,
 } from "@zentro/db/schema";
+import { can, type PermissionSnapshot } from "@zentro/permissions";
+import { visibleScope } from "~/src/lib/dashboard-data";
 import { zonedDate, zonedMidnight } from "~/src/lib/time-zone";
 
 export type OverviewRow = {
@@ -62,8 +64,19 @@ export async function getOverviewData(input: {
   enabledModules: Set<string>;
   /** The viewer's IANA zone, already checked with `safeTimeZone`. */
   timeZone: string;
+  /**
+   * What the viewer may see. An admin's role can be narrowed, so private
+   * projects, people and teams follow their rights, not the role's name.
+   */
+  snapshot: PermissionSnapshot;
 }): Promise<OverviewData> {
-  const { organizationId, timeZone } = input;
+  const { organizationId, timeZone, snapshot } = input;
+  const { projectsVisible, tasksVisible, docsVisible } = await visibleScope(
+    organizationId,
+    snapshot,
+  );
+  const seesPeople = can(snapshot, "members.view");
+  const seesTeams = can(snapshot, "teams.view");
   // Days are the viewer's days, not the server's.
   const now = new Date();
   const today = zonedDate(now, timeZone);
@@ -81,6 +94,7 @@ export async function getOverviewData(input: {
     eq(tasks.organizationId, organizationId),
     isNull(tasks.deletedAt),
     isNull(tasks.archivedAt),
+    tasksVisible,
   );
   const isOpen = sql`${tasks.status} <> 'done'`;
   const isOverdue = sql`${tasks.status} <> 'done' and ${tasks.dueAt} < now()`;
@@ -128,41 +142,48 @@ export async function getOverviewData(input: {
               and(
                 eq(docs.organizationId, organizationId),
                 isNull(docs.deletedAt),
+                docsVisible,
               ),
             )
         : [],
-      db
-        .select({ userId: members.userId })
-        .from(members)
-        .where(eq(members.organizationId, organizationId)),
-      db
-        .select({
-          week: countDistinct(
-            sql`case when ${sessions.updatedAt} >= ${at(weekStart)} then ${sessions.userId} end`,
-          ),
-          prev: countDistinct(
-            sql`case when ${sessions.updatedAt} >= ${at(prevWeekStart)} and ${sessions.updatedAt} < ${at(weekStart)} then ${sessions.userId} end`,
-          ),
-        })
-        .from(sessions)
-        .innerJoin(
-          members,
-          and(
-            eq(members.userId, sessions.userId),
-            eq(members.organizationId, organizationId),
-          ),
-        )
-        .where(gte(sessions.updatedAt, prevWeekStart)),
-      db
-        .select({ id: teams.id, name: teams.name })
-        .from(teams)
-        .where(
-          and(
-            eq(teams.organizationId, organizationId),
-            isNull(teams.archivedAt),
-          ),
-        )
-        .orderBy(asc(teams.name)),
+      seesPeople
+        ? db
+            .select({ userId: members.userId })
+            .from(members)
+            .where(eq(members.organizationId, organizationId))
+        : [],
+      seesPeople
+        ? db
+            .select({
+              week: countDistinct(
+                sql`case when ${sessions.updatedAt} >= ${at(weekStart)} then ${sessions.userId} end`,
+              ),
+              prev: countDistinct(
+                sql`case when ${sessions.updatedAt} >= ${at(prevWeekStart)} and ${sessions.updatedAt} < ${at(weekStart)} then ${sessions.userId} end`,
+              ),
+            })
+            .from(sessions)
+            .innerJoin(
+              members,
+              and(
+                eq(members.userId, sessions.userId),
+                eq(members.organizationId, organizationId),
+              ),
+            )
+            .where(gte(sessions.updatedAt, prevWeekStart))
+        : [],
+      seesTeams
+        ? db
+            .select({ id: teams.id, name: teams.name })
+            .from(teams)
+            .where(
+              and(
+                eq(teams.organizationId, organizationId),
+                isNull(teams.archivedAt),
+              ),
+            )
+            .orderBy(asc(teams.name))
+        : [],
     ]);
 
   const breakdown = (column: typeof tasks.projectId | typeof tasks.teamId) =>
@@ -193,6 +214,7 @@ export async function getOverviewData(input: {
               eq(projects.organizationId, organizationId),
               isNull(projects.deletedAt),
               isNull(projects.archivedAt),
+              projectsVisible,
             ),
           )
           .orderBy(asc(projects.name)),

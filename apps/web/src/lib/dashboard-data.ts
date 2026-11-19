@@ -166,7 +166,7 @@ function when<T>(enabled: boolean, query: () => PromiseLike<T[]>) {
  * What the caller may see: projects hidden from them, and the tasks and docs
  * inside those projects, stay out of every query that uses these conditions.
  */
-async function visibleScope(
+export async function visibleScope(
   organizationId: string,
   snapshot: PermissionSnapshot,
 ) {
