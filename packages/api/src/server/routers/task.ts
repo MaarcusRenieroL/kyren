@@ -12,6 +12,7 @@ import {
   lt,
   lte,
   ne,
+  or,
   sql,
 } from "@zentro/db/drizzle";
 import {
@@ -222,6 +223,8 @@ export const taskRouter = router({
             .values({
               name: input.name,
               status: input.status,
+              // Made as done, it was finished now; reports count it.
+              completedAt: input.status === "done" ? new Date() : null,
               priority: input.priority,
               dueAt: input.dueAt,
               estimatePoints: input.estimatePoints ?? null,
@@ -319,6 +322,22 @@ export const taskRouter = router({
         },
       });
 
+      await runTaskAutomations({
+        db,
+        organizationId: activeOrganization.id,
+        event: "task.created",
+        task: {
+          id: created.id,
+          key: created.key,
+          status: created.status,
+          projectId: created.projectId,
+          parentTaskId: created.parentTaskId,
+          assignedToMemberId: created.assignedToMemberId,
+          priority: created.priority,
+        },
+        actorMemberId: created.createdByMemberId,
+      });
+
       return created;
     }),
   /** Creates many tasks in one project at once, all or nothing. */
@@ -383,6 +402,7 @@ export const taskRouter = router({
                 ? sanitizeRichText(row.description)
                 : null,
               status: row.status,
+              completedAt: row.status === "done" ? new Date() : null,
               priority: row.priority,
               dueAt: row.dueAt,
               projectId: project.id,
@@ -429,6 +449,10 @@ export const taskRouter = router({
         isNull(tasks.deletedAt),
         inArray(tasks.projectId, viewableProjectIds),
       ];
+
+      if (input.projectId) {
+        conditions.push(eq(tasks.projectId, input.projectId));
+      }
 
       if (input.teamId) {
         conditions.push(eq(tasks.teamId, input.teamId));
@@ -684,9 +708,19 @@ export const taskRouter = router({
         input.parentTaskKey,
       );
 
+      const parentProject =
+        (await loadProjectById(ctx, parentTask.projectId)) ?? null;
+
       await assertAnyPermission(ctx, ["tasks.create"], {
-        project: (await loadProjectById(ctx, parentTask.projectId)) ?? null,
+        project: parentProject,
       });
+
+      if (parentProject?.status === "archived") {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "This project is archived. Restore it to make changes.",
+        });
+      }
 
       // Assigning someone is its own permission, and only to people in the org.
       if (input.assignedToMemberId) {
@@ -1351,12 +1385,31 @@ export const taskRouter = router({
           });
         }
 
+        // Its subtasks stay, as tasks of their own, rather than pointing at a
+        // parent nobody can open. Which ones is recorded, so a restore can
+        // put them back under it.
+        const detached = await tx
+          .update(tasks)
+          .set({ parentTaskId: null, updatedAt: new Date() })
+          .where(
+            and(
+              eq(tasks.parentTaskId, task.id),
+              eq(tasks.organizationId, activeOrganization.id),
+            ),
+          )
+          .returning({ id: tasks.id });
+
         await ctx.audit.record(tx, {
           action: "task.deleted",
           target: { id: task.id, label: task.key },
           projectId: task.projectId,
           teamId: task.teamId,
-          metadata: { name: task.name },
+          metadata: {
+            name: task.name,
+            ...(detached.length
+              ? { detachedSubtaskIds: detached.map((row) => row.id) }
+              : {}),
+          },
         });
 
         // Deleting a blocking task also unblocks any downstream tasks
@@ -1366,6 +1419,163 @@ export const taskRouter = router({
       });
 
       return deletedTask;
+    }),
+
+  /**
+   * Deleted tasks the caller could bring back: anyone's in projects where they
+   * may delete any task, their own where they may delete their own.
+   */
+  trash: permissionProcedure("tasks.view", undefined, {
+    module: "tasks",
+  }).query(async ({ ctx }) => {
+    const anyProjects =
+      await ctx.permissions.viewableProjectIds("tasks.delete_any");
+    const seen = await ctx.permissions.viewableProjectIds("tasks.view");
+    const member = await getCurrentMember(ctx);
+    const reachable = or(
+      anyProjects.length ? inArray(tasks.projectId, anyProjects) : undefined,
+      seen.length
+        ? and(
+            inArray(tasks.projectId, seen),
+            eq(tasks.createdByMemberId, member.id),
+          )
+        : undefined,
+    );
+
+    if (!reachable) return [];
+
+    const rows = await ctx.db
+      .select({
+        key: tasks.key,
+        name: tasks.name,
+        deletedAt: tasks.deletedAt,
+        projectId: tasks.projectId,
+        teamId: tasks.teamId,
+        projectName: projects.name,
+      })
+      .from(tasks)
+      .innerJoin(projects, eq(projects.id, tasks.projectId))
+      .where(
+        and(
+          eq(tasks.organizationId, ctx.activeOrganization.id),
+          isNotNull(tasks.deletedAt),
+          isNull(projects.deletedAt),
+          // An archived project is read-only, so its tasks can't come back
+          // until the project does.
+          ne(projects.status, "archived"),
+          reachable,
+        ),
+      )
+      .orderBy(desc(tasks.deletedAt))
+      .limit(100);
+
+    // "Delete own" can only be answered for a given item, so the caller's
+    // own tasks outside their "delete any" projects are checked one by one.
+    const allowed = await Promise.all(
+      rows.map(
+        async (row) =>
+          anyProjects.includes(row.projectId) ||
+          (
+            await ctx.permissions.check("tasks.delete_own", {
+              projectId: row.projectId,
+              teamId: row.teamId,
+              ownerUserId: ctx.user.id,
+            })
+          ).allowed,
+      ),
+    );
+
+    return rows
+      .filter((_, index) => allowed[index])
+      .map((row) => ({
+        key: row.key,
+        name: row.name,
+        deletedAt: row.deletedAt,
+        projectName: row.projectName,
+      }));
+  }),
+
+  /** Brings a deleted task back. Whoever could delete it can restore it. */
+  restoreByKey: permissionProcedure(
+    "tasks.delete_own",
+    taskByKey("key", { deleted: true }),
+    { module: "tasks", audit: ["task.restored"] },
+  )
+    .input(deleteTaskByKeySchema)
+    .mutation(async ({ ctx, input }) => {
+      const { db, activeOrganization } = ctx;
+
+      return db.transaction(async (tx) => {
+        const [row] = await tx
+          .update(tasks)
+          .set({ deletedAt: null, updatedAt: new Date() })
+          .where(
+            and(
+              eq(tasks.key, input.key),
+              eq(tasks.organizationId, activeOrganization.id),
+              isNotNull(tasks.deletedAt),
+              // A task can't come back into a project that is gone.
+              sql`exists (select 1 from ${projects} where ${projects.id} = ${tasks.projectId} and ${projects.deletedAt} is null)`,
+            ),
+          )
+          .returning({
+            id: tasks.id,
+            key: tasks.key,
+            name: tasks.name,
+            projectId: tasks.projectId,
+            teamId: tasks.teamId,
+          });
+
+        if (!row) {
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: "That task isn't in the trash.",
+          });
+        }
+
+        // Subtasks this task lost when it was deleted come back under it,
+        // unless they were deleted, moved or given another parent since.
+        const [deletion] = await tx
+          .select({ metadata: activityEvents.metadata })
+          .from(activityEvents)
+          .where(
+            and(
+              eq(activityEvents.organizationId, activeOrganization.id),
+              eq(activityEvents.action, "task.deleted"),
+              eq(activityEvents.targetId, row.id),
+            ),
+          )
+          .orderBy(desc(activityEvents.createdAt))
+          .limit(1);
+        const detachedIds = (
+          deletion?.metadata as { detachedSubtaskIds?: unknown } | undefined
+        )?.detachedSubtaskIds;
+
+        if (Array.isArray(detachedIds) && detachedIds.length) {
+          await tx
+            .update(tasks)
+            .set({ parentTaskId: row.id, updatedAt: new Date() })
+            .where(
+              and(
+                inArray(tasks.id, detachedIds.map(String)),
+                eq(tasks.organizationId, activeOrganization.id),
+                eq(tasks.projectId, row.projectId),
+                isNull(tasks.parentTaskId),
+                isNull(tasks.deletedAt),
+              ),
+            );
+        }
+
+        await ctx.audit.record(tx, {
+          action: "task.restored",
+          target: { id: row.id, label: row.key },
+          projectId: row.projectId,
+          teamId: row.teamId,
+          metadata: { name: row.name },
+        });
+
+        return { key: row.key };
+      });
     }),
 
   logTime: permissionProcedure("tasks.update_own", taskByKey("key"), {

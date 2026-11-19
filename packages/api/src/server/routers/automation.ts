@@ -14,9 +14,69 @@ import {
 } from "@zentro/db/drizzle";
 import { automations, projects, tasks } from "@zentro/db/schema";
 import { escalateDueTasks } from "../automations/due-escalation";
+import { taskPrioritySchema, taskStatusSchema } from "../../types/zod-schema";
 import { channelAccess } from "../chat";
-import { projectFromInput } from "../resources";
-import { listProcedure, permissionProcedure, router } from "../trpc";
+import { loadProjectById, projectFromInput } from "../resources";
+import {
+  assertAnyPermission,
+  listProcedure,
+  permissionProcedure,
+  router,
+  type OrganizationContext,
+  type ScopeResolver,
+} from "../trpc";
+
+/** A rule's project, so changing it needs access to that project. */
+const automationById: ScopeResolver = async ({ ctx, input }) => {
+  const id = (input as { id?: unknown } | null)?.id;
+
+  if (typeof id !== "string" || !z.string().uuid().safeParse(id).success) {
+    return undefined;
+  }
+
+  const [rule] = await ctx.db
+    .select({ projectId: automations.projectId })
+    .from(automations)
+    .where(
+      and(
+        eq(automations.id, id),
+        eq(automations.organizationId, ctx.activeOrganization.id),
+      ),
+    )
+    .limit(1);
+  const project = await loadProjectById(ctx, rule?.projectId);
+
+  return project ? { project } : undefined;
+};
+
+/**
+ * A rule without a project runs on every task in the organization, private
+ * projects included, so only people who manage the organization may make,
+ * switch or remove one.
+ */
+const ORG_WIDE_RULES = "org.settings.update";
+
+async function assertMayChangeRule(ctx: OrganizationContext, id: string) {
+  const [rule] = await ctx.db
+    .select({ projectId: automations.projectId })
+    .from(automations)
+    .where(
+      and(
+        eq(automations.id, id),
+        eq(automations.organizationId, ctx.activeOrganization.id),
+      ),
+    )
+    .limit(1);
+
+  if (!rule) {
+    throw new TRPCError({
+      code: "NOT_FOUND",
+      message: "Automation rule not found.",
+    });
+  }
+
+  if (!rule.projectId) await assertAnyPermission(ctx, [ORG_WIDE_RULES]);
+}
 
 // Rule settings are free-form, so cap their size instead of trusting callers.
 const smallConfig = z
@@ -67,7 +127,11 @@ export const automationRouter = router({
     return rows;
   }),
 
-  create: permissionProcedure("tasks.create", projectFromInput)
+  create: permissionProcedure("tasks.create", projectFromInput, {
+    module: "tasks",
+    also: [ORG_WIDE_RULES],
+    audit: ["automation.created"],
+  })
     .input(
       z.object({
         name: z.string().min(1).max(100),
@@ -93,7 +157,9 @@ export const automationRouter = router({
       }),
     )
     .mutation(async ({ ctx, input }) => {
-      const { db, activeOrganization, user } = ctx;
+      const { db, activeOrganization } = ctx;
+
+      if (!input.projectId) await assertAnyPermission(ctx, [ORG_WIDE_RULES]);
 
       // Rules that touch chat can only use conversations the creator can post
       // in, and a message trigger needs words to look for.
@@ -141,6 +207,28 @@ export const automationRouter = router({
         }
       }
 
+      // A rule with an action it can never carry out would sit there doing
+      // nothing, so refuse it now.
+      if (
+        input.actionType === "set_priority" &&
+        !taskPrioritySchema.safeParse(input.actionConfig.priority).success
+      ) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Pick a priority: low, medium or high.",
+        });
+      }
+
+      if (
+        input.actionType === "update_status" &&
+        !taskStatusSchema.safeParse(input.actionConfig.targetStatus).success
+      ) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Pick the status the task should move to.",
+        });
+      }
+
       if (input.actionType === "create_task" && !input.projectId) {
         throw new TRPCError({
           code: "BAD_REQUEST",
@@ -148,95 +236,121 @@ export const automationRouter = router({
         });
       }
 
-      const [member] = await db
-        .select({ id: automations.id })
-        .from(automations)
-        .where(
-          and(
-            eq(automations.name, input.name),
-            eq(automations.organizationId, activeOrganization.id),
-          ),
-        );
+      return db.transaction(async (tx) => {
+        const [created] = await tx
+          .insert(automations)
+          .values({
+            organizationId: activeOrganization.id,
+            name: input.name,
+            description: input.description ?? null,
+            projectId: input.projectId ?? null,
+            triggerEvent: input.triggerEvent,
+            triggerConfig: input.triggerConfig,
+            actionType: input.actionType,
+            actionConfig: input.actionConfig,
+          })
+          .returning();
 
-      const [created] = await db
-        .insert(automations)
-        .values({
-          organizationId: activeOrganization.id,
-          name: input.name,
-          description: input.description ?? null,
-          projectId: input.projectId ?? null,
-          triggerEvent: input.triggerEvent,
-          triggerConfig: input.triggerConfig,
-          actionType: input.actionType,
-          actionConfig: input.actionConfig,
-        })
-        .returning();
+        await ctx.audit.record(tx, {
+          action: "automation.created",
+          target: { id: created!.id, label: created!.name },
+          projectId: created!.projectId,
+          metadata: {
+            trigger: created!.triggerEvent,
+            action: created!.actionType,
+          },
+        });
 
-      return created;
+        return created;
+      });
     }),
 
-  toggle: permissionProcedure("tasks.update_any")
+  toggle: permissionProcedure("tasks.update_any", automationById, {
+    module: "tasks",
+    also: [ORG_WIDE_RULES],
+    audit: ["automation.toggled"],
+  })
     .input(z.object({ id: z.string().uuid(), enabled: z.boolean() }))
     .mutation(async ({ ctx, input }) => {
       const { db, activeOrganization } = ctx;
 
-      const [updated] = await db
-        .update(automations)
-        .set({ enabled: input.enabled, updatedAt: new Date() })
-        .where(
-          and(
-            eq(automations.id, input.id),
-            eq(automations.organizationId, activeOrganization.id),
-          ),
-        )
-        .returning();
+      await assertMayChangeRule(ctx, input.id);
 
-      if (!updated) {
-        throw new TRPCError({
-          code: "NOT_FOUND",
-          message: "Automation rule not found.",
+      return db.transaction(async (tx) => {
+        const [updated] = await tx
+          .update(automations)
+          .set({ enabled: input.enabled, updatedAt: new Date() })
+          .where(
+            and(
+              eq(automations.id, input.id),
+              eq(automations.organizationId, activeOrganization.id),
+            ),
+          )
+          .returning();
+
+        if (!updated) {
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: "Automation rule not found.",
+          });
+        }
+
+        await ctx.audit.record(tx, {
+          action: "automation.toggled",
+          target: { id: updated.id, label: updated.name },
+          projectId: updated.projectId,
+          metadata: { enabled: updated.enabled },
         });
-      }
 
-      return updated;
+        return updated;
+      });
     }),
 
-  delete: permissionProcedure("tasks.delete_any")
+  delete: permissionProcedure("tasks.delete_any", automationById, {
+    module: "tasks",
+    also: [ORG_WIDE_RULES],
+    audit: ["automation.deleted"],
+  })
     .input(z.object({ id: z.string().uuid() }))
     .mutation(async ({ ctx, input }) => {
       const { db, activeOrganization } = ctx;
 
-      const [deleted] = await db
-        .delete(automations)
-        .where(
-          and(
-            eq(automations.id, input.id),
-            eq(automations.organizationId, activeOrganization.id),
-          ),
-        )
-        .returning();
+      await assertMayChangeRule(ctx, input.id);
 
-      if (!deleted) {
-        throw new TRPCError({
-          code: "NOT_FOUND",
-          message: "Automation rule not found.",
+      return db.transaction(async (tx) => {
+        const [deleted] = await tx
+          .delete(automations)
+          .where(
+            and(
+              eq(automations.id, input.id),
+              eq(automations.organizationId, activeOrganization.id),
+            ),
+          )
+          .returning();
+
+        if (!deleted) {
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: "Automation rule not found.",
+          });
+        }
+
+        await ctx.audit.record(tx, {
+          action: "automation.deleted",
+          target: { id: deleted.id, label: deleted.name },
+          projectId: deleted.projectId,
         });
-      }
 
-      return deleted;
+        return deleted;
+      });
     }),
 
-  seedPresets: permissionProcedure("tasks.create").mutation(async ({ ctx }) => {
+  // The presets are org-wide rules, so they need what an org-wide rule needs.
+  seedPresets: permissionProcedure(ORG_WIDE_RULES, undefined, {
+    module: "tasks",
+    audit: ["automation.presets_added"],
+  }).mutation(async ({ ctx }) => {
     const { db, activeOrganization } = ctx;
-
-    const existing = await db
-      .select({ id: automations.id })
-      .from(automations)
-      .where(eq(automations.organizationId, activeOrganization.id));
-
-    if (existing.length > 0) {
-      return { count: 0, message: "Presets already configured." };
-    }
 
     const presets = [
       {
@@ -285,22 +399,45 @@ export const automationRouter = router({
       },
     ];
 
-    const inserted = await db.insert(automations).values(presets).returning();
-    return { count: inserted.length, message: "Presets seeded." };
-  }),
+    return db.transaction(async (tx) => {
+      // Checked under a lock, so a double click can't add them twice.
+      await tx.execute(
+        sql`select pg_advisory_xact_lock(hashtextextended(${`automation-presets:${activeOrganization.id}`}, 0))`,
+      );
 
-  escalateDueSLA: permissionProcedure("tasks.update_any").mutation(
-    async ({ ctx }) => {
-      const escalated = await escalateDueTasks(ctx.db, {
-        organizationId: ctx.activeOrganization.id,
-        projectIds:
-          await ctx.permissions.viewableProjectIds("tasks.update_any"),
+      const existing = await tx
+        .select({ id: automations.id })
+        .from(automations)
+        .where(eq(automations.organizationId, activeOrganization.id))
+        .limit(1);
+
+      if (existing.length > 0) {
+        return { count: 0, message: "Presets already configured." };
+      }
+
+      const inserted = await tx.insert(automations).values(presets).returning();
+
+      await ctx.audit.record(tx, {
+        action: "automation.presets_added",
+        target: { id: activeOrganization.id, label: activeOrganization.name },
+        metadata: { count: inserted.length },
       });
 
-      return {
-        escalatedCount: escalated.length,
-        tasks: escalated.map((t) => ({ key: t.key, name: t.name })),
-      };
-    },
-  ),
+      return { count: inserted.length, message: "Presets seeded." };
+    });
+  }),
+
+  escalateDueSLA: permissionProcedure("tasks.update_any", undefined, {
+    module: "tasks",
+  }).mutation(async ({ ctx }) => {
+    const escalated = await escalateDueTasks(ctx.db, {
+      organizationId: ctx.activeOrganization.id,
+      projectIds: await ctx.permissions.viewableProjectIds("tasks.update_any"),
+    });
+
+    return {
+      escalatedCount: escalated.length,
+      tasks: escalated.map((t) => ({ key: t.key, name: t.name })),
+    };
+  }),
 });

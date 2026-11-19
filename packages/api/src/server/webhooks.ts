@@ -97,7 +97,13 @@ type Send = (
  */
 export async function deliverDueWebhooks(
   db: typeof Database,
-  options: { send?: Send; limit?: number; now?: Date } = {},
+  options: {
+    send?: Send;
+    limit?: number;
+    now?: Date;
+    /** Only this organization's deliveries. */
+    organizationId?: string;
+  } = {},
 ) {
   const send =
     options.send ?? ((url, body, headers) => postSafely(url, body, headers));
@@ -109,6 +115,9 @@ export async function deliverDueWebhooks(
       and(
         eq(webhookDeliveries.status, "pending"),
         lte(webhookDeliveries.nextAttemptAt, now),
+        options.organizationId
+          ? eq(webhookDeliveries.organizationId, options.organizationId)
+          : undefined,
       ),
     )
     .orderBy(asc(webhookDeliveries.nextAttemptAt))

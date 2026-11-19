@@ -106,6 +106,27 @@ export const memberRouter = router({
         });
       }
 
+      // Admins don't demote or promote each other; an owner does.
+      if (target.role.split(",").includes("admin")) {
+        const [self] = await db
+          .select({ role: members.role })
+          .from(members)
+          .where(
+            and(
+              eq(members.organizationId, activeOrganization.id),
+              eq(members.userId, user.id),
+            ),
+          )
+          .limit(1);
+
+        if (!self || !isOwner(self.role)) {
+          throw new TRPCError({
+            code: "FORBIDDEN",
+            message: "Only an owner can change another admin's role.",
+          });
+        }
+      }
+
       // Promoting someone to a role is giving them everything it grants.
       const [role] = await db
         .select({ permissions: roles.permissions })

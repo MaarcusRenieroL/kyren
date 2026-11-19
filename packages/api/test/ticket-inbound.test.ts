@@ -1,13 +1,19 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 import { db } from "@zentro/db";
+import { eq } from "@zentro/db/drizzle";
+import { taskComments } from "@zentro/db/schema";
 
 import { receiveTicketMail } from "../src/server/ticket-inbound";
+import { setTicketMailer } from "../src/server/ticket-mail";
 import { World } from "./helpers";
 
 const world = new World();
 
-afterAll(() => world.cleanup());
+afterAll(async () => {
+  setTicketMailer(null);
+  await world.cleanup();
+});
 
 type Caller = Awaited<ReturnType<World["caller"]>>;
 
@@ -27,6 +33,8 @@ describe("email to ticket", () => {
   let otherToken: string;
 
   beforeAll(async () => {
+    // No real mail from tests; acknowledgements are checked in their own test.
+    setTicketMailer(async () => undefined);
     const org = await world.org("Inbound");
     const o = await world.userIn(org, "owner", "In Owner");
     const m = await world.userIn(org, "member", "In Member");
@@ -176,5 +184,34 @@ describe("email to ticket", () => {
     expect((await receiveTicketMail(db, rotated.token!, mail())).status).toBe(
       "unknown",
     );
+  });
+});
+
+describe("email naming a task key", () => {
+  it("never posts a task comment, since the From address is not proof of who sent it", async () => {
+    const org = await world.org("Inbound task keys");
+    const o = await world.userIn(org, "owner", "Key Owner");
+    const owner = await world.caller(o.user, org);
+    const project = await world.project(org, {
+      taskKeyPrefix: "ENG",
+      visibility: "private",
+    });
+    const task = await world.task(org, project, { taskNumber: 12 });
+    const inbox = (await owner.tickets.setInbox({ enabled: true })).token!;
+
+    const result = await receiveTicketMail(
+      db,
+      inbox,
+      mail({ from: o.user.email, subject: "Re: [ENG-12] ship it" }),
+    );
+
+    const comments = await db
+      .select({ id: taskComments.id })
+      .from(taskComments)
+      .where(eq(taskComments.taskId, task.id));
+
+    expect(comments).toHaveLength(0);
+    expect(result.status).toBe("created");
+    expect(result.ref).toMatch(/^SUP-\d+$/);
   });
 });

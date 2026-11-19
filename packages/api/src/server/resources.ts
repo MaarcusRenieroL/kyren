@@ -1,4 +1,4 @@
-import { and, eq, isNull } from "@zentro/db/drizzle";
+import { and, eq, isNotNull, isNull } from "@zentro/db/drizzle";
 import {
   docComments,
   docs,
@@ -16,6 +16,9 @@ import type { OrganizationContext, ScopeResolver } from "./trpc";
 // raw (unvalidated) procedure inputs, so every field is read defensively. A
 // resource that does not exist resolves to nothing; the procedure itself then
 // reports NOT_FOUND, exactly as it did before permissions existed.
+
+const uuidPattern =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 function field(input: unknown, name: string): string | undefined {
   const value = (input as Record<string, unknown> | null | undefined)?.[name];
@@ -36,6 +39,7 @@ export async function loadProjectBySlug(
       id: projects.id,
       teamId: projects.teamId,
       visibility: projects.visibility,
+      status: projects.status,
     })
     .from(projects)
     .where(
@@ -54,7 +58,8 @@ export async function loadProjectById(
   ctx: OrganizationContext,
   id: string | undefined | null,
 ): Promise<ProjectAccessInfo | undefined> {
-  if (!id) {
+  // Raw input: a malformed id is left for input validation to reject.
+  if (!id || !uuidPattern.test(id)) {
     return undefined;
   }
 
@@ -63,6 +68,7 @@ export async function loadProjectById(
       id: projects.id,
       teamId: projects.teamId,
       visibility: projects.visibility,
+      status: projects.status,
     })
     .from(projects)
     .where(
@@ -102,18 +108,37 @@ export const projectBySlug =
     return project ? { project } : undefined;
   };
 
-/** A new task or doc: scoped by the project or team named in the input. */
+/**
+ * A new task or doc: scoped by the project named in the input, and then by
+ * that project's own team. A team named in the input only counts when there is
+ * no project and the team belongs to this organization, so a caller cannot
+ * borrow another team's roles or slip past a deny on this one.
+ */
 export const projectFromInput: ScopeResolver = async ({ ctx, input }) => {
   const project = await loadProjectById(ctx, field(input, "projectId"));
 
-  return {
-    project: project ?? null,
-    teamId: field(input, "teamId") ?? null,
-  };
+  if (project) return { project };
+
+  const teamId = field(input, "teamId");
+  const [team] =
+    teamId && uuidPattern.test(teamId)
+      ? await ctx.db
+          .select({ id: teams.id })
+          .from(teams)
+          .where(
+            and(
+              eq(teams.id, teamId),
+              eq(teams.organizationId, ctx.activeOrganization.id),
+            ),
+          )
+          .limit(1)
+      : [];
+
+  return { project: null, teamId: team?.id ?? null };
 };
 
 export const taskByKey =
-  (name = "key"): ScopeResolver =>
+  (name = "key", options: { deleted?: boolean } = {}): ScopeResolver =>
   async ({ ctx, input }) => {
     const key = field(input, name);
 
@@ -132,7 +157,10 @@ export const taskByKey =
         and(
           eq(tasks.key, key),
           eq(tasks.organizationId, ctx.activeOrganization.id),
-          isNull(tasks.deletedAt),
+          // Restoring looks at deleted tasks; everything else at live ones.
+          options.deleted
+            ? isNotNull(tasks.deletedAt)
+            : isNull(tasks.deletedAt),
         ),
       )
       .limit(1);

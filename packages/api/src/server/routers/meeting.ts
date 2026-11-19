@@ -119,6 +119,52 @@ export const meetingRouter = router({
       return rows;
     }),
 
+  /** The person's meetings starting in a window, for the calendar grid. */
+  between: procedure("calendar.view")
+    .input(
+      z
+        .object({ from: z.string().datetime(), to: z.string().datetime() })
+        .refine(
+          (range) =>
+            Date.parse(range.to) > Date.parse(range.from) &&
+            Date.parse(range.to) - Date.parse(range.from) <= 62 * 86_400_000,
+          { message: "Pick a range of up to two months." },
+        ),
+    )
+    .query(async ({ ctx, input }) =>
+      ctx.db
+        .select({
+          id: meetings.id,
+          title: meetings.title,
+          startsAt: meetings.startsAt,
+          durationMinutes: meetings.durationMinutes,
+          status: meetings.status,
+          response: meetingAttendees.response,
+        })
+        .from(meetings)
+        .innerJoin(
+          meetingAttendees,
+          and(
+            eq(meetingAttendees.meetingId, meetings.id),
+            eq(meetingAttendees.userId, ctx.user.id),
+          ),
+        )
+        .where(
+          and(
+            eq(meetings.organizationId, ctx.activeOrganization.id),
+            // Meetings last at most 8 hours, so one that began up to then
+            // before the window may still run into it.
+            gte(
+              meetings.startsAt,
+              new Date(Date.parse(input.from) - 480 * 60_000),
+            ),
+            lt(meetings.startsAt, new Date(input.to)),
+          ),
+        )
+        .orderBy(asc(meetings.startsAt))
+        .limit(500),
+    ),
+
   get: procedure("calendar.view")
     .input(z.object({ id: uuid }))
     .query(async ({ ctx, input }) => {

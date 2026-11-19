@@ -1,5 +1,15 @@
 import { TRPCError } from "@trpc/server";
-import { and, asc, desc, eq, gte, isNull, lt, sql } from "@zentro/db/drizzle";
+import {
+  and,
+  asc,
+  desc,
+  eq,
+  gte,
+  inArray,
+  isNull,
+  lt,
+  sql,
+} from "@zentro/db/drizzle";
 import {
   members,
   runningTimers,
@@ -10,6 +20,7 @@ import {
 import { z } from "zod";
 
 import type { DbHandle } from "../access";
+import { safeTimeZone, zonedDay, zonedDayStart } from "../../time-zone";
 import { taskByKey } from "../resources";
 import { permissionProcedure, router } from "../trpc";
 import { isoDate } from "../zod-common";
@@ -21,16 +32,26 @@ const DAY = 86_400_000;
 
 const viewer = () =>
   permissionProcedure("tasks.view", undefined, { module: "tasks" });
+// Running a timer logs time, so it needs what logging time by hand needs.
 const onTask = () =>
-  permissionProcedure("tasks.view", taskByKey("key"), { module: "tasks" });
+  permissionProcedure("tasks.update_own", taskByKey("key"), {
+    module: "tasks",
+  });
 
-const range = z.object({ from: isoDate, to: isoDate });
+const range = z.object({
+  from: isoDate,
+  to: isoDate,
+  /** The viewer's IANA zone; days start at their midnight. UTC when missing. */
+  timeZone: z.string().max(64).optional(),
+});
 
-/** The range as UTC times: from the start of `from` up to the end of `to`. */
-function bounds(input: { from: string; to: string }) {
-  const start = new Date(`${input.from}T00:00:00Z`);
-  const end = new Date(Date.parse(`${input.to}T00:00:00Z`) + DAY);
-  const days = (end.getTime() - start.getTime()) / DAY;
+/** The range as instants: from the start of `from` up to the end of `to`. */
+function bounds(input: { from: string; to: string; timeZone?: string }) {
+  const zone = safeTimeZone(input.timeZone);
+  const next = new Date(Date.parse(`${input.to}T00:00:00Z`) + DAY);
+  const start = zonedDayStart(input.from, zone);
+  const end = zonedDayStart(next.toISOString().slice(0, 10), zone);
+  const days = (next.getTime() - Date.parse(`${input.from}T00:00:00Z`)) / DAY;
 
   if (days < 1) {
     throw new TRPCError({
@@ -46,7 +67,7 @@ function bounds(input: { from: string; to: string }) {
     });
   }
 
-  return { start, end };
+  return { start, end, zone };
 }
 
 export const timesheetRouter = router({
@@ -126,7 +147,7 @@ export const timesheetRouter = router({
   mine: viewer()
     .input(range)
     .query(async ({ ctx, input }) => {
-      const { start, end } = bounds(input);
+      const { start, end, zone } = bounds(input);
       const rows = await ctx.db
         .select({
           id: taskTimeLogs.id,
@@ -153,7 +174,7 @@ export const timesheetRouter = router({
       return {
         entries: rows.map((r) => ({
           ...r,
-          day: r.at.toISOString().slice(0, 10),
+          day: zonedDay(r.at, zone),
         })),
         totalMinutes: rows.reduce((sum, r) => sum + r.minutes, 0),
       };
@@ -166,6 +187,8 @@ export const timesheetRouter = router({
     .input(range)
     .query(async ({ ctx, input }) => {
       const { start, end } = bounds(input);
+      const visibleProjects =
+        await ctx.permissions.viewableProjectIds("tasks.view");
       const base = and(
         eq(taskTimeLogs.organizationId, ctx.activeOrganization.id),
         gte(taskTimeLogs.createdAt, start),
@@ -190,7 +213,17 @@ export const timesheetRouter = router({
         })
         .from(taskTimeLogs)
         .innerJoin(tasks, eq(tasks.id, taskTimeLogs.taskId))
-        .where(base)
+        .where(
+          and(
+            base,
+            // Totals per person count all time; task names only show for
+            // tasks the viewer may open.
+            visibleProjects.length
+              ? inArray(tasks.projectId, visibleProjects)
+              : sql`false`,
+            isNull(tasks.deletedAt),
+          ),
+        )
         .groupBy(tasks.id, tasks.key, tasks.name)
         .orderBy(desc(sql`sum(${taskTimeLogs.durationMinutes})`))
         .limit(50);

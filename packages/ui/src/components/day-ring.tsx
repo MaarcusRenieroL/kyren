@@ -75,8 +75,8 @@ export function DayRing({
         ) : (
           <>
             <span
-              className="font-serif-italic text-ink"
-              style={{ fontSize: size * 0.34 }}
+              className="font-mono font-semibold text-ink tabular-nums tracking-tight"
+              style={{ fontSize: size * 0.32 }}
             >
               {done}
             </span>

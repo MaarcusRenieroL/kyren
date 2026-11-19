@@ -28,8 +28,11 @@ async function setup(name: string) {
     `${name} member`,
   );
 
+  const { user: admin } = await world.userIn(org, "admin", `${name} admin`);
+
   return {
     asOwner: await world.caller(owner, org),
+    asAdmin: await world.caller(admin, org),
     asMember: await world.caller(member, org),
     memberId: memberRow.id,
   };
@@ -88,9 +91,10 @@ describe("concurrent writes", () => {
       periodEnd: "2026-10-31",
       deductionRateBps: 2000,
     });
+    // The creator may not approve, so a second admin races themselves.
     const outcome = await settled([
-      ctx.asOwner.payroll.approveRun({ id }),
-      ctx.asOwner.payroll.approveRun({ id }),
+      ctx.asAdmin.payroll.approveRun({ id }),
+      ctx.asAdmin.payroll.approveRun({ id }),
     ]);
 
     expect(outcome.ok).toBe(1);

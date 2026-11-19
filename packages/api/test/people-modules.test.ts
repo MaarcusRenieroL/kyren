@@ -284,7 +284,14 @@ describe("payroll", () => {
   it("shows a member their payslip only after approval", async () => {
     expect(await ctx.asMember.payroll.mine()).toEqual([]);
 
-    await ctx.asOwner.payroll.approveRun({ id: runId });
+    // Approved by someone other than the owner who created the run.
+    const { user: approver } = await world.userIn(ctx.org, "admin", "Approver");
+
+    await (
+      await world.caller(approver, ctx.org)
+    ).payroll.approveRun({
+      id: runId,
+    });
 
     const slips = await ctx.asMember.payroll.mine();
 
@@ -307,6 +314,23 @@ describe("payroll", () => {
 
     await ctx.asOwner.payroll.markPaid({ id: runId });
     expect((await ctx.asOwner.payroll.run({ id: runId })).status).toBe("paid");
+  });
+
+  it("keeps a paid person's record: they are marked former, not deleted", async () => {
+    await expect(
+      ctx.asOwner.hr.remove({ id: employeeId }),
+    ).rejects.toMatchObject({ code: "CONFLICT" });
+    // Their payslip is still theirs to see.
+    expect(await ctx.asMember.payroll.mine()).toHaveLength(1);
+
+    // A record made by mistake, never paid, can still be deleted.
+    const { id: mistake } = await ctx.asOwner.hr.create(
+      person(null, "Typo Person"),
+    );
+
+    await expect(ctx.asOwner.hr.remove({ id: mistake })).resolves.toEqual({
+      id: mistake,
+    });
   });
 });
 

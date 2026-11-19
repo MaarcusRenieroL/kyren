@@ -28,7 +28,6 @@ import { auditRouter } from "./routers/audit";
 import { calendarRouter } from "./routers/calendar";
 import { commentRouter } from "./routers/comment";
 import { docsRouter } from "./routers/doc";
-import { fileRouter } from "./routers/file";
 import { chatChannelProcedures } from "./routers/chat";
 import { chatLinkProcedures } from "./routers/chat-links";
 import { chatExtraProcedures } from "./routers/chat-extras";
@@ -47,6 +46,8 @@ import { taskRouter } from "./routers/task";
 import { whiteboardRouter } from "./routers/whiteboard";
 import { teamRouter } from "./routers/team";
 import { automationRouter } from "./routers/automation";
+import { aiRouter } from "./routers/ai";
+import { custodianRouter } from "./routers/custodian";
 
 export const appRouter = router({
   health: publicProcedure.query(() => {
@@ -82,7 +83,6 @@ export const appRouter = router({
   calendar: calendarRouter,
   comment: commentRouter,
   docs: docsRouter,
-  file: fileRouter,
   chat: router({
     ...chatChannelProcedures,
     ...chatMessageProcedures,
@@ -105,6 +105,8 @@ export const appRouter = router({
   team: teamRouter,
   whiteboard: whiteboardRouter,
   user: userRouter,
+  ai: aiRouter,
+  custodian: custodianRouter,
 });
 
 export type AppRouter = typeof appRouter;

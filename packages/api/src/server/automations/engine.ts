@@ -78,7 +78,10 @@ export async function runTaskAutomations({
         shouldExecute = matchesTo && matchesFrom;
       } else if (event === "task.subtasks_all_done") {
         shouldExecute = true;
-      } else if (event === "task.created") {
+      } else if (
+        event === "task.created" ||
+        event === "task.blockers_resolved"
+      ) {
         shouldExecute = true;
       }
 

@@ -10,7 +10,7 @@ import { emailOTP, organization, twoFactor } from "better-auth/plugins";
 
 import { db } from "@zentro/db";
 import { hit } from "@zentro/db/rate-limit";
-import { desc, eq } from "@zentro/db/drizzle";
+import { and, desc, eq, sql } from "@zentro/db/drizzle";
 import * as schema from "@zentro/db/schema";
 import {
   sendForgotPasswordEmail,
@@ -24,6 +24,7 @@ import { twoFactorChallenge } from "./lib/two-factor-challenge";
 import { betterAuthAc, betterAuthRoles } from "./access-control";
 import { ensureSystemRoles, removeMemberAccess } from "./seed";
 import { userAdditionalFields } from "./additional-fields";
+import { clientIpHeaders } from "@zentro/audit/server";
 
 validateProductionEnv();
 
@@ -31,6 +32,21 @@ const baseURL = process.env.BETTER_AUTH_URL ?? "http://localhost:3000";
 const secret = process.env.BETTER_AUTH_SECRET;
 
 const trustedOrigins = trustedOriginsFor(baseURL, process.env.NODE_ENV);
+
+/**
+ * Codes are only ever emailed to verify an address. Signing in, resetting a
+ * password or changing an email with a code would skip two-factor and the
+ * password, so those routes are switched off.
+ */
+const disabledCodePaths = [
+  "/sign-in/email-otp",
+  "/forget-password/email-otp",
+  "/email-otp/request-password-reset",
+  "/email-otp/reset-password",
+  "/email-otp/check-verification-otp",
+  "/email-otp/request-email-change",
+  "/email-otp/change-email",
+];
 
 // Endpoints that read or change organization data are only reachable through
 // our tRPC procedures, which check permissions with @zentro/permissions. Better
@@ -71,6 +87,33 @@ const disabledOrganizationPaths = [
   "/update-session",
 ];
 
+/** How many organizations one person may own; `ORGANIZATIONS_PER_PERSON`, default 10. */
+function organizationsPerPerson() {
+  const configured = Number(process.env.ORGANIZATIONS_PER_PERSON);
+
+  return Number.isInteger(configured) && configured > 0 ? configured : 10;
+}
+
+/**
+ * Whether the person already owns as many organizations as allowed. Only
+ * ownership counts: being invited into other organizations never stops
+ * someone from starting their own.
+ */
+async function ownsTooManyOrganizations(userId: string) {
+  const owned = await db
+    .select({ id: schema.members.id })
+    .from(schema.members)
+    .where(
+      and(
+        eq(schema.members.userId, userId),
+        // Roles can be a list, such as "owner,admin".
+        sql`'owner' = any(string_to_array(${schema.members.role}, ','))`,
+      ),
+    );
+
+  return owned.length >= organizationsPerPerson();
+}
+
 /** Throws when an operator's member limit for the organization is already reached. */
 async function assertSeatAvailable(organizationId: string) {
   const [row] = await db
@@ -95,7 +138,7 @@ async function assertSeatAvailable(organizationId: string) {
 }
 
 export const auth = betterAuth({
-  disabledPaths: disabledOrganizationPaths,
+  disabledPaths: [...disabledOrganizationPaths, ...disabledCodePaths],
   hooks: {
     before: createAuthMiddleware(async (ctx) => {
       // Each password sign-in gets a few guesses at its code. Counting per
@@ -183,6 +226,9 @@ export const auth = betterAuth({
       });
     },
     resetPasswordTokenExpiresIn: 60 * 60,
+    // Whoever had the old password, or a session made before the reset, is
+    // signed out: a reset is how someone takes their account back.
+    revokeSessionsOnPasswordReset: true,
   },
   databaseHooks: {
     session: {
@@ -246,10 +292,10 @@ export const auth = betterAuth({
   },
 
   advanced: {
-    // Rate limits key on the client address, so read it from the header the
-    // platform sets itself; `x-forwarded-for` is the fallback behind a proxy.
+    // Rate limits key on the client address, so read it only from headers
+    // the proxy in front of Zentro sets itself (CLIENT_IP_HEADERS).
     ipAddress: {
-      ipAddressHeaders: ["x-vercel-forwarded-for", "x-forwarded-for"],
+      ipAddressHeaders: clientIpHeaders(),
     },
     database: {
       generateId: false,
@@ -267,6 +313,11 @@ export const auth = betterAuth({
         await sendOrgInviteEmail(invitation, organization, inviter);
       },
       invitationExpiresIn: 60 * 60 * 24 * 7,
+      // Better Auth caps every organization at 100 members by default, and
+      // uses the same number as the page size of member lists. Zentro's own
+      // seat limit (`assertSeatAvailable`) is the real cap.
+      membershipLimit: Number.MAX_SAFE_INTEGER,
+      organizationLimit: (user) => ownsTooManyOrganizations(user.id),
       organizationHooks: {
         // A platform operator can cap an organization's seats; the cap is
         // checked when someone is added and again when an invitation is
@@ -300,4 +351,8 @@ export const auth = betterAuth({
 export { ensureSystemRoles, removeMemberAccess } from "./seed";
 export { disabledOrganizationPaths };
 export { isNewDevice } from "./lib/new-device";
-export { sendMeetingEmail, sendTicketReplyEmail } from "./lib/email";
+export {
+  sendChatMentionEmail,
+  sendMeetingEmail,
+  sendTicketReplyEmail,
+} from "./lib/email";

@@ -1,5 +1,5 @@
 import { TRPCError } from "@trpc/server";
-import { and, eq, isNull, ne, or } from "@zentro/db/drizzle";
+import { and, eq, isNull, ne, or, sql } from "@zentro/db/drizzle";
 import {
   accounts,
   apiKeys,
@@ -23,6 +23,8 @@ import {
 } from "@zentro/db/schema";
 
 import type { db as database } from "@zentro/db";
+
+import { removeMemberAccess } from "@zentro/auth";
 
 import { isUnderHold } from "./retention";
 
@@ -264,14 +266,19 @@ export async function eraseMember(
 
     if (!row) throw new TRPCError({ code: "NOT_FOUND" });
 
-    if (row.role === "owner") {
+    const isOwner = row.role.split(",").includes("owner");
+
+    if (isOwner) {
       const otherOwners = await tx
         .select({ id: members.id })
         .from(members)
         .where(
           and(
             eq(members.organizationId, organizationId),
-            eq(members.role, "owner"),
+            or(
+              eq(members.role, "owner"),
+              sql`'owner' = any(string_to_array(${members.role}, ','))`,
+            ),
             ne(members.id, memberId),
           ),
         )
@@ -332,6 +339,13 @@ export async function eraseMember(
         .where(eq(leaveRequests.employeeId, employee.id));
     }
 
+    // Roles, overrides, teams and API keys given in this organization go
+    // too, or they would come back if the person were invited again.
+    await removeMemberAccess(
+      tx as unknown as Parameters<typeof removeMemberAccess>[0],
+      organizationId,
+      row.userId,
+    );
     await tx.delete(members).where(eq(members.id, memberId));
 
     const stillMember = await tx

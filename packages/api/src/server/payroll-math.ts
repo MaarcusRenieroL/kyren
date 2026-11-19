@@ -39,3 +39,25 @@ export function proratedBase(
 
   return Math.round((annualSalary / 12) * months);
 }
+
+/** Decimal places of a currency's minor unit: 2 for USD, 0 for JPY, 3 for BHD. */
+export function minorDigits(currency: string) {
+  try {
+    return (
+      new Intl.NumberFormat("en", {
+        style: "currency",
+        currency,
+      }).resolvedOptions().maximumFractionDigits ?? 2
+    );
+  } catch {
+    return 2;
+  }
+}
+
+/** Whole minor units (never negative) as an exact decimal, 123456 → "1234.56". */
+export function minorToDecimal(minor: number, currency: string) {
+  const digits = minorDigits(currency);
+  const text = String(minor).padStart(digits + 1, "0");
+
+  return digits ? `${text.slice(0, -digits)}.${text.slice(-digits)}` : text;
+}

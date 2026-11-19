@@ -1,5 +1,9 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
+import { db } from "@zentro/db";
+import { and, eq } from "@zentro/db/drizzle";
+import { tasks } from "@zentro/db/schema";
+
 import { World } from "./helpers";
 
 const world = new World();
@@ -17,9 +21,14 @@ describe("goals and key results", () => {
   let tasksKrId: string;
   let metricKrId: string;
   let keys: string[];
+  let orgId: string;
+  let goalsOrg: Awaited<ReturnType<World["org"]>>;
 
   beforeAll(async () => {
     const org = await world.org("Goals");
+
+    orgId = org.id;
+    goalsOrg = org;
     const o = await world.userIn(org, "owner", "Goal Owner");
     const m = await world.userIn(org, "member", "Goal Member");
     const other = await world.org("Goals elsewhere");
@@ -142,7 +151,11 @@ describe("goals and key results", () => {
 
   it("lets a key result's owner update its value, and nobody else without the permission", async () => {
     await expect(
-      member.goals.updateValue({ keyResultId: metricKrId, currentValue: 120 }),
+      member.goals.updateValue({
+        keyResultId: metricKrId,
+        currentValue: 120,
+        confidence: "on_track",
+      }),
     ).rejects.toMatchObject({ code: "FORBIDDEN" });
 
     await owner.goals.saveKeyResult({
@@ -158,6 +171,7 @@ describe("goals and key results", () => {
     await member.goals.updateValue({
       keyResultId: metricKrId,
       currentValue: 120,
+      confidence: "on_track",
     });
 
     expect(
@@ -166,8 +180,51 @@ describe("goals and key results", () => {
       )!.progress,
     ).toBe(0.2);
     await expect(
-      member.goals.updateValue({ keyResultId: tasksKrId, currentValue: 1 }),
+      member.goals.updateValue({
+        keyResultId: tasksKrId,
+        currentValue: 1,
+        confidence: "on_track",
+      }),
     ).rejects.toMatchObject({ code: "FORBIDDEN" });
+  });
+
+  it("tells each viewer which metrics they may move", async () => {
+    const forMember = (await member.goals.list())[0]!.keyResults;
+    const forOwner = (await owner.goals.list())[0]!.keyResults;
+    const flag = (list: typeof forMember, id: string) =>
+      list.find((k) => k.id === id)!.canUpdate;
+
+    // The member owns the metric; task results never take a typed number.
+    expect(flag(forMember, metricKrId)).toBe(true);
+    expect(flag(forMember, tasksKrId)).toBe(false);
+    expect(flag(forOwner, metricKrId)).toBe(true);
+    expect(flag(forOwner, tasksKrId)).toBe(false);
+
+    // Someone who neither manages goals nor owns the metric may not move it.
+    const bystander = await world.userIn(goalsOrg, "member", "Bystander");
+    const asBystander = await world.caller(bystander.user, goalsOrg);
+
+    expect(
+      flag((await asBystander.goals.list())[0]!.keyResults, metricKrId),
+    ).toBe(false);
+  });
+
+  it("stops counting a linked task once it is deleted", async () => {
+    const before = (await owner.goals.list())[0]!.keyResults.find(
+      (k) => k.id === tasksKrId,
+    )!;
+
+    await db
+      .update(tasks)
+      .set({ deletedAt: new Date() })
+      .where(and(eq(tasks.organizationId, orgId), eq(tasks.key, keys[3]!)));
+
+    const after = (await owner.goals.list())[0]!.keyResults.find(
+      (k) => k.id === tasksKrId,
+    )!;
+
+    expect(after.totalTasks).toBe(before.totalTasks - 1);
+    expect(after.doneTasks).toBe(before.doneTasks);
   });
 
   it("handles a target equal to the start without dividing by zero", async () => {

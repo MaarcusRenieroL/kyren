@@ -144,9 +144,14 @@ describe("privacy: export and erase", () => {
       await db.select().from(members).where(eq(members.organizationId, org.id))
     ).find((m) => m.role === "owner")!;
 
+    // Only an owner may erase an owner, so the last owner tries it on
+    // themselves; an admin is turned away before that (erase-owner.test.ts).
     await expect(
-      admin.privacy.erase({ memberId: ownerMember.id, redactContent: false }),
-    ).rejects.toMatchObject({ code: "BAD_REQUEST" });
+      owner.privacy.erase({ memberId: ownerMember.id, redactContent: false }),
+    ).rejects.toMatchObject({
+      code: "BAD_REQUEST",
+      message: "Make someone else an owner first.",
+    });
   });
 
   it("keeps the account of someone who belongs to another organisation too", async () => {

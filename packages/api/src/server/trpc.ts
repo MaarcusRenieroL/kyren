@@ -44,13 +44,9 @@ const trpc = initTRPC
 import { enforceBurstLimit } from "./burst-limit";
 import { isUniqueViolation } from "./db-errors";
 import { clientIp } from "./client-ip";
-import { ipAllowed } from "./ip-policy";
 import { requiresTwoFactor } from "./two-factor-policy";
-import {
-  maintenanceState,
-  organizationStatus,
-  platformIpAllowed,
-} from "./platform-policy";
+import { maintenanceState, platformIpAllowed } from "./platform-policy";
+import { workspaceAccessBlock } from "./workspace-access";
 
 export const router = trpc.router;
 
@@ -193,26 +189,16 @@ export const protectedProcedure = baseProcedure.use(async ({ ctx, next }) => {
     });
   }
 
-  // A platform operator can suspend an organization.
-  const status = await organizationStatus(ctx.db, ctx.activeOrganization.id);
+  // A platform operator can suspend an organization, and an organization can
+  // limit itself to chosen networks.
+  const block = await workspaceAccessBlock(
+    ctx.db,
+    ctx.activeOrganization.id,
+    ctx.headers,
+  );
 
-  if (status.suspended) {
-    throw new TRPCError({
-      code: "FORBIDDEN",
-      message: status.reason
-        ? `This organization is suspended: ${status.reason}`
-        : "This organization is suspended. Contact support.",
-    });
-  }
-
-  // An organization can limit itself to chosen networks.
-  if (
-    !(await ipAllowed(ctx.db, ctx.activeOrganization.id, clientIp(ctx.headers)))
-  ) {
-    throw new TRPCError({
-      code: "FORBIDDEN",
-      message: "Your network is not allowed to use this organization.",
-    });
+  if (block) {
+    throw new TRPCError({ code: "FORBIDDEN", message: block.message });
   }
 
   return next({
@@ -365,6 +351,13 @@ function assertRecentSignIn(startedAt: Date | string | undefined) {
   }
 }
 
+/** What still works on an archived project: bringing it back or ending it. */
+const ARCHIVED_PROJECT_ACTIONS = new Set([
+  "projects.archive",
+  "projects.delete",
+  "projects.settings.manage",
+]);
+
 /**
  * The one way to protect a procedure: the module (when given) must be on, then
  * the caller must hold the permission for the resource the resolver names.
@@ -408,6 +401,19 @@ export const permissionProcedure = (
         [permission],
         resource,
       );
+
+      // An archived project is read-only: nothing in it changes until it is
+      // restored. Restoring, deleting and its access settings still work.
+      if (
+        opts.type === "mutation" &&
+        resource?.project?.status === "archived" &&
+        !ARCHIVED_PROJECT_ACTIONS.has(permission)
+      ) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "This project is archived. Restore it to make changes.",
+        });
+      }
 
       return next({ ctx });
     });

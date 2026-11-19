@@ -12,6 +12,8 @@ import {
 import {
   members,
   projects,
+  roleAssignments,
+  roles,
   tasks,
   teamMembers,
   teams,
@@ -32,9 +34,9 @@ import {
   protectedProcedure,
   router,
 } from "../trpc";
-import { assignCreatorLeadRole } from "../access";
+import { assertHoldsAll, assignCreatorLeadRole } from "../access";
 import { buildChanges } from "@zentro/audit";
-import { teamById } from "../resources";
+import { loadProjectById, teamById } from "../resources";
 
 type TeamDbClient = Pick<
   typeof import("@zentro/db").db,
@@ -519,6 +521,46 @@ export const teamRouter = router({
               .where(eq(teamMembers.teamId, input.teamId))
           ).map((row) => row.memberId),
         );
+
+        // Joining a team brings the roles assigned to it. Adding someone
+        // hands those out, so the caller must hold them all, in each scope.
+        if (input.memberIds.some((id) => !before.has(id))) {
+          const granted = await tx
+            .select({
+              scopeType: roleAssignments.scopeType,
+              scopeId: roleAssignments.scopeId,
+              permissions: roles.permissions,
+            })
+            .from(roleAssignments)
+            .innerJoin(roles, eq(roles.id, roleAssignments.roleId))
+            .where(
+              and(
+                eq(roleAssignments.organizationId, activeOrganization.id),
+                eq(roleAssignments.principalType, "team"),
+                eq(roleAssignments.principalId, input.teamId),
+              ),
+            );
+
+          for (const grant of granted) {
+            const project =
+              grant.scopeType === "project"
+                ? await loadProjectById(ctx, grant.scopeId)
+                : undefined;
+
+            if (grant.scopeType === "project" && !project) continue;
+
+            await assertHoldsAll(
+              ctx.permissions,
+              grant.permissions,
+              grant.scopeType === "team"
+                ? { teamId: grant.scopeId }
+                : project
+                  ? { project }
+                  : {},
+              "You can only add people to this team if you hold every role it gives.",
+            );
+          }
+        }
 
         const memberIds = await replaceTeamMembers({
           db: tx,

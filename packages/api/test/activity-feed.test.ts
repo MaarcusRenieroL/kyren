@@ -208,6 +208,7 @@ describe.each(scenarios)("$label project activity", (scenario) => {
           userId: user.id,
           enabledModules: new Set(["projects", "tasks", "docs"]),
           snapshot: await loadPermissionSnapshot(db, org.id, user.id),
+          timeZone: "UTC",
         })
       ).recentActivity.map((item) => item.action);
 

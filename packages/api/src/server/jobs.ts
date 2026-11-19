@@ -33,7 +33,7 @@ export function setJobFailureReporter(
 }
 
 export async function enqueueJob(
-  db: Db,
+  db: Pick<Db, "insert">,
   kind: string,
   payload: Record<string, unknown>,
   options: { runAt?: Date; maxAttempts?: number } = {},

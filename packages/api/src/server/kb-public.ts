@@ -3,6 +3,8 @@ import { kbArticles, organizations } from "@zentro/db/schema";
 
 import type { db as database } from "@zentro/db";
 
+import { ticketsOpenToPublic } from "./tickets-public";
+
 type Db = typeof database;
 
 const live = (organizationId: string) =>
@@ -21,7 +23,9 @@ const organizationBySlug = async (db: Db, slug: string) => {
     .where(eq(organizations.slug, slug))
     .limit(1);
 
-  return org ?? null;
+  if (!org || !(await ticketsOpenToPublic(db, org.id))) return null;
+
+  return org;
 };
 
 /** The titles of an organization's public help centre, or null if there is no such organization. */

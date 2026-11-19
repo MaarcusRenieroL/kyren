@@ -31,6 +31,7 @@ const targetTypes = [
   "user",
   "audit",
   "file",
+  "folder",
   "event",
   "board",
   "ticket",

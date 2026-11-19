@@ -1,10 +1,13 @@
 import { TRPCError } from "@trpc/server";
-import { and, asc, eq, inArray, sql } from "@zentro/db/drizzle";
+import { and, asc, desc, eq, inArray, isNull, sql } from "@zentro/db/drizzle";
 import {
+  keyResultCheckIns,
   keyResults,
   keyResultTasks,
+  members,
   objectives,
   tasks,
+  users,
 } from "@zentro/db/schema";
 import { z } from "zod";
 
@@ -33,6 +36,8 @@ const keyResultInput = z.object({
   unit: z.string().trim().max(24).nullable().optional(),
   ownerMemberId: uuid.nullable().optional(),
 });
+
+const confidence = z.enum(["on_track", "at_risk", "off_track"]);
 
 const manage = (audit: string[]) =>
   permissionProcedure("tasks.manage_goals", undefined, {
@@ -74,9 +79,32 @@ export const goalsRouter = router({
         .from(keyResultTasks)
         .innerJoin(tasks, eq(tasks.id, keyResultTasks.taskId))
         .innerJoin(keyResults, eq(keyResults.id, keyResultTasks.keyResultId))
-        .where(eq(keyResults.organizationId, organizationId))
+        .where(
+          and(
+            eq(keyResults.organizationId, organizationId),
+            // A deleted task is no longer part of the work.
+            isNull(tasks.deletedAt),
+          ),
+        )
         .groupBy(keyResultTasks.keyResultId);
       const countOf = new Map(counts.map((c) => [c.keyResultId, c]));
+      const latest = await ctx.db
+        .selectDistinctOn([keyResultCheckIns.keyResultId], {
+          keyResultId: keyResultCheckIns.keyResultId,
+          confidence: keyResultCheckIns.confidence,
+          at: keyResultCheckIns.createdAt,
+        })
+        .from(keyResultCheckIns)
+        .innerJoin(keyResults, eq(keyResults.id, keyResultCheckIns.keyResultId))
+        .where(eq(keyResults.organizationId, organizationId))
+        .orderBy(
+          keyResultCheckIns.keyResultId,
+          desc(keyResultCheckIns.createdAt),
+        );
+      const latestOf = new Map(latest.map((l) => [l.keyResultId, l]));
+      // Who may move a metric: goal managers, and each result's owner.
+      const managesGoals = await ctx.permissions.can("tasks.manage_goals");
+      const me = await currentMemberId(ctx);
 
       return goals.map((goal) => {
         const mine = results
@@ -92,7 +120,20 @@ export const goalsRouter = router({
                   : doneTasks / totalTasks
                 : metricProgress(r.startValue, r.targetValue, r.currentValue);
 
-            return { ...r, totalTasks, doneTasks, progress };
+            const last = latestOf.get(r.id);
+
+            return {
+              ...r,
+              confidence: last
+                ? (last.confidence as z.infer<typeof confidence>)
+                : null,
+              lastCheckInAt: last?.at ?? null,
+              totalTasks,
+              doneTasks,
+              progress,
+              canUpdate:
+                r.kind === "metric" && (managesGoals || r.ownerMemberId === me),
+            };
           });
 
         return {
@@ -318,7 +359,14 @@ export const goalsRouter = router({
     module: "tasks",
     audit: ["goal.saved"],
   })
-    .input(z.object({ keyResultId: uuid, currentValue: z.number().finite() }))
+    .input(
+      z.object({
+        keyResultId: uuid,
+        currentValue: z.number().finite(),
+        confidence,
+        note: z.string().trim().max(1000).optional(),
+      }),
+    )
     .mutation(async ({ ctx, input }) => {
       const organizationId = ctx.activeOrganization.id;
       const [kr] = await ctx.db
@@ -334,7 +382,8 @@ export const goalsRouter = router({
 
       if (!kr) throw new TRPCError({ code: "NOT_FOUND" });
 
-      const mine = kr.ownerMemberId === (await currentMemberId(ctx));
+      const me = await currentMemberId(ctx);
+      const mine = kr.ownerMemberId === me;
 
       if (
         kr.kind !== "metric" ||
@@ -348,6 +397,13 @@ export const goalsRouter = router({
           .update(keyResults)
           .set({ currentValue: input.currentValue, updatedAt: new Date() })
           .where(eq(keyResults.id, kr.id));
+        await tx.insert(keyResultCheckIns).values({
+          keyResultId: kr.id,
+          memberId: me,
+          value: input.currentValue,
+          confidence: input.confidence,
+          note: input.note || null,
+        });
         await ctx.audit.record(tx, {
           action: "goal.saved",
           target: { id: kr.id, label: kr.title },
@@ -355,5 +411,44 @@ export const goalsRouter = router({
 
         return { ok: true };
       });
+    }),
+
+  /** A key result's check-ins, newest first. */
+  checkIns: permissionProcedure("tasks.view", undefined, { module: "tasks" })
+    .input(z.object({ keyResultId: uuid }))
+    .query(async ({ ctx, input }) => {
+      const [kr] = await ctx.db
+        .select({ id: keyResults.id })
+        .from(keyResults)
+        .where(
+          and(
+            eq(keyResults.id, input.keyResultId),
+            eq(keyResults.organizationId, ctx.activeOrganization.id),
+          ),
+        )
+        .limit(1);
+
+      if (!kr) throw new TRPCError({ code: "NOT_FOUND" });
+
+      const rows = await ctx.db
+        .select({
+          id: keyResultCheckIns.id,
+          value: keyResultCheckIns.value,
+          confidence: keyResultCheckIns.confidence,
+          note: keyResultCheckIns.note,
+          at: keyResultCheckIns.createdAt,
+          by: users.name,
+        })
+        .from(keyResultCheckIns)
+        .leftJoin(members, eq(members.id, keyResultCheckIns.memberId))
+        .leftJoin(users, eq(users.id, members.userId))
+        .where(eq(keyResultCheckIns.keyResultId, kr.id))
+        .orderBy(desc(keyResultCheckIns.createdAt))
+        .limit(50);
+
+      return rows.map((row) => ({
+        ...row,
+        confidence: row.confidence as z.infer<typeof confidence>,
+      }));
     }),
 });

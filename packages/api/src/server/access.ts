@@ -1,6 +1,7 @@
 import type { db as database } from "@zentro/db";
 import {
   and,
+  desc,
   eq,
   gt,
   inArray,
@@ -11,6 +12,7 @@ import {
 } from "@zentro/db/drizzle";
 import {
   activityEvents,
+  docVersions,
   docs,
   roleAssignments,
   roles,
@@ -97,6 +99,19 @@ export async function assignCreatorLeadRole(
   }
 }
 
+/**
+ * Whether the caller holds an `_own` permission for things they created.
+ * The engine only answers `_own` keys for a named owner (with no owner it
+ * always says no), so the caller is named as the owner here.
+ */
+export async function holdsOwn(
+  ctx: { permissions: PermissionContext; user: { id: string } },
+  key: string,
+) {
+  return (await ctx.permissions.check(key, { ownerUserId: ctx.user.id }))
+    .allowed;
+}
+
 /** Longest gap between two recorded edits of the same doc by the same person. */
 export const docEditDebounceMs = 10 * 60 * 1000;
 
@@ -125,6 +140,62 @@ export async function hasRecentDocEdit(
     .limit(1);
 
   return Boolean(recent);
+}
+
+/**
+ * Keeps the doc's text in its version history. A save folds into the latest
+ * version when the same person started it less than the debounce window ago,
+ * so a version holds the last text of up to ten minutes of edits; otherwise,
+ * and always when `fresh` is set (a restore), it starts a new version.
+ * Measured from the version's start, so a long session still leaves a version
+ * every ten minutes to go back to.
+ */
+export async function recordDocVersion(
+  tx: DbHandle,
+  input: {
+    organizationId: string;
+    docId: string;
+    memberId: string;
+    content: string;
+    fresh?: boolean;
+  },
+) {
+  const now = new Date();
+
+  if (!input.fresh) {
+    const [latest] = await tx
+      .select({
+        id: docVersions.id,
+        authorMemberId: docVersions.authorMemberId,
+        createdAt: docVersions.createdAt,
+      })
+      .from(docVersions)
+      .where(eq(docVersions.docId, input.docId))
+      .orderBy(desc(docVersions.updatedAt))
+      .limit(1);
+
+    if (
+      latest &&
+      latest.authorMemberId === input.memberId &&
+      now.getTime() - latest.createdAt.getTime() < docEditDebounceMs
+    ) {
+      await tx
+        .update(docVersions)
+        .set({ content: input.content, updatedAt: now })
+        .where(eq(docVersions.id, latest.id));
+
+      return;
+    }
+  }
+
+  await tx.insert(docVersions).values({
+    organizationId: input.organizationId,
+    docId: input.docId,
+    authorMemberId: input.memberId,
+    content: input.content,
+    createdAt: now,
+    updatedAt: now,
+  });
 }
 
 /**

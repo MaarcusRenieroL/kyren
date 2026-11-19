@@ -32,3 +32,28 @@ export const boardColors = [
   "#2563eb",
   "#7c3aed",
 ] as const;
+
+/**
+ * The whiteboard's fixed colours. A board is a shared picture, so these stay
+ * the same in both themes (only "ink" follows the theme).
+ */
+export const boardTheme = {
+  stickies: ["#fff3a3", "#ffd6a5", "#ffc6d9", "#caffbf", "#bde0fe", "#d7c8ff"],
+  neutralFill: "#e9ecef",
+  text: "#1f2937",
+  frame: "#868e96",
+  connector: "#495057",
+  shadow: "#000000",
+  task: {
+    fill: "#e7f1ff",
+    border: "#4c6ef5",
+    key: "#364fc7",
+    status: "#495057",
+    title: "#212529",
+  },
+  checker: "#dddddd",
+  export: {
+    light: { ink: "#1e1e1e", background: "#ffffff" },
+    dark: { ink: "#f1f3f5", background: "#121212" },
+  },
+} as const;

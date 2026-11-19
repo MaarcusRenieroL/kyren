@@ -129,6 +129,43 @@ describe("chat channels, messages and threads", () => {
     expect(await owner.chat.mentions({ unreadOnly: true })).toEqual([]);
   });
 
+  it("counts a mention in a thread reply without making the channel unread", async () => {
+    const root = await owner.chat.send({
+      channelId: platform.id,
+      body: "Release notes draft",
+    });
+
+    await owner.chat.markRead({ channelId: platform.id });
+    await arjun.chat.send({
+      channelId: platform.id,
+      parentId: root.id,
+      body: `<@${ownerId}> one question on section 2`,
+    });
+
+    const entry = (await owner.chat.sidebar()).channels.find(
+      (channel) => channel.id === platform.id,
+    )!;
+
+    expect(entry.mentions).toBe(1);
+    expect(entry.unread).toBe(0);
+
+    await owner.chat.markRead({ channelId: platform.id });
+
+    // @channel inside a thread talks to the thread, not to everyone.
+    await arjun.chat.send({
+      channelId: platform.id,
+      parentId: root.id,
+      body: "<!channel> thread-only heads up",
+    });
+
+    const after = (await owner.chat.sidebar()).channels.find(
+      (channel) => channel.id === platform.id,
+    )!;
+
+    expect(after.mentions).toBe(0);
+    await owner.chat.markRead({ channelId: platform.id });
+  });
+
   it("threads replies and counts them on the first message", async () => {
     const first = await owner.chat.send({
       channelId: platform.id,

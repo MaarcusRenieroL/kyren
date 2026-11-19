@@ -1,10 +1,19 @@
 import { TRPCError } from "@trpc/server";
-import { and, asc, desc, eq, inArray, sql } from "@zentro/db/drizzle";
-import { compensations, employees, payRuns, payslips } from "@zentro/db/schema";
+import { buildCsv } from "@zentro/audit";
+import { and, asc, desc, eq, gte, inArray, or, sql } from "@zentro/db/drizzle";
+import {
+  compensationChanges,
+  compensations,
+  employees,
+  members,
+  payRuns,
+  payslips,
+  users,
+} from "@zentro/db/schema";
 import { z } from "zod";
 
 import { currentMemberId } from "../chat";
-import { proratedBase } from "../payroll-math";
+import { minorToDecimal, proratedBase } from "../payroll-math";
 import { isUniqueViolation } from "../db-errors";
 import { isoDate, uuid } from "../zod-common";
 import { permissionProcedure, router, type OrganizationContext } from "../trpc";
@@ -107,6 +116,8 @@ export const payrollRouter = router({
         periodStart: run.periodStart,
         periodEnd: run.periodEnd,
         status: run.status,
+        kind: run.kind,
+        currency: run.currency,
         people,
         net,
       })),
@@ -122,6 +133,7 @@ export const payrollRouter = router({
         .from(payslips)
         .where(eq(payslips.payRunId, run.id))
         .orderBy(asc(payslips.employeeName));
+      const memberId = await currentMemberId(ctx);
 
       return {
         id: run.id,
@@ -130,10 +142,15 @@ export const payrollRouter = router({
         periodEnd: run.periodEnd,
         deductionRateBps: run.deductionRateBps,
         status: run.status,
+        kind: run.kind,
         approvedAt: run.approvedAt?.toISOString() ?? null,
         paidAt: run.paidAt?.toISOString() ?? null,
         canManage: await ctx.permissions.can("payroll.manage"),
         canApprove: await ctx.permissions.can("payroll.approve"),
+        /** The two-person rule: whoever made or changed the run can't approve it. */
+        approvalNeedsSomeoneElse:
+          run.createdByMemberId === memberId ||
+          lines.some((line) => line.bonusSetByMemberId === memberId),
         lines: lines.map((line) => ({
           id: line.id,
           employeeName: line.employeeName,
@@ -170,6 +187,7 @@ export const payrollRouter = router({
       periodStart: run.periodStart,
       periodEnd: run.periodEnd,
       status: run.status,
+      kind: run.kind,
       currency: line.currency,
       base: line.base,
       bonus: line.bonus,
@@ -177,6 +195,66 @@ export const payrollRouter = router({
       net: line.net,
     }));
   }),
+
+  /**
+   * One payslip as a document: the caller's own, or anyone's for people who
+   * may view payroll. Only from an approved or paid run; a draft can change.
+   */
+  payslip: procedure("payroll.payslips.view", undefined, ["payroll.view"])
+    .input(z.object({ id: uuid }))
+    .query(async ({ ctx, input }) => {
+      const [row] = await ctx.db
+        .select({ line: payslips, run: payRuns, jobTitle: employees.jobTitle })
+        .from(payslips)
+        .innerJoin(payRuns, eq(payRuns.id, payslips.payRunId))
+        .leftJoin(employees, eq(employees.id, payslips.employeeId))
+        .where(
+          and(
+            eq(payslips.id, input.id),
+            eq(payslips.organizationId, ctx.activeOrganization.id),
+            inArray(payRuns.status, ["approved", "paid"]),
+          ),
+        )
+        .limit(1);
+
+      if (!row) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Payslip not found.",
+        });
+      }
+
+      const mine = (await currentEmployee(ctx))?.id === row.line.employeeId;
+
+      // Someone else's pay is for payroll staff only; say "not found" so the
+      // ids of other people's payslips reveal nothing.
+      if (!mine && !(await ctx.permissions.can("payroll.view"))) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Payslip not found.",
+        });
+      }
+
+      return {
+        id: row.line.id,
+        organization: ctx.activeOrganization.name,
+        employeeName: row.line.employeeName,
+        jobTitle: row.jobTitle ?? null,
+        label: row.run.label,
+        kind: row.run.kind,
+        status: row.run.status,
+        periodStart: row.run.periodStart,
+        periodEnd: row.run.periodEnd,
+        paidAt: row.run.paidAt,
+        deductionRateBps: row.run.deductionRateBps,
+        currency: row.line.currency,
+        base: row.line.base,
+        bonus: row.line.bonus,
+        gross: row.line.base + row.line.bonus,
+        deductions: row.line.deductions,
+        net: row.line.net,
+      };
+    }),
 
   /** Everyone on the payroll with their salary, if set. */
   salaries: procedure("payroll.view").query(async ({ ctx }) => {
@@ -232,7 +310,25 @@ export const payrollRouter = router({
         });
       }
 
+      const memberId = await currentMemberId(ctx);
+
       await ctx.db.transaction(async (tx) => {
+        // One save per person at a time, even before they have a salary row
+        // to lock, so the history never gets two entries for one change.
+        await tx.execute(
+          sql`select pg_advisory_xact_lock(hashtextextended(${`salary:${employee.id}`}, 0))`,
+        );
+
+        const [before] = await tx
+          .select({
+            annualSalary: compensations.annualSalary,
+            currency: compensations.currency,
+          })
+          .from(compensations)
+          .where(eq(compensations.employeeId, employee.id))
+          .for("update")
+          .limit(1);
+
         await tx
           .insert(compensations)
           .values({
@@ -249,6 +345,20 @@ export const payrollRouter = router({
               updatedAt: new Date(),
             },
           });
+        // Every change is kept, so past pay can always be looked up.
+        if (
+          before?.annualSalary !== input.annualSalary ||
+          before?.currency !== input.currency
+        ) {
+          await tx.insert(compensationChanges).values({
+            organizationId: ctx.activeOrganization.id,
+            employeeId: employee.id,
+            annualSalary: input.annualSalary,
+            currency: input.currency,
+            changedByMemberId: memberId,
+          });
+        }
+
         // The amount is deliberately left out of the audit log.
         await ctx.audit.record(tx, {
           action: "payroll.salary_set",
@@ -257,6 +367,42 @@ export const payrollRouter = router({
       });
 
       return { id: employee.id };
+    }),
+
+  /** One person's salaries over time, newest first, and who set each. */
+  salaryHistory: procedure("payroll.view")
+    .input(z.object({ employeeId: uuid }))
+    .query(async ({ ctx, input }) => {
+      const rows = await ctx.db
+        .select({
+          id: compensationChanges.id,
+          annualSalary: compensationChanges.annualSalary,
+          currency: compensationChanges.currency,
+          at: compensationChanges.createdAt,
+          changedBy: users.name,
+        })
+        .from(compensationChanges)
+        .leftJoin(
+          members,
+          eq(members.id, compensationChanges.changedByMemberId),
+        )
+        .leftJoin(users, eq(users.id, members.userId))
+        .where(
+          and(
+            eq(compensationChanges.organizationId, ctx.activeOrganization.id),
+            eq(compensationChanges.employeeId, input.employeeId),
+          ),
+        )
+        .orderBy(desc(compensationChanges.createdAt))
+        .limit(100);
+
+      return rows.map((row) => ({
+        id: row.id,
+        annualSalary: row.annualSalary,
+        currency: row.currency,
+        at: row.at.toISOString(),
+        changedBy: row.changedBy ?? null,
+      }));
     }),
 
   /** A draft run with one line per employee paid in the period, prorated by the day. */
@@ -268,6 +414,13 @@ export const payrollRouter = router({
           periodStart: isoDate,
           periodEnd: isoDate,
           deductionRateBps: z.number().int().min(0).max(10_000).default(2000),
+          /** Which salaries this run pays, when people are paid in several. */
+          currency: z
+            .string()
+            .trim()
+            .regex(/^[A-Za-z]{3}$/, "Use a three-letter currency code.")
+            .transform((code) => code.toUpperCase())
+            .optional(),
         })
         .refine((value) => value.periodEnd >= value.periodStart, {
           message: "The period can't end before it starts.",
@@ -296,7 +449,15 @@ export const payrollRouter = router({
         .where(
           and(
             eq(employees.organizationId, ctx.activeOrganization.id),
-            inArray(employees.status, ["active", "on_leave", "leaving"]),
+            or(
+              inArray(employees.status, ["active", "on_leave", "leaving"]),
+              // Someone who left during the period is still owed their
+              // final, prorated pay.
+              and(
+                eq(employees.status, "former"),
+                gte(employees.endDate, input.periodStart),
+              ),
+            ),
           ),
         );
 
@@ -320,19 +481,29 @@ export const payrollRouter = router({
         }))
         .filter((person) => person.base > 0);
 
-      if (!lines.length) {
+      // A run's total adds the lines up, which only makes sense in one
+      // currency, so each currency is paid in its own run.
+      const currencies = [
+        ...new Set(lines.map((line) => line.currency)),
+      ].sort();
+      const currency =
+        input.currency ?? (currencies.length === 1 ? currencies[0] : undefined);
+
+      if (!currency) {
         throw new TRPCError({
           code: "BAD_REQUEST",
-          message: "Nobody with a salary was employed during that period.",
+          message: lines.length
+            ? `People are paid in ${currencies.join(", ")}. Pick one currency for this run.`
+            : "Nobody with a salary was employed during that period.",
         });
       }
 
-      // A run's total adds the lines up, which only makes sense in one currency.
-      if (new Set(lines.map((line) => line.currency)).size > 1) {
+      const paidLines = lines.filter((line) => line.currency === currency);
+
+      if (!paidLines.length) {
         throw new TRPCError({
           code: "BAD_REQUEST",
-          message:
-            "A pay run covers one currency. Pay each currency in its own run.",
+          message: `Nobody employed during that period is paid in ${currency}.`,
         });
       }
 
@@ -350,6 +521,9 @@ export const payrollRouter = router({
             .where(
               and(
                 eq(payRuns.organizationId, ctx.activeOrganization.id),
+                eq(payRuns.currency, currency),
+                // Off-cycle payments don't stand in for a period's salaries.
+                eq(payRuns.kind, "regular"),
                 sql`${payRuns.periodStart} <= ${input.periodEnd}`,
                 sql`${payRuns.periodEnd} >= ${input.periodStart}`,
               ),
@@ -359,7 +533,7 @@ export const payrollRouter = router({
           if (overlap) {
             throw new TRPCError({
               code: "CONFLICT",
-              message: "That period overlaps an existing pay run.",
+              message: `That period overlaps an existing ${currency} pay run.`,
             });
           }
 
@@ -367,13 +541,14 @@ export const payrollRouter = router({
             .insert(payRuns)
             .values({
               ...input,
+              currency,
               organizationId: ctx.activeOrganization.id,
               createdByMemberId: memberId,
             })
             .returning({ id: payRuns.id });
 
           await tx.insert(payslips).values(
-            lines.map((person) => {
+            paidLines.map((person) => {
               const base = person.base;
 
               return {
@@ -407,9 +582,174 @@ export const payrollRouter = router({
         });
     }),
 
+  /**
+   * An extra run on one pay date for the people picked: a correction, a
+   * missed payment or a one-off bonus. It starts at zero; amounts go in as
+   * bonuses, and it is approved and paid like any other run.
+   */
+  createOffCycleRun: procedure("payroll.manage", ["payroll.run_created"])
+    .input(
+      z.object({
+        label: z.string().trim().min(1, "Name the pay run.").max(80),
+        payDate: isoDate,
+        currency: z
+          .string()
+          .trim()
+          .regex(/^[A-Za-z]{3}$/, "Use a three-letter currency code.")
+          .transform((code) => code.toUpperCase()),
+        deductionRateBps: z.number().int().min(0).max(10_000).default(2000),
+        employeeIds: z.array(uuid).min(1, "Pick at least one person.").max(500),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const memberId = await currentMemberId(ctx);
+      const ids = [...new Set(input.employeeIds)];
+      const people = await ctx.db
+        .select({ id: employees.id, name: employees.name })
+        .from(employees)
+        .where(
+          and(
+            eq(employees.organizationId, ctx.activeOrganization.id),
+            inArray(employees.id, ids),
+          ),
+        );
+
+      if (people.length !== ids.length) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Everyone in the run must be in this organization's HR.",
+        });
+      }
+
+      return ctx.db.transaction(async (tx) => {
+        // A double submit (retry, second tab) must not make a second run.
+        await tx.execute(
+          sql`select pg_advisory_xact_lock(hashtextextended(${`off-cycle:${ctx.activeOrganization.id}`}, 0))`,
+        );
+
+        const [twin] = await tx
+          .select({ id: payRuns.id })
+          .from(payRuns)
+          .where(
+            and(
+              eq(payRuns.organizationId, ctx.activeOrganization.id),
+              eq(payRuns.kind, "off_cycle"),
+              eq(payRuns.status, "draft"),
+              eq(payRuns.periodStart, input.payDate),
+              eq(payRuns.currency, input.currency),
+              sql`lower(${payRuns.label}) = lower(${input.label})`,
+            ),
+          )
+          .limit(1);
+
+        if (twin) {
+          throw new TRPCError({
+            code: "CONFLICT",
+            message: `There is already a draft off-cycle run called "${input.label}" for that date.`,
+          });
+        }
+
+        const [run] = await tx
+          .insert(payRuns)
+          .values({
+            label: input.label,
+            periodStart: input.payDate,
+            periodEnd: input.payDate,
+            deductionRateBps: input.deductionRateBps,
+            currency: input.currency,
+            kind: "off_cycle",
+            organizationId: ctx.activeOrganization.id,
+            createdByMemberId: memberId,
+          })
+          .returning({ id: payRuns.id });
+
+        await tx.insert(payslips).values(
+          people.map((person) => ({
+            payRunId: run!.id,
+            organizationId: ctx.activeOrganization.id,
+            employeeId: person.id,
+            employeeName: person.name,
+            currency: input.currency,
+            base: 0,
+            bonus: 0,
+            ...computePay(0, 0, input.deductionRateBps),
+          })),
+        );
+        await ctx.audit.record(tx, {
+          action: "payroll.run_created",
+          target: { id: run!.id, label: input.label },
+          metadata: { kind: "off_cycle" },
+        });
+
+        return { id: run!.id };
+      });
+    }),
+
+  /**
+   * The payment register of an approved or paid run as CSV: what each person
+   * is paid, for finance to key in or reconcile. It holds no bank details;
+   * Zentro does not store any. Every download is recorded.
+   */
+  exportRun: procedure("payroll.view", ["payroll.run_exported"])
+    .input(z.object({ id: uuid }))
+    .mutation(async ({ ctx, input }) => {
+      const run = await findRun(ctx, input.id);
+
+      if (run.status === "draft") {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Approve the pay run before exporting it.",
+        });
+      }
+
+      const lines = await ctx.db
+        .select()
+        .from(payslips)
+        .where(eq(payslips.payRunId, run.id))
+        .orderBy(asc(payslips.employeeName));
+      const csv = buildCsv(
+        [
+          "employee_id",
+          "employee",
+          "currency",
+          "base",
+          "bonus",
+          "deductions",
+          "net",
+          "pay_date",
+          "reference",
+        ],
+        lines.map((line) => [
+          line.employeeId,
+          line.employeeName,
+          line.currency,
+          minorToDecimal(line.base, line.currency),
+          minorToDecimal(line.bonus, line.currency),
+          minorToDecimal(line.deductions, line.currency),
+          minorToDecimal(line.net, line.currency),
+          run.periodEnd,
+          run.label,
+        ]),
+      );
+
+      await ctx.db.transaction(async (tx) => {
+        await ctx.audit.record(tx, {
+          action: "payroll.run_exported",
+          target: { id: run.id, label: run.label },
+          metadata: { rowCount: lines.length },
+        });
+      });
+
+      return {
+        csv,
+        filename: `pay-run-${run.periodEnd}-${run.id.slice(0, 8)}.csv`,
+      };
+    }),
+
   setBonus: procedure("payroll.manage", ["payroll.bonus_set"])
     .input(z.object({ payslipId: uuid, bonus: money.max(1_000_000_000) }))
     .mutation(async ({ ctx, input }) => {
+      const editor = await currentMemberId(ctx);
       const [row] = await ctx.db
         .select({ line: payslips, run: payRuns })
         .from(payslips)
@@ -443,6 +783,7 @@ export const payrollRouter = router({
           .update(payslips)
           .set({
             bonus: input.bonus,
+            bonusSetByMemberId: editor,
             ...computePay(row.line.base, input.bonus, row.run.deductionRateBps),
           })
           .where(eq(payslips.id, row.line.id));
@@ -462,12 +803,39 @@ export const payrollRouter = router({
 
       assertStatus(run, "draft", "approved");
 
+      // Two people sign off on money: whoever made the run cannot approve it.
+      const memberId = await currentMemberId(ctx);
+
+      // Nor can anyone who set a bonus on it.
+      const [edited] = await ctx.db
+        .select({ id: payslips.id })
+        .from(payslips)
+        .where(
+          and(
+            eq(payslips.payRunId, run.id),
+            eq(payslips.bonusSetByMemberId, memberId),
+          ),
+        )
+        .limit(1);
+
+      if (run.createdByMemberId === memberId || edited) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message:
+            "Someone who did not create or change this pay run has to approve it.",
+        });
+      }
+
       await ctx.db.transaction(async (tx) => {
         await moveRun(
           tx,
           run,
           "draft",
-          { status: "approved", approvedAt: new Date() },
+          {
+            status: "approved",
+            approvedAt: new Date(),
+            approvedByMemberId: memberId,
+          },
           "approved",
         );
         await ctx.audit.record(tx, {

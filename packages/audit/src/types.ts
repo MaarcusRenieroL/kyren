@@ -16,6 +16,7 @@ export type AuditTargetType =
   | "audit"
   | "channel"
   | "file"
+  | "folder"
   | "event"
   | "board"
   | "ticket"

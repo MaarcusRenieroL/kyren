@@ -164,6 +164,7 @@ describe("access that comes only from a project or team role", () => {
       userId: worker.user.id,
       enabledModules: new Set(["projects", "tasks", "docs"]),
       snapshot,
+      timeZone: "UTC",
     });
     const stat = (label: string) =>
       dashboard.workspaceStats.find((item) => item.label === label)?.value;

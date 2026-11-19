@@ -15,8 +15,10 @@ export { authenticateApiKey, bearerToken } from "./api-keys";
 export { enforceRateLimit, hit } from "./rate-limit";
 export { receiveTicketMail } from "./ticket-inbound";
 export { portalReply, portalView } from "./ticket-portal";
+export { sharedDoc } from "./doc-share";
 export { publicArticle, publicArticles } from "./kb-public";
 export { reportError } from "./error-report";
+export { workspaceAccessBlock, type WorkspaceBlock } from "./workspace-access";
 export { runDueJobs } from "./jobs";
 export { publicForm, submitIntake } from "./intake-forms";
 export {

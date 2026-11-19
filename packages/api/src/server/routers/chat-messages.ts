@@ -48,6 +48,7 @@ import {
 import { syncMentions, taskKeysIn } from "../mentions";
 import { runMessageAutomations } from "../automations/engine";
 import { isUniqueViolation } from "../db-errors";
+import { queueMentionEmails } from "../chat-mention-mail";
 import { postChatMessage } from "../chat-post";
 import { visibleDocsCondition } from "../access";
 import { externalUrls } from "../chat-unfurl";
@@ -1092,7 +1093,8 @@ export const chatMessageProcedures = {
     )
     .mutation(async ({ ctx, input }) => {
       const message = await loadMessage(ctx, input.messageId);
-      const memberId = await currentMemberId(ctx);
+      const access = await channelAccess(ctx, message.channelId);
+      const memberId = access.memberId;
 
       if (message.authorMemberId !== memberId || message.deletedAt) {
         throw new TRPCError({
@@ -1101,11 +1103,26 @@ export const chatMessageProcedures = {
         });
       }
 
+      // Rewriting history needs the right to speak there now: not after
+      // leaving a private channel, and not once it is archived.
+      if (!access.canPost) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "You can't edit messages in this conversation anymore.",
+        });
+      }
+
       await ctx.db.transaction(async (tx) => {
         await tx
           .update(chatMessages)
           .set({ body: input.body, editedAt: new Date() })
           .where(eq(chatMessages.id, message.id));
+        // Someone the edit names for the first time hears about it too.
+        await queueMentionEmails(
+          tx,
+          { ...message, body: input.body },
+          mentionedMemberIds(message.body),
+        );
         await syncMentions(tx, {
           organizationId: ctx.activeOrganization.id,
           memberId,
@@ -1195,10 +1212,24 @@ export const chatMessageProcedures = {
       const message = await loadMessage(ctx, input.messageId);
       const access = await channelAccess(ctx, message.channelId);
 
-      if (!access.membership || message.deletedAt) {
+      if (!access.membership || !access.canPost || message.deletedAt) {
         throw new TRPCError({
           code: "FORBIDDEN",
           message: "Join the channel to pin messages.",
+        });
+      }
+
+      // Taking down someone else's pin is for whoever pinned it or a
+      // channel admin.
+      if (
+        !input.pinned &&
+        message.pinnedByMemberId &&
+        message.pinnedByMemberId !== access.memberId &&
+        !access.canManage
+      ) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "Only whoever pinned it or a channel admin can unpin this.",
         });
       }
 

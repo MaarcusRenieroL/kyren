@@ -48,6 +48,8 @@ export type ProjectAccessInfo = {
   id: string;
   teamId: string | null;
   visibility: ProjectVisibility;
+  /** "archived" makes the project read-only; the engine itself ignores it. */
+  status?: string;
 };
 
 export type ResourceContext = {

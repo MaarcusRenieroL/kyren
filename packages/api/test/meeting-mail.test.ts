@@ -24,9 +24,14 @@ describe("meeting emails", () => {
   let guestId: string;
   let declinerId: string;
   let sent: MeetingMail[] = [];
+  // Sweeps run for this file's organization only, so meetings other test
+  // files leave due can never show up here.
+  let orgId: string;
 
   beforeAll(async () => {
     const org = await world.org("Meeting mail");
+
+    orgId = org.id;
     const o = await world.userIn(org, "owner", "Mail Owner");
     const g = await world.userIn(org, "member", "Mail Guest");
     const d = await world.userIn(org, "member", "Mail Decliner");
@@ -119,7 +124,7 @@ describe("meeting emails", () => {
     await owner.meeting.cancel({ id: canceled.id });
     sent = [];
 
-    expect(await sendDueMeetingReminders(db)).toBeGreaterThanOrEqual(1);
+    expect(await sendDueMeetingReminders(db, orgId)).toBeGreaterThanOrEqual(1);
 
     const reminders = sent.filter((m) => m.kind === "reminder");
 
@@ -132,7 +137,7 @@ describe("meeting emails", () => {
     );
 
     sent = [];
-    await sendDueMeetingReminders(db);
+    await sendDueMeetingReminders(db, orgId);
     expect(sent).toEqual([]);
     expect(await guest.meeting.get({ id: later.id })).toBeTruthy();
   });

@@ -42,6 +42,22 @@ const flagName = z.string().regex(/^[a-z][a-z0-9_.-]{0,39}$/);
 const exportSkips =
   /api_?key|webhook|secret|token|session|account|verification/i;
 
+// So do secret columns in ordinary tables: the links behind an inbox, an
+// intake form or a customer portal work for whoever holds them.
+const secretColumn = /token|secret|password|hash/i;
+
+function withoutSecrets(rows: unknown) {
+  return Array.isArray(rows)
+    ? rows.map((row) =>
+        Object.fromEntries(
+          Object.entries(row as Record<string, unknown>).filter(
+            ([column]) => !secretColumn.test(column),
+          ),
+        ),
+      )
+    : [];
+}
+
 async function findOrganization(db: typeof Database, id: string) {
   const [organization] = await db
     .select()
@@ -401,7 +417,7 @@ export const platformTenantsRouter = router({
               where t."organizationId" = ${input.id}`,
         )) as unknown as { rows: { rows: unknown }[] };
 
-        data[table] = result.rows[0]?.rows ?? [];
+        data[table] = withoutSecrets(result.rows[0]?.rows);
       }
 
       const people = await ctx.db

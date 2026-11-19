@@ -281,10 +281,19 @@ async function assertMayModifyUser(ctx: OrganizationContext, userId: string) {
 
   const caller = await ctx.permissions.snapshot();
 
-  if (rankOf(target.role) > rankOf(caller.baseRole)) {
+  const targetRank = rankOf(target.role);
+  const callerRank = rankOf(caller.baseRole);
+
+  if (targetRank > callerRank) {
     throw forbidden(
       "You cannot change the access of someone with a higher role than yours.",
     );
+  }
+
+  // Admins don't manage each other; an owner does. (Team leads, who are
+  // members, still manage the members of their teams.)
+  if (targetRank >= baseRank.admin && targetRank === callerRank) {
+    throw forbidden("Only an owner can change another admin's access.");
   }
 }
 

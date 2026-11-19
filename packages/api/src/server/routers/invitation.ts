@@ -7,9 +7,25 @@ import { z } from "zod";
 import { assertHoldsAll } from "../access";
 import { callAuth } from "../auth-calls";
 import { organizationLimits } from "../platform-policy";
-import { permissionProcedure, router } from "../trpc";
+import { permissionProcedure, router, type OrganizationContext } from "../trpc";
 
 const invitationIdSchema = z.object({ invitationId: z.string().uuid() });
+
+/** Inviting someone as admin hands them everything admins can do. */
+async function assertMayGrantRole(ctx: OrganizationContext, roleKey: string) {
+  const [role] = await ctx.db
+    .select({ permissions: roles.permissions })
+    .from(roles)
+    .where(
+      and(
+        eq(roles.organizationId, ctx.activeOrganization.id),
+        eq(roles.systemKey, roleKey),
+      ),
+    )
+    .limit(1);
+
+  await assertHoldsAll(ctx.permissions, role?.permissions ?? []);
+}
 
 export const invitationRouter = router({
   list: permissionProcedure("invitations.view").query(async ({ ctx }) => {
@@ -41,19 +57,7 @@ export const invitationRouter = router({
     .mutation(async ({ ctx, input }) => {
       const { db, user, activeOrganization } = ctx;
 
-      // Inviting someone as admin hands them everything admins can do.
-      const [role] = await db
-        .select({ permissions: roles.permissions })
-        .from(roles)
-        .where(
-          and(
-            eq(roles.organizationId, activeOrganization.id),
-            eq(roles.systemKey, input.role),
-          ),
-        )
-        .limit(1);
-
-      await assertHoldsAll(ctx.permissions, role?.permissions ?? []);
+      await assertMayGrantRole(ctx, input.role);
 
       // A seat ceiling set by a platform operator counts members and open invitations.
       const { members: seats } = await organizationLimits(
@@ -127,6 +131,19 @@ export const invitationRouter = router({
           message: "Invitation not found.",
         });
       }
+
+      // Only an invitation still waiting can go out again; an answered or
+      // canceled one would be brought back to life.
+      if (invitation.status !== "pending") {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message:
+            "This invitation was already answered or canceled. Send a new one instead.",
+        });
+      }
+
+      // Resending hands out the role again, so the same rule as inviting.
+      await assertMayGrantRole(ctx, invitation.role);
 
       const resent = await callAuth(() =>
         auth.api.createInvitation({

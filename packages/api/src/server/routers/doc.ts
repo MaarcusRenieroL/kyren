@@ -11,8 +11,8 @@ import {
   sql,
 } from "@zentro/db/drizzle";
 import {
-  activityEvents,
   docComments,
+  docVersions,
   docs,
   members,
   projects,
@@ -21,6 +21,8 @@ import {
   workLinks,
 } from "@zentro/db/schema";
 import { sanitizeRichText } from "@zentro/utils";
+
+import { newShareToken } from "../doc-share";
 
 import {
   createDocCommentSchema,
@@ -32,16 +34,30 @@ import {
   getDocsSchema,
   restoreDocSchema,
   resolveDocCommentSchema,
+  restoreDocVersionSchema,
+  deleteDocCommentSchema,
+  docVersionSchema,
+  updateDocCommentSchema,
   searchDocsSchema,
   updateDocContentSchema,
   updateDocTitleSchema,
 } from "../../types/zod-schema";
 import type { TRPCContext } from "../../types";
-import { hasRecentDocEdit, visibleDocsCondition } from "../access";
+import {
+  type DbHandle,
+  hasRecentDocEdit,
+  recordDocVersion,
+  visibleDocsCondition,
+} from "../access";
 import { syncMentions } from "../mentions";
 import { resolveTarget } from "./link";
 import { buildChanges } from "@zentro/audit";
-import { listProcedure, permissionProcedure, router } from "../trpc";
+import {
+  assertAnyPermission,
+  listProcedure,
+  permissionProcedure,
+  router,
+} from "../trpc";
 import {
   docByCommentId,
   docById,
@@ -49,6 +65,65 @@ import {
   projectFromInput,
 } from "../resources";
 import { getCurrentMember } from "./task-helpers";
+import { z } from "zod";
+
+/** A live comment of the active organization, with the doc it sits on. */
+async function openComment(
+  tx: DbHandle,
+  ctx: { activeOrganization: { id: string } },
+  id: string,
+  /** Lock the row until the transaction ends (a reply racing a delete). */
+  lock = false,
+) {
+  const query = tx
+    .select({
+      id: docComments.id,
+      authorMemberId: docComments.authorMemberId,
+      parentId: docComments.parentId,
+      doc: {
+        id: docs.id,
+        title: docs.title,
+        slug: docs.slug,
+        projectId: docs.projectId,
+        teamId: docs.teamId,
+      },
+    })
+    .from(docComments)
+    .innerJoin(docs, eq(docs.id, docComments.docId))
+    .where(
+      and(
+        eq(docComments.id, id),
+        eq(docComments.organizationId, ctx.activeOrganization.id),
+        isNull(docComments.deletedAt),
+        isNull(docs.deletedAt),
+      ),
+    )
+    .limit(1);
+  const [row] = lock
+    ? await query.for("update", { of: docComments })
+    : await query;
+
+  if (!row) {
+    throw new TRPCError({ code: "NOT_FOUND", message: "Comment not found." });
+  }
+
+  return row;
+}
+
+/** A doc's public-link fields (the doc is already known to be in this org). */
+async function shareOf(ctx: { db: TRPCContext["db"] }, id: string) {
+  const [row] = await ctx.db
+    .select({
+      shareToken: docs.shareToken,
+      sharedAt: docs.sharedAt,
+      sharedByMemberId: docs.sharedByMemberId,
+    })
+    .from(docs)
+    .where(eq(docs.id, id))
+    .limit(1);
+
+  return row!;
+}
 
 async function getDocForActiveOrganization({
   ctx,
@@ -408,6 +483,14 @@ export const docsRouter = router({
           });
         }
 
+        await recordDocVersion(tx, {
+          organizationId: activeOrganization.id,
+          docId: doc.id,
+          memberId: member.id,
+          content: doc.content,
+          fresh: true,
+        });
+
         await ctx.audit.record(tx, {
           action: "doc.created",
           target: { id: doc.id, label: doc.title },
@@ -512,6 +595,69 @@ export const docsRouter = router({
         return updatedDoc;
       });
     }),
+  /** Whether the doc has a public link; the link itself for its editors. */
+  shareLink: permissionProcedure("docs.view", docById("id"), {
+    module: "docs",
+    also: ["docs.update_own"],
+  })
+    .input(z.object({ id: z.string().uuid() }))
+    .query(async ({ ctx, input }) => {
+      const doc = await getDocForActiveOrganization({ ctx, id: input.id });
+      const share = await shareOf(ctx, doc.id);
+      const canManage = (
+        await ctx.permissions.check(
+          "docs.update_own",
+          await docById("id")({ ctx, input }),
+        )
+      ).allowed;
+
+      return {
+        shared: Boolean(share.shareToken),
+        canManage,
+        // Only people who may turn the link off get to pass it around.
+        token: canManage ? share.shareToken : null,
+      };
+    }),
+
+  /**
+   * Turns the doc's public, read-only link on or off. Turning it off and on
+   * again makes a new link, so an old one never comes back to life.
+   */
+  setShare: permissionProcedure("docs.update_own", docById("id"), {
+    module: "docs",
+    audit: ["doc.shared", "doc.unshared"],
+  })
+    .input(z.object({ id: z.string().uuid(), enabled: z.boolean() }))
+    .mutation(async ({ ctx, input }) => {
+      const doc = await getDocForActiveOrganization({ ctx, id: input.id });
+      const share = await shareOf(ctx, doc.id);
+      const member = await getCurrentMember(ctx);
+      const token = input.enabled
+        ? (share.shareToken ?? newShareToken())
+        : null;
+
+      await ctx.db.transaction(async (tx) => {
+        await tx
+          .update(docs)
+          .set({
+            shareToken: token,
+            sharedAt: token ? (share.sharedAt ?? new Date()) : null,
+            sharedByMemberId: token
+              ? (share.sharedByMemberId ?? member.id)
+              : null,
+          })
+          .where(eq(docs.id, doc.id));
+        await ctx.audit.record(tx, {
+          action: input.enabled ? "doc.shared" : "doc.unshared",
+          target: { id: doc.id, label: doc.title },
+          projectId: doc.projectId,
+          teamId: doc.teamId,
+        });
+      });
+
+      return { shared: Boolean(token), token };
+    }),
+
   updateDocContent: permissionProcedure("docs.update_own", docById("id"), {
     module: "docs",
     audit: ["doc.updated"],
@@ -536,7 +682,10 @@ export const docsRouter = router({
               isNull(docs.deletedAt),
               // Only overwrite the version this edit started from.
               ...(expectedUpdatedAt
-                ? [eq(docs.updatedAt, expectedUpdatedAt)]
+                ? [
+                    // Stored with microseconds; the client copy has milliseconds.
+                    sql`date_trunc('milliseconds', ${docs.updatedAt}) = ${expectedUpdatedAt.toISOString()}::timestamp`,
+                  ]
                 : []),
             ),
           )
@@ -550,6 +699,13 @@ export const docsRouter = router({
               : "Doc not found.",
           });
         }
+
+        await recordDocVersion(tx, {
+          organizationId: activeOrganization.id,
+          docId: updatedDoc.id,
+          memberId: member.id,
+          content,
+        });
 
         if (
           await hasRecentDocEdit(tx, {
@@ -568,9 +724,6 @@ export const docsRouter = router({
             metadata: {
               slug: updatedDoc.slug,
               fields: ["content"],
-              snippet: content.slice(0, 160),
-              snapshot: content,
-              length: content.length,
             },
           });
         }
@@ -694,9 +847,19 @@ export const docsRouter = router({
       const { db, activeOrganization } = ctx;
       const doc = await getDocForActiveOrganization({ ctx, id: input.docId });
 
-      return db
+      const member = await getCurrentMember(ctx);
+      // People who may edit any doc here can remove anyone's comment.
+      const moderates = (
+        await ctx.permissions.check("docs.update_any", {
+          projectId: doc.projectId,
+          teamId: doc.teamId,
+        })
+      ).allowed;
+
+      const rows = await db
         .select({
           id: docComments.id,
+          parentId: docComments.parentId,
           body: docComments.body,
           authorMemberId: docComments.authorMemberId,
           authorName: users.name,
@@ -717,6 +880,12 @@ export const docsRouter = router({
           ),
         )
         .orderBy(asc(docComments.createdAt));
+
+      return rows.map((row) => {
+        const mine = row.authorMemberId === member.id;
+
+        return { ...row, canEdit: mine, canDelete: mine || moderates };
+      });
     }),
   createComment: permissionProcedure("docs.comment", docById("docId"), {
     module: "docs",
@@ -729,12 +898,31 @@ export const docsRouter = router({
       const member = await getCurrentMember(ctx);
 
       const comment = await db.transaction(async (tx) => {
+        if (input.parentId) {
+          const parent = await openComment(tx, ctx, input.parentId, true);
+
+          // Replies join a thread on this doc; they never nest.
+          if (parent.doc.id !== doc.id || parent.parentId) {
+            throw new TRPCError({
+              code: "BAD_REQUEST",
+              message: "Reply to a comment on this doc.",
+            });
+          }
+
+          // A reply reopens a resolved thread.
+          await tx
+            .update(docComments)
+            .set({ resolvedAt: null, updatedAt: new Date() })
+            .where(eq(docComments.id, parent.id));
+        }
+
         const [row] = await tx
           .insert(docComments)
           .values({
             organizationId: activeOrganization.id,
             docId: doc.id,
             authorMemberId: member.id,
+            parentId: input.parentId ?? null,
             body: sanitizeRichText(input.body),
           })
           .returning();
@@ -773,22 +961,21 @@ export const docsRouter = router({
   })
     .input(resolveDocCommentSchema)
     .mutation(async ({ ctx, input }) => {
-      const { db, activeOrganization } = ctx;
+      return ctx.db.transaction(async (tx) => {
+        const { doc, parentId } = await openComment(tx, ctx, input.id);
 
-      return db.transaction(async (tx) => {
+        if (parentId) {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: "Resolve the thread, not a reply.",
+          });
+        }
+
         const [comment] = await tx
           .update(docComments)
-          .set({
-            resolvedAt: new Date(),
-            updatedAt: new Date(),
-          })
+          .set({ resolvedAt: new Date(), updatedAt: new Date() })
           .where(
-            and(
-              eq(docComments.id, input.id),
-              eq(docComments.organizationId, activeOrganization.id),
-              isNull(docComments.deletedAt),
-              isNull(docComments.resolvedAt),
-            ),
+            and(eq(docComments.id, input.id), isNull(docComments.resolvedAt)),
           )
           .returning();
 
@@ -799,81 +986,206 @@ export const docsRouter = router({
           });
         }
 
-        const [doc] = await tx
-          .select({
-            id: docs.id,
-            title: docs.title,
-            slug: docs.slug,
-            projectId: docs.projectId,
-            teamId: docs.teamId,
-          })
-          .from(docs)
-          .where(eq(docs.id, comment.docId))
-          .limit(1);
-
         await ctx.audit.record(tx, {
           action: "doc.comment_resolved",
-          target: { id: comment.docId, label: doc?.title },
-          projectId: doc?.projectId,
-          teamId: doc?.teamId,
-          metadata: { commentId: comment.id, slug: doc?.slug },
+          target: { id: doc.id, label: doc.title },
+          projectId: doc.projectId,
+          teamId: doc.teamId,
+          metadata: { commentId: comment.id, slug: doc.slug },
         });
 
         return comment;
       });
     }),
+  editComment: permissionProcedure("docs.comment", docByCommentId(), {
+    module: "docs",
+    audit: ["doc.comment_edited"],
+  })
+    .input(updateDocCommentSchema)
+    .mutation(async ({ ctx, input }) => {
+      const member = await getCurrentMember(ctx);
 
-  getVersionHistory: permissionProcedure("docs.view", docById("id"))
+      return ctx.db.transaction(async (tx) => {
+        const comment = await openComment(tx, ctx, input.id);
+
+        // Only the author puts words in their own mouth.
+        if (comment.authorMemberId !== member.id) {
+          throw new TRPCError({
+            code: "FORBIDDEN",
+            message: "Only the author can edit a comment.",
+          });
+        }
+
+        const [edited] = await tx
+          .update(docComments)
+          .set({ body: sanitizeRichText(input.body), updatedAt: new Date() })
+          .where(eq(docComments.id, comment.id))
+          .returning();
+
+        await ctx.audit.record(tx, {
+          action: "doc.comment_edited",
+          target: { id: comment.doc.id, label: comment.doc.title },
+          projectId: comment.doc.projectId,
+          teamId: comment.doc.teamId,
+          metadata: { commentId: comment.id, slug: comment.doc.slug },
+        });
+        await syncMentions(tx, {
+          organizationId: ctx.activeOrganization.id,
+          memberId: member.id,
+          source: { type: "doc", id: comment.doc.id },
+          text: input.body,
+          via: "comment",
+          mode: "append",
+        });
+
+        return edited!;
+      });
+    }),
+  deleteComment: permissionProcedure("docs.comment", docByCommentId(), {
+    module: "docs",
+    audit: ["doc.comment_deleted"],
+  })
+    .input(deleteDocCommentSchema)
+    .mutation(async ({ ctx, input }) => {
+      const member = await getCurrentMember(ctx);
+
+      return ctx.db.transaction(async (tx) => {
+        // Locked like a reply locks it, so a reply racing this delete
+        // either lands first (and goes with the thread) or is refused.
+        const comment = await openComment(tx, ctx, input.id, true);
+
+        // Authors remove their own; people who may edit any doc moderate.
+        if (comment.authorMemberId !== member.id) {
+          await assertAnyPermission(ctx, ["docs.update_any"], {
+            projectId: comment.doc.projectId,
+            teamId: comment.doc.teamId,
+          });
+        }
+
+        // A thread goes with its first comment.
+        await tx
+          .update(docComments)
+          .set({ deletedAt: new Date(), updatedAt: new Date() })
+          .where(
+            and(
+              or(
+                eq(docComments.id, comment.id),
+                eq(docComments.parentId, comment.id),
+              ),
+              isNull(docComments.deletedAt),
+            ),
+          );
+
+        await ctx.audit.record(tx, {
+          action: "doc.comment_deleted",
+          target: { id: comment.doc.id, label: comment.doc.title },
+          projectId: comment.doc.projectId,
+          teamId: comment.doc.teamId,
+          metadata: { commentId: comment.id, slug: comment.doc.slug },
+        });
+
+        return { id: comment.id };
+      });
+    }),
+
+  getVersionHistory: permissionProcedure("docs.view", docById("id"), {
+    module: "docs",
+  })
     .input(getDocByIdSchema)
     .query(async ({ ctx, input }) => {
       const { db, activeOrganization } = ctx;
-      const events = await db
+      const versions = await db
         .select({
-          id: activityEvents.id,
-          action: activityEvents.action,
-          createdAt: activityEvents.createdAt,
-          metadata: activityEvents.metadata,
-          actorUserId: activityEvents.actorUserId,
-          actorName: users.name,
-          actorEmail: users.email,
+          id: docVersions.id,
+          snippet: sql<string>`left(${docVersions.content}, 160)`,
+          length: sql<number>`length(${docVersions.content})::int`,
+          updatedAt: docVersions.updatedAt,
+          authorName: users.name,
+          authorEmail: users.email,
         })
-        .from(activityEvents)
-        .leftJoin(users, eq(users.id, activityEvents.actorUserId))
+        .from(docVersions)
+        .leftJoin(members, eq(members.id, docVersions.authorMemberId))
+        .leftJoin(users, eq(users.id, members.userId))
         .where(
           and(
-            eq(activityEvents.organizationId, activeOrganization.id),
-            eq(activityEvents.targetType, "doc"),
-            eq(activityEvents.targetId, input.id),
+            eq(docVersions.organizationId, activeOrganization.id),
+            eq(docVersions.docId, input.id),
           ),
         )
-        .orderBy(desc(activityEvents.createdAt))
+        .orderBy(desc(docVersions.updatedAt))
         .limit(30);
 
-      return events.map((e) => {
-        const meta = (e.metadata ?? {}) as Record<string, any>;
-        return {
-          id: e.id,
-          action: e.action,
-          createdAt: e.createdAt,
-          actorName: e.actorName || e.actorEmail || "Teammate",
-          snippet: (meta.snippet as string) || "",
-          snapshot: (meta.snapshot as string) || null,
-          length: (meta.length as number) || 0,
-        };
-      });
+      return versions.map((version) => ({
+        id: version.id,
+        savedAt: version.updatedAt,
+        authorName: version.authorName || version.authorEmail || "Teammate",
+        snippet: version.snippet,
+        length: version.length,
+      }));
+    }),
+
+  /** One version's full text, for the preview in the history panel. */
+  getVersion: permissionProcedure("docs.view", docById("id"), {
+    module: "docs",
+  })
+    .input(docVersionSchema)
+    .query(async ({ ctx, input }) => {
+      const [version] = await ctx.db
+        .select({ id: docVersions.id, content: docVersions.content })
+        .from(docVersions)
+        .where(
+          and(
+            eq(docVersions.id, input.versionId),
+            eq(docVersions.docId, input.id),
+            eq(docVersions.organizationId, ctx.activeOrganization.id),
+          ),
+        )
+        .limit(1);
+
+      if (!version) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "That version of the doc no longer exists.",
+        });
+      }
+
+      return version;
     }),
 
   restoreVersion: permissionProcedure("docs.update_own", docById("id"), {
     module: "docs",
     audit: ["doc.updated"],
   })
-    .input(updateDocContentSchema)
+    .input(restoreDocVersionSchema)
     .mutation(async ({ ctx, input }) => {
       const { db, activeOrganization } = ctx;
-      const { id, content } = input;
+      const { id, versionId, expectedUpdatedAt } = input;
       const member = await getCurrentMember(ctx);
 
       return db.transaction(async (tx) => {
+        const [version] = await tx
+          .select({ content: docVersions.content })
+          .from(docVersions)
+          .innerJoin(docs, eq(docs.id, docVersions.docId))
+          .where(
+            and(
+              eq(docVersions.id, versionId),
+              eq(docVersions.docId, id),
+              eq(docVersions.organizationId, activeOrganization.id),
+              // A trashed doc comes back from the trash first.
+              isNull(docs.deletedAt),
+            ),
+          )
+          .limit(1);
+
+        if (!version) {
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: "That version of the doc no longer exists.",
+          });
+        }
+
+        const { content } = version;
         const [updatedDoc] = await tx
           .update(docs)
           .set({
@@ -885,16 +1197,28 @@ export const docsRouter = router({
               eq(docs.id, id),
               eq(docs.organizationId, activeOrganization.id),
               isNull(docs.deletedAt),
+              // A restore is an edit too: never over someone's newer change.
+              // Stored with microseconds; the client copy has milliseconds.
+              sql`date_trunc('milliseconds', ${docs.updatedAt}) = ${expectedUpdatedAt.toISOString()}::timestamp`,
             ),
           )
           .returning();
 
         if (!updatedDoc) {
           throw new TRPCError({
-            code: "NOT_FOUND",
-            message: "Doc not found.",
+            code: "CONFLICT",
+            message:
+              "Someone else changed this doc. Reload to see their edits.",
           });
         }
+
+        await recordDocVersion(tx, {
+          organizationId: activeOrganization.id,
+          docId: updatedDoc.id,
+          memberId: member.id,
+          content,
+          fresh: true,
+        });
 
         await ctx.audit.record(tx, {
           action: "doc.updated",
@@ -905,9 +1229,6 @@ export const docsRouter = router({
             slug: updatedDoc.slug,
             fields: ["content"],
             restored: true,
-            snippet: content.slice(0, 160),
-            snapshot: content,
-            length: content.length,
           },
         });
 

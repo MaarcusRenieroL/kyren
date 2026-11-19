@@ -50,8 +50,6 @@ const unmanaged: Record<string, string> = {
     "Signed-in members read their own notification settings.",
   "notification.setPreferences":
     "Signed-in members change their own notification settings.",
-  "file.getFiles": "Stub that returns null; no data behind it yet.",
-  "search.searchById": "Stub that returns null; no data behind it yet.",
 };
 
 // Procedures whose permission is checked in the handler (scope depends on the

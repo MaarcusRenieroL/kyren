@@ -22,7 +22,7 @@ export function Stat({
       data-slot="stat"
       className={cn("flex flex-col items-start gap-1.5", className)}
     >
-      <span className="font-serif-italic text-5xl leading-none text-ink tabular-nums">
+      <span className="font-mono font-semibold text-4xl leading-none text-ink tabular-nums tracking-tight">
         {value}
       </span>
       <span className="text-sm text-ink-2">{label}</span>

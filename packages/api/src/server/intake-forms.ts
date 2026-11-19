@@ -2,6 +2,9 @@ import { and, eq, sql } from "@zentro/db/drizzle";
 import { intakeForms, tickets, type IntakeField } from "@zentro/db/schema";
 
 import type { DbHandle } from "./access";
+import { ticketsOpenToPublic } from "./tickets-public";
+import { nextAssignee } from "./ticket-assignment";
+import { mailTicketReceived } from "./ticket-mail";
 
 type Tx = DbHandle & {
   execute: (query: ReturnType<typeof sql>) => Promise<unknown>;
@@ -33,7 +36,11 @@ const findForm = async (db: DbHandle, token: string) => {
     .where(and(eq(intakeForms.token, token), eq(intakeForms.enabled, true)))
     .limit(1);
 
-  return form ?? null;
+  if (!form || !(await ticketsOpenToPublic(db, form.organizationId))) {
+    return null;
+  }
+
+  return form;
 };
 
 /** What a visitor needs to fill the form in, nothing about the organization. */
@@ -111,7 +118,7 @@ export async function submitIntake(
     .join("\n\n")
     .slice(0, 10_000);
 
-  return db.transaction(async (tx) => {
+  const created = await db.transaction(async (tx) => {
     await tx.execute(
       sql`select pg_advisory_xact_lock(hashtextextended(${form.organizationId}, 0))`,
     );
@@ -122,16 +129,30 @@ export async function submitIntake(
       .where(eq(tickets.organizationId, form.organizationId));
     const number = (last?.max ?? 0) + 1;
 
-    await tx.insert(tickets).values({
-      organizationId: form.organizationId,
-      number,
-      subject,
-      description,
-      requesterName,
-      requesterEmail,
-      category: form.name.slice(0, 80),
-    });
+    const [row] = await tx
+      .insert(tickets)
+      .values({
+        organizationId: form.organizationId,
+        number,
+        subject,
+        description,
+        requesterName,
+        requesterEmail,
+        category: form.name.slice(0, 80),
+        assigneeMemberId: await nextAssignee(tx, form.organizationId),
+      })
+      .returning({
+        number: tickets.number,
+        subject: tickets.subject,
+        requesterEmail: tickets.requesterEmail,
+        portalToken: tickets.portalToken,
+      });
 
-    return { ok: true as const, ref: `SUP-${number}` };
+    return row!;
   });
+
+  // The person who filled the form learns it arrived, with its reference.
+  await mailTicketReceived(created, "auto-generated", db as never);
+
+  return { ok: true as const, ref: `SUP-${created.number}` };
 }

@@ -284,7 +284,7 @@ export const chatChannelProcedures = {
   sidebar: chatProcedure("chat.view").query(async ({ ctx }) => {
     // Scheduled messages and reminders are delivered from here at most once
     // a minute, so they work without a cron job; the daily cron adds the rest.
-    await runChatJobsLazily(ctx.db);
+    await runChatJobsLazily(ctx.db, ctx.activeOrganization.id);
 
     const memberId = await currentMemberId(ctx);
     const [reminders, drafts, scheduled, followed] = await Promise.all([
@@ -356,9 +356,16 @@ export const chatChannelProcedures = {
     const counts = await ctx.db
       .select({
         channelId: chatMessages.channelId,
-        unread: sql<number>`count(*)`.mapWith(Number),
+        // Thread replies don't make the channel unread, but a reply that
+        // names the person is still a mention of them.
+        unread:
+          sql<number>`count(*) filter (where ${chatMessages.parentId} is null)`.mapWith(
+            Number,
+          ),
         mentions:
-          sql<number>`count(*) filter (where ${chatMessages.body} like ${`%<@${memberId}>%`} or ${chatMessages.body} ~ '<!(channel|here)>')`.mapWith(
+          // In a thread only a direct mention counts; @channel and @here
+          // speak to the thread, not to everyone in the channel.
+          sql<number>`count(*) filter (where ${chatMessages.body} like ${`%<@${memberId}>%`} or (${chatMessages.parentId} is null and ${chatMessages.body} ~ '<!(channel|here)>'))`.mapWith(
             Number,
           ),
       })
@@ -374,7 +381,6 @@ export const chatChannelProcedures = {
         and(
           inArray(chatMessages.channelId, channelIds),
           isNull(chatMessages.deletedAt),
-          isNull(chatMessages.parentId),
           sql`${chatMessages.createdAt} > ${chatMembers.lastReadAt}`,
           sql`${chatMessages.authorMemberId} is distinct from ${memberId}`,
         ),

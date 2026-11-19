@@ -95,14 +95,19 @@ describe("input hardening", () => {
         elements: [{ ...stroke(1, [1, 2]), color: "red;} body{display:none" }],
       }),
     ).rejects.toMatchObject({ code: "BAD_REQUEST" });
+    // Fills are held to the same palette rule.
     await expect(
-      owner.whiteboard.save({ id, elements: [stroke(1, [1, 2, 3, 4])] }),
-    ).resolves.toBeTruthy();
+      owner.whiteboard.save({
+        id,
+        elements: [{ ...stroke(1, [1, 2]), fill: "url(javascript:x)" }],
+      }),
+    ).rejects.toMatchObject({ code: "BAD_REQUEST" });
+    await owner.whiteboard.save({ id, elements: [stroke(1, [1, 2, 3, 4])] });
     // The theme-aware "ink" swatch from the board palette stays valid.
     await expect(
       owner.whiteboard.save({
         id,
-        elements: [{ ...stroke(2, [1, 2]), color: "ink" }],
+        elements: [{ ...stroke(2, [1, 2]), color: "ink", fill: "none" }],
       }),
     ).resolves.toBeTruthy();
   });

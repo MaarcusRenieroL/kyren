@@ -1,6 +1,7 @@
 export * from "./components/empty-state";
 export * from "./components/loading-state";
 export * from "./components/toast";
+export * from "./components/shadcn/native-select";
 export * from "./lib/errors";
 export * from "./lib/toast";
 export * from "./lib/utils";

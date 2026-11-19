@@ -11,8 +11,12 @@ import {
   isNotNull,
   isNull,
   or,
+  sql,
+  type SQL,
 } from "@zentro/db/drizzle";
 import {
+  files,
+  mailAttachments,
   mailMessages,
   mailRecipients,
   members,
@@ -26,6 +30,9 @@ import { permissionProcedure, router, type OrganizationContext } from "../trpc";
 const uuid = z.string().uuid();
 const folders = ["inbox", "starred", "sent", "drafts", "trash"] as const;
 
+/** Messages per page of a folder. */
+const PAGE = 50;
+
 const procedure = (permission: string) =>
   permissionProcedure(permission, undefined, { module: "mail" });
 
@@ -36,6 +43,8 @@ const draftInput = z.object({
   subject: z.string().max(300).default(""),
   body: z.string().max(50_000).default(""),
   replyToId: uuid.optional(),
+  /** Files uploaded for this message (see `files.mailRegister`). */
+  fileIds: z.array(uuid).max(10).default([]),
 });
 
 type DraftInput = z.infer<typeof draftInput>;
@@ -59,6 +68,15 @@ async function nameMap(ctx: OrganizationContext, ids: string[]) {
 
 const snippet = (body: string) =>
   body.replace(/\s+/g, " ").trim().slice(0, 140);
+
+/** Whether the caller may read a message (they wrote it, or received it sent). */
+export async function canSeeMessage(
+  ctx: OrganizationContext,
+  memberId: string,
+  id: string,
+) {
+  return Boolean(await visibleMessage(ctx, memberId, id));
+}
 
 /** The message when the caller wrote it or received it once it was sent. */
 async function visibleMessage(
@@ -86,7 +104,11 @@ async function visibleMessage(
     .where(eq(mailRecipients.messageId, id));
   const asRecipient = recipients.find((row) => row.memberId === memberId);
 
-  if (!mine && !(asRecipient && message.sentAt)) return null;
+  // "Delete forever" removes it from that person's view for good.
+  const asSender = mine && !message.senderPurgedAt;
+  const asReader = asRecipient && message.sentAt && !asRecipient.purgedAt;
+
+  if (!asSender && !asReader) return null;
 
   return { message, recipients, mine, asRecipient };
 }
@@ -138,6 +160,31 @@ async function writeMessage(
     threadId = original.message.threadId;
   }
 
+  // Only files this person uploaded for mail, in this organization.
+  const fileIds = [...new Set(input.fileIds)];
+
+  if (fileIds.length) {
+    const own = await ctx.db
+      .select({ id: files.id })
+      .from(files)
+      .where(
+        and(
+          inArray(files.id, fileIds),
+          eq(files.organizationId, ctx.activeOrganization.id),
+          eq(files.uploadedByMemberId, memberId),
+          eq(files.source, "mail"),
+          isNull(files.deletedAt),
+        ),
+      );
+
+    if (own.length !== fileIds.length) {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "Attach files you uploaded to this message.",
+      });
+    }
+  }
+
   const now = new Date();
   const values = {
     subject: input.subject.trim(),
@@ -149,9 +196,11 @@ async function writeMessage(
   // Message and recipients change together or not at all.
   await ctx.db.transaction(async (tx) => {
     if (existingId) {
+      // "Still a draft" is checked by the write itself, so an autosave that
+      // lands after the message was sent changes nothing.
       const [draft] = await tx
-        .select({ id: mailMessages.id })
-        .from(mailMessages)
+        .update(mailMessages)
+        .set(values)
         .where(
           and(
             eq(mailMessages.id, id),
@@ -160,13 +209,30 @@ async function writeMessage(
             isNull(mailMessages.sentAt),
           ),
         )
-        .limit(1);
+        .returning({ id: mailMessages.id });
 
       if (!draft) {
-        throw new TRPCError({ code: "NOT_FOUND", message: "Draft not found." });
+        // Only the sender learns that their own message went out already.
+        const [own] = await tx
+          .select({ id: mailMessages.id })
+          .from(mailMessages)
+          .where(
+            and(
+              eq(mailMessages.id, id),
+              eq(mailMessages.organizationId, ctx.activeOrganization.id),
+              eq(mailMessages.senderMemberId, memberId),
+            ),
+          )
+          .limit(1);
+
+        throw own
+          ? new TRPCError({
+              code: "CONFLICT",
+              message: "This message was already sent, so it can't be changed.",
+            })
+          : new TRPCError({ code: "NOT_FOUND", message: "Draft not found." });
       }
 
-      await tx.update(mailMessages).set(values).where(eq(mailMessages.id, id));
       await tx.delete(mailRecipients).where(eq(mailRecipients.messageId, id));
     } else {
       await tx.insert(mailMessages).values({
@@ -193,6 +259,18 @@ async function writeMessage(
         .insert(mailRecipients)
         .values(rows.map((row) => ({ ...row, messageId: id })));
     }
+
+    await tx.delete(mailAttachments).where(eq(mailAttachments.messageId, id));
+
+    if (fileIds.length) {
+      await tx.insert(mailAttachments).values(
+        fileIds.map((fileId, position) => ({
+          messageId: id,
+          fileId,
+          position,
+        })),
+      );
+    }
   });
 
   return { id };
@@ -205,10 +283,26 @@ export const mailRouter = router({
       z.object({
         folder: z.enum(folders),
         search: z.string().trim().max(120).optional(),
+        /** The `nextCursor` of the previous page, for older messages. */
+        cursor: z
+          .string()
+          .regex(
+            /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z\|[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/,
+          )
+          .optional(),
       }),
     )
     .query(async ({ ctx, input }) => {
       const memberId = await currentMemberId(ctx);
+      // Newest first, by time then id, so messages sent in the same
+      // millisecond are never skipped or repeated between pages.
+      const [cursorAt, cursorId] = input.cursor?.split("|") ?? [];
+      const olderThan = (at: SQL) =>
+        cursorAt
+          ? sql`(date_trunc('milliseconds', ${at}) < ${cursorAt}::timestamp or (date_trunc('milliseconds', ${at}) = ${cursorAt}::timestamp and ${mailMessages.id} < ${cursorId}::uuid))`
+          : undefined;
+      const sentAt = sql`${mailMessages.sentAt}`;
+      const shownAt = sql`coalesce(${mailMessages.sentAt}, ${mailMessages.updatedAt})`;
       const escaped = input.search?.replace(/[\\%_]/g, "\\$&");
       const match = escaped
         ? or(
@@ -258,10 +352,14 @@ export const mailRouter = router({
               input.folder === "starred"
                 ? eq(mailRecipients.starred, true)
                 : undefined,
+              olderThan(sentAt),
             ),
           )
-          .orderBy(desc(mailMessages.sentAt))
-          .limit(300);
+          .orderBy(
+            desc(sql`date_trunc('milliseconds', ${sentAt})`),
+            desc(mailMessages.id),
+          )
+          .limit(PAGE + 1);
 
         for (const { message, rec } of rows) {
           items.set(message.id, {
@@ -300,10 +398,14 @@ export const mailRouter = router({
               input.folder === "starred"
                 ? eq(mailMessages.senderStarred, true)
                 : undefined,
+              olderThan(shownAt),
             ),
           )
-          .orderBy(desc(mailMessages.updatedAt))
-          .limit(300);
+          .orderBy(
+            desc(sql`date_trunc('milliseconds', ${shownAt})`),
+            desc(mailMessages.id),
+          )
+          .limit(PAGE + 1);
 
         for (const message of rows) {
           if (items.has(message.id)) continue;
@@ -321,7 +423,15 @@ export const mailRouter = router({
         }
       }
 
-      const list = [...items.values()].sort((a, b) => +b.at - +a.at);
+      const sorted = [...items.values()].sort(
+        (a, b) => +b.at - +a.at || (a.id < b.id ? 1 : a.id > b.id ? -1 : 0),
+      );
+      const list = sorted.slice(0, PAGE);
+      const last = list[list.length - 1];
+      const nextCursor =
+        sorted.length > PAGE && last
+          ? `${last.at.toISOString()}|${last.id}`
+          : null;
       const recipients = list.length
         ? await ctx.db
             .select({
@@ -354,25 +464,28 @@ export const mailRouter = router({
       const label = (id: string | null) =>
         (id && names.get(id)?.name) || "Someone";
 
-      return list.map((item) => ({
-        id: item.id,
-        threadId: item.threadId,
-        subject: item.subject || "(no subject)",
-        snippet: item.snippet,
-        from: item.senderId === memberId ? "Me" : label(item.senderId),
-        to: item.toIds.map(label),
-        at: item.at.toISOString(),
-        unread: item.unread,
-        starred: item.starred,
-        draft: input.folder === "drafts",
-      }));
+      return {
+        items: list.map((item) => ({
+          id: item.id,
+          threadId: item.threadId,
+          subject: item.subject || "(no subject)",
+          snippet: item.snippet,
+          from: item.senderId === memberId ? "Me" : label(item.senderId),
+          to: item.toIds.map(label),
+          at: item.at.toISOString(),
+          unread: item.unread,
+          starred: item.starred,
+          draft: input.folder === "drafts",
+        })),
+        nextCursor,
+      };
     }),
 
   /** How many unread messages are waiting in the inbox. */
   unread: procedure("mail.view").query(async ({ ctx }) => {
     const memberId = await currentMemberId(ctx);
-    const rows = await ctx.db
-      .select({ id: mailRecipients.id })
+    const [row] = await ctx.db
+      .select({ count: sql<number>`count(*)::int` })
       .from(mailRecipients)
       .innerJoin(mailMessages, eq(mailMessages.id, mailRecipients.messageId))
       .where(
@@ -386,7 +499,7 @@ export const mailRouter = router({
         ),
       );
 
-    return { count: rows.length };
+    return { count: row?.count ?? 0 };
   }),
 
   /** People who can be addressed. */
@@ -459,6 +572,28 @@ export const mailRouter = router({
           ]),
         ),
       ]);
+      const attached = messages.length
+        ? await ctx.db
+            .select({
+              messageId: mailAttachments.messageId,
+              id: files.id,
+              name: files.name,
+              size: files.size,
+              mimeType: files.mimeType,
+            })
+            .from(mailAttachments)
+            .innerJoin(files, eq(files.id, mailAttachments.fileId))
+            .where(
+              and(
+                inArray(
+                  mailAttachments.messageId,
+                  messages.map((item) => item.message.id),
+                ),
+                isNull(files.deletedAt),
+              ),
+            )
+            .orderBy(asc(mailAttachments.position))
+        : [];
       const person = (id: string) => ({
         id,
         name: names.get(id)?.name ?? "Someone",
@@ -483,6 +618,15 @@ export const mailRouter = router({
           at: (item.message.sentAt ?? item.message.updatedAt).toISOString(),
           draft: !item.message.sentAt,
           mine: item.mine,
+          attachments: attached
+            .filter((file) => file.messageId === item.message.id)
+            .map((file) => ({
+              id: file.id,
+              name: file.name,
+              size: file.size,
+              mimeType: file.mimeType,
+              url: `/api/files/${file.id}`,
+            })),
         })),
       };
     }),

@@ -14,13 +14,17 @@ const testDatabaseUrl = getTestDatabaseUrl();
 // Aborts the whole run before anything connects.
 assertTestDatabaseUrl(testDatabaseUrl);
 
+// Files that change platform-wide state (maintenance mode, platform settings,
+// the console's IP allow-list). Run in parallel with the rest, they make
+// unrelated tests fail, so they run on their own after everything else.
+const platformWide = ["test/platform-console.test.ts"];
+
 export default defineConfig({
   resolve: {
     // The web app's `~/` imports, for the tests that exercise its server code.
     alias: { "~": path.resolve(import.meta.dirname, "../../apps/web") },
   },
   test: {
-    include: ["test/**/*.test.ts"],
     globalSetup: ["./test/global-setup.ts"],
     setupFiles: ["./test/setup.ts"],
     testTimeout: 30_000,
@@ -37,5 +41,23 @@ export default defineConfig({
       // Mail goes nowhere in tests.
       RESEND_BASE_URL: "http://127.0.0.1:9",
     },
+    projects: [
+      {
+        extends: true,
+        test: {
+          name: "api",
+          include: ["test/**/*.test.ts"],
+          exclude: platformWide,
+        },
+      },
+      {
+        extends: true,
+        test: {
+          name: "platform-wide",
+          include: platformWide,
+          sequence: { groupOrder: 1 },
+        },
+      },
+    ],
   },
 });

@@ -42,6 +42,9 @@ export const notificationKinds = [
   "unblock",
 ] as const;
 
+/** What can be switched off: the inbox kinds, plus chat mention emails. */
+const preferenceKinds = [...notificationKinds, "mention_email"] as const;
+
 export type NotificationKind = (typeof notificationKinds)[number];
 
 export type InboxItem = {
@@ -564,7 +567,7 @@ export const notificationRouter = router({
   })),
 
   setPreferences: protectedProcedure
-    .input(z.object({ mutedKinds: z.array(z.enum(notificationKinds)).max(10) }))
+    .input(z.object({ mutedKinds: z.array(z.enum(preferenceKinds)).max(10) }))
     .mutation(async ({ ctx, input }) => {
       const mutedKinds = [...new Set(input.mutedKinds)];
 

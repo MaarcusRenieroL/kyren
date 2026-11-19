@@ -148,7 +148,7 @@ export const customFieldRouter = router({
     }),
 
   /** Every field with this task's value, or null where none is set. */
-  valuesForTask: permissionProcedure("tasks.view", undefined, {
+  valuesForTask: permissionProcedure("tasks.view", taskByKey("key"), {
     module: "tasks",
   })
     .input(z.object({ key: z.string().trim().min(1).max(40) }))

@@ -1,11 +1,12 @@
 import { TRPCError } from "@trpc/server";
-import { and, asc, eq } from "@zentro/db/drizzle";
-import { taskTemplates } from "@zentro/db/schema";
+import { and, asc, eq, inArray } from "@zentro/db/drizzle";
+import { taskTemplates, tasks } from "@zentro/db/schema";
 import { z } from "zod";
 
 import { currentMemberId } from "../chat";
 import { loadProjectById, projectFromInput } from "../resources";
 import type { TRPCContext } from "../../types";
+import { createTaskSchema } from "../../types/zod-schema";
 import { permissionProcedure, router } from "../trpc";
 import { taskRouter } from "./task";
 
@@ -16,7 +17,8 @@ const templateInput = z.object({
   name: z.string().trim().min(1).max(120),
   taskDescription: z.string().trim().max(10_000).nullable().optional(),
   priority: z.enum(["low", "medium", "high"]),
-  estimatePoints: z.number().int().min(0).max(1000).nullable().optional(),
+  // The same ceiling as a task's own estimate, or the template can't be used.
+  estimatePoints: z.number().int().min(0).max(100).nullable().optional(),
   dueInDays: z.number().int().min(0).max(365).nullable().optional(),
   subtasks: z.array(z.string().trim().min(1).max(120)).max(20),
 });
@@ -144,8 +146,7 @@ export const taskTemplateRouter = router({
         throw new TRPCError({ code: "NOT_FOUND" });
       }
 
-      const tasksApi = taskRouter.createCaller(ctx as unknown as TRPCContext);
-      const parent = await tasksApi.createTask({
+      const parentInput = {
         projectId: input.projectId,
         name: input.name ?? template.name,
         description: template.taskDescription ?? undefined,
@@ -155,19 +156,60 @@ export const taskTemplateRouter = router({
           template.dueInDays === null
             ? undefined
             : new Date(Date.now() + template.dueInDays * 86_400_000),
-      });
-      const keys = [parent.key];
+      };
+      const stepInputs = template.subtasks.map((title) => ({
+        projectId: input.projectId,
+        name: title,
+      }));
 
-      for (const title of template.subtasks) {
-        const child = await tasksApi.createTask({
-          projectId: input.projectId,
-          name: title,
-          parentTaskId: parent.id,
-        });
-
-        keys.push(child.key);
+      // Every task is checked before any is made, so a bad step (an old or
+      // hand-edited template) stops the build before it starts.
+      for (const candidate of [parentInput, ...stepInputs]) {
+        if (!createTaskSchema.safeParse(candidate).success) {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: `The template has a task that can't be created: "${candidate.name.slice(0, 60)}".`,
+          });
+        }
       }
 
-      return { keys };
+      // Each task goes through normal creation, with its own transaction,
+      // chat event and automations, as when made by hand. Anything that still
+      // fails part-way takes back the tasks this build already made.
+      const tasksApi = taskRouter.createCaller(ctx as unknown as TRPCContext);
+      const made: string[] = [];
+
+      try {
+        const parent = await tasksApi.createTask(parentInput);
+        const keys = [parent.key];
+
+        made.push(parent.id);
+
+        for (const step of stepInputs) {
+          const child = await tasksApi.createTask({
+            ...step,
+            parentTaskId: parent.id,
+          });
+
+          made.push(child.id);
+          keys.push(child.key);
+        }
+
+        return { keys };
+      } catch (error) {
+        if (made.length) {
+          await ctx.db
+            .update(tasks)
+            .set({ deletedAt: new Date() })
+            .where(
+              and(
+                inArray(tasks.id, made),
+                eq(tasks.organizationId, ctx.activeOrganization.id),
+              ),
+            );
+        }
+
+        throw error;
+      }
     }),
 });

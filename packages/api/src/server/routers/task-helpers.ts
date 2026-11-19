@@ -11,6 +11,7 @@ import {
 import type { AuditHandle } from "@zentro/audit/server";
 
 import type { TRPCContext } from "../../types";
+import { runTaskAutomations } from "../automations/engine";
 
 export async function getCurrentMember(ctx: TRPCContext) {
   const { db, user, activeOrganization } = ctx;
@@ -302,6 +303,18 @@ export async function triggerDownstreamUnblocks(
           assignedToMemberId: targetTask.assignedToMemberId,
           unblockedByTaskKey: completedTask.key,
           unblockedByTaskName: completedTask.name,
+        },
+      });
+      await runTaskAutomations({
+        db: tx,
+        organizationId: orgId,
+        event: "task.blockers_resolved",
+        task: {
+          id: targetTask.id,
+          key: targetTask.key,
+          status: targetTask.status,
+          projectId: targetTask.projectId,
+          assignedToMemberId: targetTask.assignedToMemberId,
         },
       });
     }

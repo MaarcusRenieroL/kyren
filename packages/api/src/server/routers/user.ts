@@ -33,6 +33,10 @@ export const userRouter = router({
   listPendingInvites: authenticatedProcedure.query(async ({ ctx }) => {
     const { user } = ctx;
 
+    // Invitations are found by email address, so until that address is
+    // proven, someone who signed up with another person's email sees none.
+    if (!user.emailVerified) return [];
+
     return ctx.db
       .select({
         id: invitations.id,

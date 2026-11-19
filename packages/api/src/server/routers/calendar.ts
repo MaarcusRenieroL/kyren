@@ -1,10 +1,37 @@
 import { TRPCError } from "@trpc/server";
-import { and, asc, eq, gt, lt } from "@zentro/db/drizzle";
+import {
+  and,
+  asc,
+  eq,
+  gt,
+  sql,
+  isNotNull,
+  isNull,
+  lt,
+  or,
+} from "@zentro/db/drizzle";
 import { calendarEvents, members, users } from "@zentro/db/schema";
 import { z } from "zod";
 
+import { holdsOwn } from "../access";
 import { currentMemberId } from "../chat";
+import {
+  occurrenceDay,
+  occurrences,
+  repeatKinds,
+  type RepeatKind,
+} from "../recurrence";
 import { permissionProcedure, router, type OrganizationContext } from "../trpc";
+import { isoDate } from "../zod-common";
+import { safeTimeZone, zonedDay } from "../../time-zone";
+
+const DAY = 86_400_000;
+/** The longest span one list call may cover: a six-week month grid and its edges. */
+const MAX_RANGE_DAYS = 62;
+/** One-off events, repeating series and occurrences one list call returns. */
+const MAX_EVENTS = 1000;
+const MAX_SERIES = 2000;
+const MAX_ITEMS = 5000;
 
 const uuid = z.string().uuid();
 export const eventColors = [
@@ -32,11 +59,104 @@ const eventInput = z
     allDay: z.boolean().default(false),
     startsAt: z.coerce.date(),
     endsAt: z.coerce.date(),
+    repeat: z.enum(repeatKinds).nullable().default(null),
+    repeatUntil: isoDate.nullable().default(null),
+    /**
+     * The creator's IANA zone; repeats and "until" follow its clock. Kept from
+     * creation: an edit from another zone does not move the series.
+     */
+    timeZone: z.string().max(64).optional(),
   })
   .refine((value) => value.endsAt >= value.startsAt, {
     message: "The event can't end before it starts.",
     path: ["endsAt"],
+  })
+  .refine((value) => value.repeat !== null || value.repeatUntil === null, {
+    message: "Pick how often it repeats.",
+    path: ["repeat"],
   });
+
+/** "Until" is a day on the series' own clock, and can't come before its start. */
+function assertUntil(
+  value: { startsAt: Date; allDay: boolean; repeatUntil: string | null },
+  timeZone: string,
+) {
+  if (
+    value.repeatUntil &&
+    value.repeatUntil <
+      zonedDay(value.startsAt, value.allDay ? "UTC" : timeZone)
+  ) {
+    throw new TRPCError({
+      code: "BAD_REQUEST",
+      message: "It can't stop repeating before it starts.",
+    });
+  }
+}
+
+/**
+ * The local day of a real, not yet skipped occurrence of this series (how
+ * skips are kept), or BAD_REQUEST.
+ */
+function assertOccurrence(
+  event: typeof calendarEvents.$inferSelect,
+  startsAt: Date,
+) {
+  const real =
+    event.repeat &&
+    occurrences(
+      {
+        startsAt: event.startsAt,
+        endsAt: event.startsAt,
+        repeat: event.repeat as RepeatKind,
+        repeatUntil: event.repeatUntil,
+        timeZone: event.allDay ? "UTC" : event.timeZone,
+        skipped: event.skipped,
+      },
+      new Date(startsAt.getTime() - 1),
+      new Date(startsAt.getTime() + 1),
+      2,
+    ).some((start) => start.getTime() === startsAt.getTime());
+
+  if (!real) {
+    throw new TRPCError({
+      code: "BAD_REQUEST",
+      message: "That is not an event in this series.",
+    });
+  }
+
+  return occurrenceDay(event, startsAt);
+}
+
+/**
+ * Takes one day out of a series, once: two requests at the same moment can't
+ * both take the same day (the second finds it already gone).
+ */
+async function skipDay(
+  tx: Pick<OrganizationContext["db"], "update">,
+  id: string,
+  day: string,
+) {
+  const [row] = await tx
+    .update(calendarEvents)
+    .set({
+      skipped: sql`array_append(${calendarEvents.skipped}, ${day})`,
+      updatedAt: new Date(),
+    })
+    .where(
+      and(
+        eq(calendarEvents.id, id),
+        sql`not (${day} = any(${calendarEvents.skipped}))`,
+      ),
+    )
+    .returning({ id: calendarEvents.id });
+
+  if (!row) {
+    throw new TRPCError({
+      code: "CONFLICT",
+      message: "That event has already been changed.",
+    });
+  }
+}
 
 async function manageable(ctx: OrganizationContext, id: string) {
   const memberId = await currentMemberId(ctx);
@@ -57,7 +177,7 @@ async function manageable(ctx: OrganizationContext, id: string) {
 
   const mine = event.createdByMemberId === memberId;
   const allowed = mine
-    ? (await ctx.permissions.can("calendar.manage_own")) ||
+    ? (await holdsOwn(ctx, "calendar.manage_own")) ||
       (await ctx.permissions.can("calendar.manage_any"))
     : await ctx.permissions.can("calendar.manage_any");
 
@@ -77,53 +197,129 @@ export const calendarRouter = router({
     "calendar.manage_own",
     "calendar.manage_any",
   ])
-    .input(z.object({ from: z.coerce.date(), to: z.coerce.date() }))
+    .input(
+      z
+        .object({ from: z.coerce.date(), to: z.coerce.date() })
+        .refine(
+          (value) =>
+            value.to > value.from &&
+            value.to.getTime() - value.from.getTime() <= MAX_RANGE_DAYS * DAY,
+          { message: `Pick a range of up to ${MAX_RANGE_DAYS} days.` },
+        ),
+    )
     .query(async ({ ctx, input }) => {
       const memberId = await currentMemberId(ctx);
       const any = await ctx.permissions.can("calendar.manage_any");
-      const own = await ctx.permissions.can("calendar.manage_own");
+      const own = await holdsOwn(ctx, "calendar.manage_own");
 
-      const rows = await ctx.db
-        .select({
-          event: calendarEvents,
-          creator: users.name,
-        })
-        .from(calendarEvents)
-        .leftJoin(members, eq(members.id, calendarEvents.createdByMemberId))
-        .leftJoin(users, eq(users.id, members.userId))
-        .where(
-          and(
-            eq(calendarEvents.organizationId, ctx.activeOrganization.id),
-            lt(calendarEvents.startsAt, input.to),
-            gt(calendarEvents.endsAt, input.from),
-          ),
-        )
-        .orderBy(asc(calendarEvents.startsAt))
-        .limit(1000);
+      const columns = { event: calendarEvents, creator: users.name };
+      const scoped = and(
+        eq(calendarEvents.organizationId, ctx.activeOrganization.id),
+        lt(calendarEvents.startsAt, input.to),
+      );
+      // One-off events and repeating series are fetched apart, so old series
+      // that never end cannot crowd the range's own events out of the limit.
+      const [single, series] = await Promise.all([
+        ctx.db
+          .select(columns)
+          .from(calendarEvents)
+          .leftJoin(members, eq(members.id, calendarEvents.createdByMemberId))
+          .leftJoin(users, eq(users.id, members.userId))
+          .where(
+            and(
+              scoped,
+              isNull(calendarEvents.repeat),
+              gt(calendarEvents.endsAt, input.from),
+            ),
+          )
+          .orderBy(asc(calendarEvents.startsAt))
+          .limit(MAX_EVENTS),
+        ctx.db
+          .select(columns)
+          .from(calendarEvents)
+          .leftJoin(members, eq(members.id, calendarEvents.createdByMemberId))
+          .leftJoin(users, eq(users.id, members.userId))
+          .where(
+            and(
+              scoped,
+              isNotNull(calendarEvents.repeat),
+              or(
+                isNull(calendarEvents.repeatUntil),
+                // "Until" is a local day, which west of UTC ends up to a day
+                // after the UTC date; its last occurrence may also run on
+                // past it by its own length.
+                sql`${calendarEvents.repeatUntil} >= (${input.from.toISOString()}::timestamp - (${calendarEvents.endsAt} - ${calendarEvents.startsAt}) - interval '1 day')::date`,
+              ),
+            ),
+          )
+          .orderBy(asc(calendarEvents.startsAt))
+          .limit(MAX_SERIES),
+      ]);
+      const rows = [...single, ...series];
 
-      return rows.map(({ event, creator }) => ({
-        id: event.id,
-        title: event.title,
-        description: event.description,
-        location: event.location,
-        color: event.color,
-        allDay: event.allDay,
-        startsAt: event.startsAt.toISOString(),
-        endsAt: event.endsAt.toISOString(),
-        createdBy: creator ?? null,
-        canManage: any || (own && event.createdByMemberId === memberId),
-      }));
+      return (
+        rows
+          .flatMap(({ event, creator }) => {
+            const base = {
+              id: event.id,
+              title: event.title,
+              description: event.description,
+              location: event.location,
+              color: event.color,
+              allDay: event.allDay,
+              repeat: event.repeat as RepeatKind | null,
+              repeatUntil: event.repeatUntil,
+              createdBy: creator ?? null,
+              canManage: any || (own && event.createdByMemberId === memberId),
+              // The series' own first dates, which the editor changes.
+              seriesStartsAt: event.startsAt.toISOString(),
+              seriesEndsAt: event.endsAt.toISOString(),
+            };
+            const length = event.endsAt.getTime() - event.startsAt.getTime();
+            const starts = event.repeat
+              ? occurrences(
+                  {
+                    startsAt: event.startsAt,
+                    endsAt: event.endsAt,
+                    repeat: event.repeat as RepeatKind,
+                    repeatUntil: event.repeatUntil,
+                    // All-day events are stored on UTC days.
+                    timeZone: event.allDay ? "UTC" : event.timeZone,
+                    skipped: event.skipped,
+                  },
+                  input.from,
+                  input.to,
+                  // At most one a day: daily is the most often a series repeats.
+                  MAX_RANGE_DAYS + 2,
+                )
+              : [event.startsAt];
+
+            return starts.map((start) => ({
+              ...base,
+              startsAt: start.toISOString(),
+              endsAt: new Date(start.getTime() + length).toISOString(),
+            }));
+          })
+          .sort((a, b) => a.startsAt.localeCompare(b.startsAt))
+          // One response stays bounded however many series repeat in it.
+          .slice(0, MAX_ITEMS)
+      );
     }),
 
   create: procedure("calendar.create", ["calendar.event_created"])
     .input(eventInput)
     .mutation(async ({ ctx, input }) => {
       const memberId = await currentMemberId(ctx);
+      const timeZone = safeTimeZone(input.timeZone);
+
+      assertUntil(input, timeZone);
+
       const id = await ctx.db.transaction(async (tx) => {
         const [row] = await tx
           .insert(calendarEvents)
           .values({
             ...input,
+            timeZone,
             organizationId: ctx.activeOrganization.id,
             createdByMemberId: memberId,
           })
@@ -148,11 +344,15 @@ export const calendarRouter = router({
     .input(z.object({ id: uuid, data: eventInput }))
     .mutation(async ({ ctx, input }) => {
       const event = await manageable(ctx, input.id);
+      // The series keeps its creator's clock, whoever edits it.
+      const data = { ...input.data, timeZone: undefined };
+
+      assertUntil(data, event.timeZone);
 
       await ctx.db.transaction(async (tx) => {
         await tx
           .update(calendarEvents)
-          .set({ ...input.data, updatedAt: new Date() })
+          .set({ ...data, updatedAt: new Date() })
           .where(eq(calendarEvents.id, event.id));
         await ctx.audit.record(tx, {
           action: "calendar.event_updated",
@@ -161,6 +361,76 @@ export const calendarRouter = router({
       });
 
       return { id: event.id };
+    }),
+
+  /** Takes one occurrence out of a repeating series; the rest stay. */
+  skipOccurrence: procedure(
+    "calendar.view",
+    ["calendar.event_updated"],
+    ["calendar.manage_own", "calendar.manage_any"],
+  )
+    .input(z.object({ id: uuid, startsAt: z.coerce.date() }))
+    .mutation(async ({ ctx, input }) => {
+      const event = await manageable(ctx, input.id);
+      const start = assertOccurrence(event, input.startsAt);
+
+      await ctx.db.transaction(async (tx) => {
+        await skipDay(tx, event.id, start);
+        await ctx.audit.record(tx, {
+          action: "calendar.event_updated",
+          target: { id: event.id, label: event.title },
+          metadata: { skipped: start },
+        });
+      });
+
+      return { id: event.id };
+    }),
+
+  /**
+   * Changes one occurrence only: it leaves the series and becomes an event of
+   * its own with the new details, in one step.
+   */
+  detachOccurrence: procedure(
+    "calendar.view",
+    ["calendar.event_updated", "calendar.event_created"],
+    ["calendar.manage_own", "calendar.manage_any"],
+  )
+    .input(z.object({ id: uuid, startsAt: z.coerce.date(), data: eventInput }))
+    .mutation(async ({ ctx, input }) => {
+      const event = await manageable(ctx, input.id);
+      const start = assertOccurrence(event, input.startsAt);
+
+      const id = await ctx.db.transaction(async (tx) => {
+        await skipDay(tx, event.id, start);
+
+        const [row] = await tx
+          .insert(calendarEvents)
+          .values({
+            ...input.data,
+            // A single event now, on the series' own clock.
+            repeat: null,
+            repeatUntil: null,
+            timeZone: event.timeZone,
+            organizationId: ctx.activeOrganization.id,
+            // Still the series owner's event, whoever moved it.
+            createdByMemberId: event.createdByMemberId,
+          })
+          .returning({ id: calendarEvents.id });
+
+        await ctx.audit.record(tx, {
+          action: "calendar.event_updated",
+          target: { id: event.id, label: event.title },
+          metadata: { detached: start, into: row!.id },
+        });
+        await ctx.audit.record(tx, {
+          action: "calendar.event_created",
+          target: { id: row!.id, label: input.data.title },
+        });
+
+        return row!.id;
+      });
+
+      return { id };
     }),
 
   remove: procedure(

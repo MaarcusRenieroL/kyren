@@ -16,6 +16,7 @@ import { projectFromInput } from "../resources";
 import { permissionProcedure, router, type OrganizationContext } from "../trpc";
 import { isoDate, uuid } from "../zod-common";
 import { recordTaskChanges } from "./task-helpers";
+import { safeTimeZone, zonedDay, zonedDayStart } from "../../time-zone";
 
 const MAX_SPRINT_DAYS = 60;
 const MAX_SPRINTS = 200;
@@ -366,9 +367,16 @@ export const sprintRouter = router({
 
   /** Work left per day against a straight line to zero. */
   burndown: view()
-    .input(projectInput.extend({ id: uuid }))
+    .input(
+      projectInput.extend({
+        id: uuid,
+        /** The viewer's IANA zone; each day ends at their midnight. UTC when missing. */
+        timeZone: z.string().max(64).optional(),
+      }),
+    )
     .query(async ({ ctx, input }) => {
       const sprint = await sprintOf(ctx, input.projectId, input.id);
+      const zone = safeTimeZone(input.timeZone);
       const rows = await ctx.db
         .select({
           points: tasks.estimatePoints,
@@ -388,14 +396,18 @@ export const sprintRouter = router({
         Math.max(
           1,
           Math.floor(
-            (Date.parse(utcDay(new Date())) - Date.parse(sprint.startsOn)) /
+            (Date.parse(zonedDay(new Date(), zone)) -
+              Date.parse(sprint.startsOn)) /
               DAY,
           ) + 1,
         ),
       );
       const days = Array.from({ length: lastDay }, (_, i) => {
         const day = utcDay(new Date(Date.parse(sprint.startsOn) + i * DAY));
-        const cutoff = Date.parse(sprint.startsOn) + (i + 1) * DAY;
+        const cutoff = zonedDayStart(
+          utcDay(new Date(Date.parse(sprint.startsOn) + (i + 1) * DAY)),
+          zone,
+        ).getTime();
         const done = rows
           .filter(
             (r) =>

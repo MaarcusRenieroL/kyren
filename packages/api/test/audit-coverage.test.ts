@@ -24,6 +24,8 @@ const mutations = procedures.filter(
 const recordsNothing: Record<string, string> = {
   "files.register":
     "Records an upload; sharing it is a message in a conversation.",
+  "files.mailRegister":
+    "Records a mail attachment upload; the message that carries it is the record.",
   "files.libraryRegister":
     "Records an upload to the library; deleting and renaming are audited.",
   "chat.send":
@@ -79,14 +81,12 @@ const recordsNothing: Record<string, string> = {
     "A personal read mark on your own inbox; it changes nothing anyone else sees.",
   "notification.setPreferences":
     "A personal setting for your own inbox; it changes nothing anyone else sees.",
-  "automation.create": "Creates an automation rule.",
-  "automation.toggle": "Enables or disables an automation rule.",
-  "automation.delete": "Deletes an automation rule.",
-  "automation.seedPresets": "Seeds system automation rule templates.",
   "automation.escalateDueSLA": "Automated SLA escalation processor.",
   "task.createSubtask": "Creates child task record.",
   "task.logTime": "Personal time tracking entry.",
   "whiteboard.save": "Autosave of the drawing; it would flood the audit log.",
+  "whiteboard.presence":
+    'A passing "who is looking at this board" signal, kept in memory only.',
   "tickets.reply": "A reply is part of the ticket thread, which shows it.",
   "hr.leaveRequest": "A personal request; the decision on it is audited.",
   "hr.leaveCancel": "Withdraws the caller's own pending request.",
@@ -95,6 +95,8 @@ const recordsNothing: Record<string, string> = {
     "Private messages are not logged, so administrators never read them.",
   "mail.update": "Personal read, star and trash marks on your own mail.",
   "mail.purge": "Removes a message from your own mailbox only.",
+  "custodian.runSweep":
+    "Rebuilds the doc mention links a doc save keeps in step; a doc save records no link event either.",
 };
 
 describe("audit coverage sweep", () => {

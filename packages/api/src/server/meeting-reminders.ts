@@ -12,7 +12,10 @@ const REMIND_BEFORE_MS = 15 * 60_000;
  * Each meeting is claimed first, so overlapping runs never send twice.
  * Returns how many meetings were reminded.
  */
-export async function sendDueMeetingReminders(db: DbHandle) {
+export async function sendDueMeetingReminders(
+  db: DbHandle,
+  organizationId?: string,
+) {
   const now = new Date();
   const due = await db
     .select()
@@ -23,6 +26,9 @@ export async function sendDueMeetingReminders(db: DbHandle) {
         isNull(meetings.reminderSentAt),
         gte(meetings.startsAt, now),
         lte(meetings.startsAt, new Date(now.getTime() + REMIND_BEFORE_MS)),
+        organizationId
+          ? eq(meetings.organizationId, organizationId)
+          : undefined,
       ),
     )
     .limit(100);

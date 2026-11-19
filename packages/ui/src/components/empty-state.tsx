@@ -30,7 +30,7 @@ export function EmptyState({
       <div className="mb-3 flex size-9 items-center justify-center rounded-full bg-sunken text-ink-2">
         {icon ?? <Inbox className="size-4" aria-hidden="true" />}
       </div>
-      <h2 className="font-serif-italic text-[2.5rem] leading-none text-balance text-ink">
+      <h2 className="font-display font-semibold text-lg tracking-tight text-balance text-ink">
         {title}
       </h2>
       {description ? (

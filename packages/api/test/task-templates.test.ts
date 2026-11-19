@@ -2,7 +2,7 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 import { db } from "@zentro/db";
 import { eq } from "@zentro/db/drizzle";
-import { tasks } from "@zentro/db/schema";
+import { automations, taskTemplates, tasks } from "@zentro/db/schema";
 
 import { World } from "./helpers";
 
@@ -147,5 +147,67 @@ describe("task templates", () => {
       (await db.select().from(tasks).where(eq(tasks.projectId, projectId)))
         .length,
     ).toBe(8);
+  });
+
+  it("refuses more points than a task can carry, so every saved template can be used", async () => {
+    await expect(
+      owner.taskTemplate.save(template({ estimatePoints: 150 })),
+    ).rejects.toMatchObject({ code: "BAD_REQUEST" });
+    await expect(
+      owner.taskTemplate.save(template({ name: "Max", estimatePoints: 100 })),
+    ).resolves.toMatchObject({ estimatePoints: 100 });
+  });
+
+  it("builds all of a template's tasks or none of them", async () => {
+    const saved = await owner.taskTemplate.save(
+      template({ name: "Half-broken" }),
+    );
+
+    // A step that task creation refuses, as an older or hand-edited row might hold.
+    await db
+      .update(taskTemplates)
+      .set({ subtasks: ["Fine step", "x".repeat(200), "Never reached"] })
+      .where(eq(taskTemplates.id, saved.id));
+
+    const before = (
+      await db.select().from(tasks).where(eq(tasks.projectId, projectId))
+    ).length;
+
+    await expect(
+      owner.taskTemplate.createFrom({ templateId: saved.id, projectId }),
+    ).rejects.toBeTruthy();
+    expect(
+      (await db.select().from(tasks).where(eq(tasks.projectId, projectId)))
+        .length,
+    ).toBe(before);
+  });
+
+  it("still builds when an automation on new tasks fails", async () => {
+    const saved = await owner.taskTemplate.save(
+      template({ name: "With a broken rule" }),
+    );
+    const [templateRow] = await db
+      .select({ organizationId: taskTemplates.organizationId })
+      .from(taskTemplates)
+      .where(eq(taskTemplates.id, saved.id));
+
+    // A rule whose channel id isn't even an id: its SQL fails every time.
+    await db.insert(automations).values({
+      organizationId: templateRow!.organizationId,
+      name: "Broken announcer",
+      enabled: true,
+      projectId,
+      triggerEvent: "task.created",
+      triggerConfig: {},
+      actionType: "post_to_channel",
+      actionConfig: { channelId: "not-a-uuid" },
+    });
+
+    const { keys } = await owner.taskTemplate.createFrom({
+      templateId: saved.id,
+      projectId,
+    });
+
+    expect(keys).toHaveLength(4);
   });
 });

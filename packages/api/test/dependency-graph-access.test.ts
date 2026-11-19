@@ -39,4 +39,29 @@ describe("the dependency graph needs permission to see the tasks", () => {
 
     expect(JSON.stringify(graph)).toContain("Hidden detail");
   });
+
+  it("lists tasks in number order, so DG-10 comes after DG-2", async () => {
+    const org = await world.org("Graph order");
+    const o = await world.userIn(org, "owner", "Orderly");
+    const project = await world.project(org, { taskKeyPrefix: "DG" });
+
+    for (const taskNumber of [10, 2, 1, 11, 3]) {
+      await world.task(org, project, {
+        taskNumber,
+        name: `Step ${taskNumber}`,
+      });
+    }
+
+    const graph = await (
+      await world.caller(o.user, org)
+    ).project.getDependencyGraph({ slug: project.slug });
+
+    expect(graph.nodes.map((node) => node.key)).toEqual([
+      "DG-1",
+      "DG-2",
+      "DG-3",
+      "DG-10",
+      "DG-11",
+    ]);
+  });
 });

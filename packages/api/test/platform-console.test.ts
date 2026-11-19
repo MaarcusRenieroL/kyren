@@ -295,8 +295,14 @@ describe("platform health", () => {
 describe("export and deletion with a grace period", () => {
   it("exports the organization without secrets and logs it", async () => {
     const org = await world.org("Export Co");
-
-    await world.userIn(org, "owner", "Export Owner");
+    const exportOwner = await world.userIn(org, "owner", "Export Owner");
+    const inboxToken = (
+      await (
+        await world.caller(exportOwner.user, org)
+      ).tickets.setInbox({
+        enabled: true,
+      })
+    ).token!;
 
     const platform = world.sessionCaller(await operator()).platform;
     const dump = await platform.tenants.export({
@@ -308,6 +314,8 @@ describe("export and deletion with a grace period", () => {
     expect(dump.people).toHaveLength(1);
     expect(Object.keys(dump.data)).toContain("project");
     expect(Object.keys(dump.data).join(" ")).not.toMatch(/api_?key|webhook/i);
+    // Working link tokens in ordinary tables never leave either.
+    expect(JSON.stringify(dump.data)).not.toContain(inboxToken);
     expect(await auditActions(org.id)).toContain("tenant.exported");
   });
 

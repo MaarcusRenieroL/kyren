@@ -1,5 +1,9 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
+import { db } from "@zentro/db";
+import { eq } from "@zentro/db/drizzle";
+import { tasks } from "@zentro/db/schema";
+
 import { World } from "./helpers";
 
 const world = new World();
@@ -53,6 +57,13 @@ describe("importing tasks in bulk", () => {
 
     expect(first).toMatchObject({ status: "todo", priority: "medium" });
     expect(second).toMatchObject({ status: "in-progress", priority: "high" });
+    // A bare day from an API caller means the end of that day.
+    const [stored] = await db
+      .select({ dueAt: tasks.dueAt })
+      .from(tasks)
+      .where(eq(tasks.id, second!.id));
+
+    expect(stored!.dueAt?.toISOString()).toBe("2030-01-15T23:59:59.999Z");
     expect(first!.key).not.toBe(second!.key);
     expect(Number(second!.key.split("-")[1])).toBe(
       Number(first!.key.split("-")[1]) + 1,

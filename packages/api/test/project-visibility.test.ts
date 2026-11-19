@@ -379,6 +379,7 @@ describe.each(scenarios)("$label project visibility", (scenario) => {
           userId: user().id,
           enabledModules: new Set(["projects", "tasks", "docs"]),
           snapshot,
+          timeZone: "UTC",
         });
         const stat = (name: string) =>
           dashboard.workspaceStats.find((item) => item.label === name)?.value;
@@ -411,6 +412,7 @@ describe.each(scenarios)("$label project visibility", (scenario) => {
           userId: outsiderUser.id,
           enabledModules: new Set(["projects", "tasks", "docs"]),
           snapshot,
+          timeZone: "UTC",
         });
 
         expect(dashboard.tasks.map((task) => task.title)).not.toContain(
@@ -454,6 +456,7 @@ describe.each(scenarios)("$label project visibility", (scenario) => {
           userId: user.id,
           enabledModules: new Set(["projects", "tasks", "docs"]),
           snapshot: await loadPermissionSnapshot(db, org.id, user.id),
+          timeZone: "UTC",
         })
       ).recentActivity.map((item) => item.action);
 

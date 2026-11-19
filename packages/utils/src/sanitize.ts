@@ -69,3 +69,32 @@ const options: sanitizeHtml.IOptions = {
 export function sanitizeRichText(html: string): string {
   return sanitizeHtml(html, options);
 }
+
+/**
+ * A doc body for a page anyone with its link may read: rich text plus tables
+ * and deeper headings. No images; a doc's images are private files anyway.
+ */
+export function sanitizeDocHtml(html: string): string {
+  return sanitizeHtml(html, {
+    ...options,
+    allowedTags: [
+      ...(options.allowedTags as string[]),
+      "h4",
+      "h5",
+      "h6",
+      "table",
+      "thead",
+      "tbody",
+      "tr",
+      "th",
+      "td",
+      "colgroup",
+      "col",
+    ],
+    allowedAttributes: {
+      ...options.allowedAttributes,
+      th: ["colspan", "rowspan"],
+      td: ["colspan", "rowspan"],
+    },
+  });
+}

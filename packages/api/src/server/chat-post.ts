@@ -8,6 +8,7 @@ import {
 } from "@zentro/db/schema";
 
 import type { DbHandle } from "./access";
+import { queueMentionEmails } from "./chat-mention-mail";
 import { syncMentions } from "./mentions";
 
 export type PostInput = {
@@ -94,6 +95,9 @@ export async function postChatMessage(tx: DbHandle, input: PostInput) {
     via: "chat",
     mode: "replace",
   });
+  // People it names hear about it by email if they don't read it soon,
+  // queued with the message so a failed post never leaves one behind.
+  await queueMentionEmails(tx, message!);
 
   // Replying starts following the thread, and so does being replied to.
   if (input.parentId) {

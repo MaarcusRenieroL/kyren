@@ -8,10 +8,17 @@ import {
   gte,
   inArray,
   lte,
+  ne,
   notInArray,
   sql,
 } from "@zentro/db/drizzle";
-import { employees, leaveRequests, members, users } from "@zentro/db/schema";
+import {
+  employees,
+  leaveRequests,
+  members,
+  payslips,
+  users,
+} from "@zentro/db/schema";
 import { z } from "zod";
 
 import { decryptField, encryptField } from "@zentro/utils/field-crypto";
@@ -70,7 +77,134 @@ const employeeInput = z.object({
   endDate: isoDate.nullable().default(null),
   managerId: uuid.nullable().default(null),
   memberId: uuid.nullable().default(null),
+  /**
+   * Days of annual leave a year; null keeps no limit. Left out of an update,
+   * the current allowance stays.
+   */
+  annualLeaveDays: z
+    .number()
+    .min(0)
+    .max(365)
+    .multipleOf(0.5)
+    .nullable()
+    .optional(),
+  /**
+   * Most unused annual days that move on to the next year (for one year
+   * only); null keeps none. Left out of an update, the current value stays.
+   */
+  /** How the allowance is earned; left out of an update, it stays. */
+  annualLeaveAccrual: z.enum(["upfront", "monthly"]).optional(),
+  annualLeaveCarryOverDays: z
+    .number()
+    .min(0)
+    .max(365)
+    .multipleOf(0.5)
+    .nullable()
+    .optional(),
 });
+
+/**
+ * Annual leave someone has used this calendar year, counting what is still
+ * waiting for a decision so two requests can't both spend the same days.
+ * A request counts in the year it starts.
+ */
+async function annualLeaveUsed(
+  db: Pick<OrganizationContext["db"], "select">,
+  employeeId: string,
+  year: number,
+) {
+  const [row] = await db
+    .select({
+      used: sql<number>`coalesce(sum(${leaveRequests.days}), 0)::float`,
+    })
+    .from(leaveRequests)
+    .where(
+      and(
+        eq(leaveRequests.employeeId, employeeId),
+        eq(leaveRequests.type, "annual"),
+        inArray(leaveRequests.status, ["pending", "approved"]),
+        gte(leaveRequests.startDate, `${year}-01-01`),
+        lte(leaveRequests.startDate, `${year}-12-31`),
+      ),
+    );
+
+  return row?.used ?? 0;
+}
+
+/**
+ * Someone's annual leave for a year: the allowance, plus what they left
+ * unused last year up to their carry-over limit (carried days last one year
+ * and never pile up), less what they have used or asked for. Null when no
+ * allowance is kept.
+ */
+async function annualLeaveBalance(
+  db: Pick<OrganizationContext["db"], "select">,
+  employee: {
+    id: string;
+    annualLeaveDays: number | null;
+    annualLeaveCarryOverDays: number | null;
+    annualLeaveAccrual: string;
+    startDate: string | null;
+  },
+  year: number,
+  /** The month (1–12) the balance is for; monthly accrual counts up to it. */
+  month = 12,
+) {
+  if (employee.annualLeaveDays === null) return null;
+
+  const allowance = employee.annualLeaveDays;
+  const cap = employee.annualLeaveCarryOverDays ?? 0;
+  // Nothing to carry from a year they had not started yet.
+  const workedLastYear =
+    !employee.startDate || employee.startDate < `${year}-01-01`;
+  const carried =
+    cap > 0 && workedLastYear
+      ? Math.min(
+          cap,
+          Math.max(
+            0,
+            earnedBy(employee, allowance, year - 1, 12) -
+              (await annualLeaveUsed(db, employee.id, year - 1)),
+          ),
+        )
+      : 0;
+  const earned = earnedBy(employee, allowance, year, month);
+  const used = await annualLeaveUsed(db, employee.id, year);
+
+  return {
+    year,
+    allowance,
+    accrual: employee.annualLeaveAccrual as "upfront" | "monthly",
+    earned,
+    carried,
+    used,
+    remaining: Math.max(0, earned + carried - used),
+  };
+}
+
+/**
+ * Annual leave earned in `year` by the end of `month`: all of it on
+ * 1 January, or with monthly accrual a twelfth for each month worked so far
+ * (from the start month in the year someone joins), rounded down to a half day.
+ */
+function earnedBy(
+  employee: { annualLeaveAccrual: string; startDate: string | null },
+  allowance: number,
+  year: number,
+  month: number,
+) {
+  if (employee.annualLeaveAccrual !== "monthly") return allowance;
+
+  const start = employee.startDate;
+  const firstMonth =
+    start && start.startsWith(`${year}-`) ? Number(start.slice(5, 7)) : 1;
+
+  if (start && start > `${year}-12-31`) return 0;
+
+  const months = Math.max(0, month - firstMonth + 1);
+
+  return Math.floor(((allowance * months) / 12) * 2) / 2;
+}
 
 async function findEmployee(ctx: OrganizationContext, id: string) {
   const [employee] = await ctx.db
@@ -188,23 +322,41 @@ export const hrRouter = router({
     const mine = await currentEmployee(ctx);
     const canManage = await ctx.permissions.can("hr.manage");
 
+    // Everyone else gets what the permission promises: name, title, team and
+    // location. Contact details, dates and who is leaving stay with HR, and
+    // former employees are not listed.
+    const visible = canManage
+      ? rows
+      : rows.filter(({ employee }) => employee.status !== "former");
+
     return {
       canManage,
       myEmployeeId: mine?.id ?? null,
-      people: rows.map(({ employee, managerName }) => ({
-        id: employee.id,
-        name: employee.name,
-        email: employee.email,
-        jobTitle: employee.jobTitle,
-        department: employee.department,
-        location: employee.location,
-        status: employee.status,
-        startDate: employee.startDate,
-        endDate: employee.endDate,
-        managerId: employee.managerId,
-        managerName: managerName ?? null,
-        memberId: employee.memberId,
-      })),
+      people: visible.map(({ employee, managerName }) => {
+        const own = mine?.id === employee.id;
+        const full = canManage || own;
+
+        return {
+          id: employee.id,
+          name: employee.name,
+          email: full ? employee.email : null,
+          jobTitle: employee.jobTitle,
+          department: employee.department,
+          location: employee.location,
+          status:
+            full || employee.status !== "leaving" ? employee.status : "active",
+          startDate: full ? employee.startDate : null,
+          endDate: full ? employee.endDate : null,
+          annualLeaveDays: full ? employee.annualLeaveDays : null,
+          annualLeaveCarryOverDays: full
+            ? employee.annualLeaveCarryOverDays
+            : null,
+          annualLeaveAccrual: full ? employee.annualLeaveAccrual : null,
+          managerId: employee.managerId,
+          managerName: managerName ?? null,
+          memberId: employee.memberId,
+        };
+      }),
     };
   }),
 
@@ -328,6 +480,23 @@ export const hrRouter = router({
     .input(z.object({ id: uuid, data: employeeInput }))
     .mutation(async ({ ctx, input }) => {
       const employee = await findEmployee(ctx, input.id);
+      const linkFrom = employee.memberId ?? null;
+      const linkTo = input.data.memberId ?? null;
+
+      // Who a record belongs to decides whose payslips someone sees and who
+      // may approve their leave, so nobody re-points a link that involves
+      // their own account; another HR manager has to.
+      if (linkFrom !== linkTo) {
+        const self = await currentMemberId(ctx);
+
+        if (linkFrom === self || linkTo === self) {
+          throw new TRPCError({
+            code: "FORBIDDEN",
+            message:
+              "Another HR manager has to change which account your own record belongs to.",
+          });
+        }
+      }
 
       await assertLinks(ctx, input.data, employee.id);
 
@@ -351,6 +520,22 @@ export const hrRouter = router({
       const employee = await findEmployee(ctx, input.id);
 
       await ctx.db.transaction(async (tx) => {
+        // Pay history is a record the person and the books still need, so
+        // someone who has been paid is marked as former instead.
+        const [paid] = await tx
+          .select({ id: payslips.id })
+          .from(payslips)
+          .where(eq(payslips.employeeId, employee.id))
+          .limit(1);
+
+        if (paid) {
+          throw new TRPCError({
+            code: "CONFLICT",
+            message:
+              "This person has payroll history. Mark them as former instead of deleting them.",
+          });
+        }
+
         await tx.delete(employees).where(eq(employees.id, employee.id));
         await ctx.audit.record(tx, {
           action: "employee.removed",
@@ -361,14 +546,74 @@ export const hrRouter = router({
       return { id: employee.id };
     }),
 
+  /**
+   * Approved time off in a date range, for the calendar. Everyone who can see
+   * the directory sees who is out and when; the kind of leave (it can say
+   * "sick") is only for HR managers and the person themself.
+   */
+  timeOff: procedure("hr.view")
+    .input(
+      z
+        .object({ from: isoDate, to: isoDate })
+        .refine((range) => range.from <= range.to, "The range ends first.")
+        .refine(
+          (range) =>
+            Date.parse(range.to) - Date.parse(range.from) <= 93 * 86_400_000,
+          "Pick a range of up to 93 days.",
+        ),
+    )
+    .query(async ({ ctx, input }) => {
+      const canManage = await ctx.permissions.can("hr.manage");
+      const mine = await currentEmployee(ctx);
+      const rows = await ctx.db
+        .select({
+          id: leaveRequests.id,
+          employeeId: leaveRequests.employeeId,
+          name: employees.name,
+          startDate: leaveRequests.startDate,
+          endDate: leaveRequests.endDate,
+          type: leaveRequests.type,
+        })
+        .from(leaveRequests)
+        .innerJoin(employees, eq(employees.id, leaveRequests.employeeId))
+        .where(
+          and(
+            eq(leaveRequests.organizationId, ctx.activeOrganization.id),
+            eq(leaveRequests.status, "approved"),
+            lte(leaveRequests.startDate, input.to),
+            gte(leaveRequests.endDate, input.from),
+            // Like the directory: people who have left are for HR managers.
+            canManage ? undefined : ne(employees.status, "former"),
+          ),
+        )
+        .orderBy(asc(leaveRequests.startDate))
+        .limit(500);
+
+      return rows.map(({ employeeId, type, ...row }) => ({
+        ...row,
+        type: canManage || employeeId === mine?.id ? type : null,
+      }));
+    }),
+
   /** Everyone's requests for HR managers; just the caller's for everyone else. */
   leaveList: procedure("hr.view").query(async ({ ctx }) => {
     const canManage = await ctx.permissions.can("hr.manage");
     const mine = await currentEmployee(ctx);
 
     if (!canManage && !mine) {
-      return { canManage, canRequest: false, requests: [] };
+      return { canManage, canRequest: false, balance: null, requests: [] };
     }
+
+    // The caller's own annual leave this year, when an allowance is set.
+    const year = new Date().getUTCFullYear();
+    const balance = mine
+      ? await annualLeaveBalance(
+          ctx.db,
+          mine,
+          year,
+          new Date().getUTCMonth() + 1,
+        )
+      : null;
 
     const rows = await ctx.db
       .select({ request: leaveRequests, name: employees.name })
@@ -387,6 +632,7 @@ export const hrRouter = router({
       canManage,
       canRequest:
         Boolean(mine) && (await ctx.permissions.can("hr.leave.request")),
+      balance,
       requests: rows.map(({ request, name }) => ({
         id: request.id,
         employeeId: request.employeeId,
@@ -473,6 +719,33 @@ export const hrRouter = router({
             code: "CONFLICT",
             message: "You already have leave requested for some of those days.",
           });
+        }
+
+        // Annual leave can't go past the year's allowance, when one is set.
+        const year = Number(input.startDate.slice(0, 4));
+        const balance =
+          input.type === "annual"
+            ? await annualLeaveBalance(
+                tx,
+                employee,
+                year,
+                // Monthly accrual: what is earned by the month the leave starts.
+                Number(input.startDate.slice(5, 7)),
+              )
+            : null;
+
+        if (balance) {
+          const left = balance.remaining;
+
+          if (days > left) {
+            throw new TRPCError({
+              code: "BAD_REQUEST",
+              message:
+                left > 0
+                  ? `You have ${left} ${left === 1 ? "day" : "days"} of annual leave left in ${year}.`
+                  : `You have no annual leave left in ${year}.`,
+            });
+          }
         }
 
         const [row] = await tx

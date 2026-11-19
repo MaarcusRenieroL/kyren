@@ -17,6 +17,7 @@ import { postChatMessage } from "./chat-post";
 import { sendDueMeetingReminders } from "./meeting-reminders";
 import { createDueRecurringTasks } from "./recurring-tasks";
 import { runDueJobs } from "./jobs";
+import { purgeDeletedFiles } from "./file-purge";
 import { purgeScheduledOrganizations } from "./platform-purge";
 import { applyRetention, purgeExpired } from "./retention";
 import { deliverDueWebhooks } from "./webhooks";
@@ -27,7 +28,7 @@ type Db = DbHandle & {
 };
 
 /** Sends scheduled messages whose time has come. */
-export async function sendDueScheduled(db: Db) {
+export async function sendDueScheduled(db: Db, organizationId?: string) {
   const due = await db
     .select()
     .from(chatScheduled)
@@ -36,6 +37,9 @@ export async function sendDueScheduled(db: Db) {
         lte(chatScheduled.sendAt, new Date()),
         isNull(chatScheduled.sentAt),
         isNull(chatScheduled.canceledAt),
+        organizationId
+          ? eq(chatScheduled.organizationId, organizationId)
+          : undefined,
       ),
     )
     .limit(50);
@@ -95,6 +99,7 @@ export async function sendDueScheduled(db: Db) {
       body: item.body,
       join: !membership,
     });
+
     sent += 1;
   }
 
@@ -102,7 +107,7 @@ export async function sendDueScheduled(db: Db) {
 }
 
 /** Marks due reminders so each is surfaced once. */
-export async function markDueReminders(db: Db) {
+export async function markDueReminders(db: Db, organizationId?: string) {
   const rows = await db
     .update(chatSaved)
     .set({ remindedAt: new Date() })
@@ -111,6 +116,9 @@ export async function markDueReminders(db: Db) {
         lte(chatSaved.remindAt, new Date()),
         isNull(chatSaved.remindedAt),
         isNull(chatSaved.completedAt),
+        organizationId
+          ? sql`${chatSaved.memberId} in (select "id" from "member" where "organizationId" = ${organizationId})`
+          : undefined,
       ),
     )
     .returning({ id: chatSaved.id });
@@ -125,37 +133,51 @@ export async function runChatJobs(
     heavy?: boolean;
     /** Deletes uploaded bytes by storage key; the web app supplies its storage driver. */
     removeFiles?: (keys: string[]) => Promise<void>;
+    /** Only this organization's due work (a page load); the heavy sweeps never run then. */
+    organizationId?: string;
   } = {},
 ) {
-  const sent = await sendDueScheduled(db);
-  const reminded = await markDueReminders(db);
+  const { organizationId } = options;
+  const heavy = options.heavy && !organizationId;
+  const sent = await sendDueScheduled(db, organizationId);
+  const reminded = await markDueReminders(db, organizationId);
 
   // Retention and overdue sweeps are the expensive ones; the daily cron
   // asks for them, page loads do not.
-  const purged = options.heavy
-    ? (await applyRetention(db as never)).chatMessages
-    : 0;
-  const overdue = options.heavy ? await postOverdueEvents(db) : 0;
+  const purged = heavy ? (await applyRetention(db as never)).chatMessages : 0;
+  const overdue = heavy ? await postOverdueEvents(db) : 0;
 
-  const tenantsPurged = options.heavy
+  const tenantsPurged = heavy
     ? await purgeScheduledOrganizations(db as never, {
         removeFiles: options.removeFiles,
       })
     : 0;
-  const meetingReminders = await sendDueMeetingReminders(db);
-  const recurring = await createDueRecurringTasks(db);
+  const filesPurged = heavy
+    ? await purgeDeletedFiles(db as never, {
+        removeFiles: options.removeFiles,
+      })
+    : 0;
+  const meetingReminders = await sendDueMeetingReminders(db, organizationId);
+  const recurring = await createDueRecurringTasks(
+    db,
+    new Date(),
+    organizationId,
+  );
   const queued = await runDueJobs(db as never);
   let escalated = 0;
 
-  if (options.heavy) {
-    for (const organizationId of await organizationsWithDueRules(db)) {
-      escalated += (await escalateDueTasks(db, { organizationId })).length;
+  if (heavy) {
+    for (const dueOrganization of await organizationsWithDueRules(db)) {
+      escalated += (
+        await escalateDueTasks(db, { organizationId: dueOrganization })
+      ).length;
     }
   }
 
   // Webhook deliveries ride along with the same schedule.
   const webhooks = await deliverDueWebhooks(
     db as unknown as Parameters<typeof deliverDueWebhooks>[0],
+    { organizationId },
   );
 
   return {
@@ -163,6 +185,7 @@ export async function runChatJobs(
     reminded,
     purged,
     tenantsPurged,
+    filesPurged,
     overdue,
     escalated,
     meetingReminders,
@@ -172,16 +195,36 @@ export async function runChatJobs(
   };
 }
 
-let lastLazyRun = 0;
+/** When each organization's due work last ran from a page load, on this server. */
+const lastLazyRun = new Map<string, number>();
+/** Key for the light pass over every organization. */
+const EVERYONE = "*";
 
-/** A cheap run from a page load, at most once a minute per server. */
-export async function runChatJobsLazily(db: Db) {
-  if (Date.now() - lastLazyRun < 60_000) return;
+/**
+ * A cheap run from a page load: the caller's organization at most once a
+ * minute, and the light work of every organization (scheduled messages,
+ * reminders, queued jobs) at most once every five minutes per server. The
+ * daily cron only does the heavy sweeps, so without that second pass an
+ * organization nobody has open would get its reminders hours late.
+ */
+export async function runChatJobsLazily(db: Db, organizationId: string) {
+  // Tests run the jobs themselves; a page load in one test file must not send
+  // another file's reminders or scheduled messages (like the other lazy runs).
+  if (process.env.VITEST) return;
 
-  lastLazyRun = Date.now();
+  const now = Date.now();
+  const everyone = now - (lastLazyRun.get(EVERYONE) ?? 0) >= 5 * 60_000;
+
+  if (!everyone && now - (lastLazyRun.get(organizationId) ?? 0) < 60_000) {
+    return;
+  }
+
+  lastLazyRun.set(organizationId, now);
+
+  if (everyone) lastLazyRun.set(EVERYONE, now);
 
   try {
-    await runChatJobs(db);
+    await runChatJobs(db, everyone ? {} : { organizationId });
   } catch (error) {
     console.error("[chat] background jobs failed", error);
   }

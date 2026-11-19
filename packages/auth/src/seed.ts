@@ -1,6 +1,7 @@
 import { db as defaultDb } from "@zentro/db";
-import { and, eq, inArray, sql } from "@zentro/db/drizzle";
+import { and, eq, inArray, isNull, sql } from "@zentro/db/drizzle";
 import {
+  apiKeys,
   permissionOverrides,
   roleAssignments,
   roles,
@@ -147,6 +148,18 @@ export async function removeMemberAccess(
       ),
     );
   }
+
+  // Keys they made for this organization stop working with them.
+  await database
+    .update(apiKeys)
+    .set({ revokedAt: new Date() })
+    .where(
+      and(
+        eq(apiKeys.organizationId, organizationId),
+        eq(apiKeys.createdByUserId, userId),
+        isNull(apiKeys.revokedAt),
+      ),
+    );
 
   await database
     .update(sessions)

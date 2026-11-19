@@ -3,11 +3,15 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { db } from "@zentro/db";
 
 import { publicForm, submitIntake } from "../src/server/intake-forms";
+import { setTicketMailer } from "../src/server/ticket-mail";
 import { World } from "./helpers";
 
 const world = new World();
 
-afterAll(() => world.cleanup());
+afterAll(async () => {
+  setTicketMailer(null);
+  await world.cleanup();
+});
 
 type Caller = Awaited<ReturnType<World["caller"]>>;
 
@@ -33,6 +37,8 @@ describe("intake forms", () => {
   ];
 
   beforeAll(async () => {
+    // No real mail from tests; acknowledgements are checked in their own test.
+    setTicketMailer(async () => undefined);
     const org = await world.org("Intake");
     const o = await world.userIn(org, "owner", "In Owner");
     const m = await world.userIn(org, "member", "In Member");

@@ -39,8 +39,8 @@ describe("mail", () => {
       body: "Private note",
     }));
 
-    expect((await bob.mail.list({ folder: "inbox" })).length).toBe(1);
-    expect((await carol.mail.list({ folder: "inbox" })).length).toBe(0);
+    expect((await bob.mail.list({ folder: "inbox" })).items.length).toBe(1);
+    expect((await carol.mail.list({ folder: "inbox" })).items.length).toBe(0);
     await expect(bob.mail.get({ id: sentId })).resolves.toBeTruthy();
     await expect(carol.mail.get({ id: sentId })).rejects.toMatchObject({
       code: "NOT_FOUND",
@@ -88,5 +88,66 @@ describe("mail", () => {
     await expect(
       alice.mail.send({ to: [], cc: [], subject: "x", body: "y" }),
     ).rejects.toMatchObject({ code: "BAD_REQUEST" });
+  });
+
+  it("never rewrites a message once it is sent, even by a late autosave", async () => {
+    const { id } = await alice.mail.saveDraft({
+      to: [bobMemberId],
+      cc: [],
+      subject: "Plan",
+      body: "v1",
+    });
+
+    // An autosave and the send race; whichever loses must not win later.
+    const [sent] = await Promise.allSettled([
+      alice.mail.send({
+        id,
+        to: [bobMemberId],
+        cc: [],
+        subject: "Plan",
+        body: "final",
+      }),
+      ...Array.from({ length: 5 }, () =>
+        alice.mail.saveDraft({
+          id,
+          to: [carolMemberId],
+          cc: [],
+          subject: "Plan",
+          body: "stale autosave",
+        }),
+      ),
+    ]);
+
+    // The send itself must go through, whatever the autosaves did.
+    expect(sent.status).toBe("fulfilled");
+
+    const delivered = await bob.mail.get({ id });
+
+    expect(JSON.stringify(delivered)).toContain("final");
+    expect(JSON.stringify(delivered)).not.toContain("stale autosave");
+    await expect(carol.mail.get({ id })).rejects.toMatchObject({
+      code: "NOT_FOUND",
+    });
+
+    // After the send, saving over it is refused outright.
+    await expect(
+      alice.mail.saveDraft({
+        id,
+        to: [bobMemberId],
+        cc: [],
+        subject: "Plan",
+        body: "edited after sending",
+      }),
+    ).rejects.toMatchObject({ code: "CONFLICT" });
+    // Someone else's message id reads as missing, not as "sent".
+    await expect(
+      bob.mail.saveDraft({
+        id,
+        to: [carolMemberId],
+        cc: [],
+        subject: "x",
+        body: "y",
+      }),
+    ).rejects.toMatchObject({ code: "NOT_FOUND" });
   });
 });

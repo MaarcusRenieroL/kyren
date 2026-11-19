@@ -7,6 +7,7 @@ import {
   desc,
   eq,
   ilike,
+  inArray,
   isNull,
   or,
   sql,
@@ -17,6 +18,7 @@ import {
   tasks,
   ticketInboxes,
   ticketMessages,
+  ticketAssignmentRules,
   ticketSlaPolicies,
   tickets,
   users,
@@ -33,6 +35,9 @@ import { permissionProcedure, router, type OrganizationContext } from "../trpc";
 const uuid = z.string().uuid();
 
 export const ticketStatuses = ["open", "pending", "resolved", "spam"] as const;
+/** How the public desk hands out tickets. */
+export const assignmentModes = ["round_robin", "least_open"] as const;
+type AssignmentMode = (typeof assignmentModes)[number];
 export const ticketPriorities = ["low", "normal", "high", "urgent"] as const;
 export const ticketViews = [
   "mine",
@@ -381,6 +386,131 @@ export const ticketsRouter = router({
         });
 
         return { enabled: row!.enabled, token: row!.token };
+      });
+    }),
+
+  /** Who new tickets from email and forms go to, in turn. */
+  assignmentRule: procedure("tickets.manage_inbox").query(async ({ ctx }) => {
+    const [row] = await ctx.db
+      .select()
+      .from(ticketAssignmentRules)
+      .where(
+        eq(ticketAssignmentRules.organizationId, ctx.activeOrganization.id),
+      )
+      .limit(1);
+
+    return {
+      enabled: row?.enabled ?? false,
+      memberIds: row?.memberIds ?? [],
+      mode: (row?.mode ?? "round_robin") as AssignmentMode,
+    };
+  }),
+
+  setAssignmentRule: procedure("tickets.manage_inbox", [
+    "ticket.assignment_changed",
+  ])
+    .input(
+      z.object({
+        enabled: z.boolean(),
+        memberIds: z.array(uuid).max(100),
+        /** Left out, the current mode stays. */
+        mode: z.enum(assignmentModes).optional(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      // People who have left since they were picked drop out quietly; anyone
+      // else must be a member now.
+      const [stored] = await ctx.db
+        .select({
+          memberIds: ticketAssignmentRules.memberIds,
+          mode: ticketAssignmentRules.mode,
+        })
+        .from(ticketAssignmentRules)
+        .where(
+          eq(ticketAssignmentRules.organizationId, ctx.activeOrganization.id),
+        )
+        .limit(1);
+      const requested = [...new Set(input.memberIds)];
+      const current = new Set(
+        requested.length
+          ? (
+              await ctx.db
+                .select({ id: members.id })
+                .from(members)
+                .where(
+                  and(
+                    eq(members.organizationId, ctx.activeOrganization.id),
+                    inArray(members.id, requested),
+                  ),
+                )
+            ).map((row) => row.id)
+          : [],
+      );
+      const memberIds = requested.filter(
+        (id) => current.has(id) || !stored?.memberIds.includes(id),
+      );
+      const known = memberIds.length
+        ? await ctx.db
+            .select({ id: members.id })
+            .from(members)
+            .where(
+              and(
+                eq(members.organizationId, ctx.activeOrganization.id),
+                inArray(members.id, memberIds),
+              ),
+            )
+        : [];
+
+      if (known.length !== memberIds.length) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Everyone in the rotation must be in this organization.",
+        });
+      }
+
+      if (input.enabled && !memberIds.length) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Pick at least one person to assign tickets to.",
+        });
+      }
+
+      const mode =
+        input.mode ??
+        (stored?.mode as AssignmentMode | undefined) ??
+        "round_robin";
+
+      return ctx.db.transaction(async (tx) => {
+        await tx
+          .insert(ticketAssignmentRules)
+          .values({
+            organizationId: ctx.activeOrganization.id,
+            enabled: input.enabled,
+            memberIds,
+            mode,
+          })
+          .onConflictDoUpdate({
+            target: ticketAssignmentRules.organizationId,
+            set: {
+              enabled: input.enabled,
+              memberIds,
+              mode,
+              updatedAt: new Date(),
+            },
+          });
+
+        await ctx.audit.record(tx, {
+          action: "ticket.assignment_changed",
+          target: {
+            id: ctx.activeOrganization.id,
+            label: input.enabled
+              ? `rotation of ${memberIds.length}`
+              : "turned off",
+          },
+          metadata: { enabled: input.enabled, memberIds, mode },
+        });
+
+        return { enabled: input.enabled, memberIds, mode };
       });
     }),
 

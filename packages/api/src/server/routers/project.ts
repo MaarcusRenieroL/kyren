@@ -8,7 +8,12 @@ import {
   getProjectBySlugSchema,
   updateProjectBySlugSchema,
 } from "../../types/zod-schema";
-import { listProcedure, permissionProcedure, router } from "../trpc";
+import {
+  assertAnyPermission,
+  listProcedure,
+  permissionProcedure,
+  router,
+} from "../trpc";
 import { assignCreatorLeadRole } from "../access";
 import { createProjectChannel } from "../chat-events";
 import { buildChanges } from "@zentro/audit";
@@ -32,6 +37,7 @@ import {
   eq,
   inArray,
   isNull,
+  or,
   sql,
 } from "@zentro/db/drizzle";
 
@@ -454,7 +460,6 @@ export const projectRouter = router({
     .mutation(async ({ ctx, input }) => {
       const { db, activeOrganization } = ctx;
       const { currentSlug, name, slug, description } = input;
-      let teamId = input.teamId ?? null;
 
       const [existingProject] = await db
         .select({
@@ -463,6 +468,7 @@ export const projectRouter = router({
           name: projects.name,
           description: projects.description,
           teamId: projects.teamId,
+          visibility: projects.visibility,
           organizationId: projects.organizationId,
         })
         .from(projects)
@@ -479,6 +485,25 @@ export const projectRouter = router({
           code: "NOT_FOUND",
           message: "Project not found",
         });
+      }
+
+      // Leaving the team out keeps it. Moving the project to another team
+      // changes who has access, which is the access settings' permission.
+      let teamId =
+        input.teamId === undefined ? existingProject.teamId : input.teamId;
+
+      if (teamId !== existingProject.teamId) {
+        await assertAnyPermission(ctx, ["projects.settings.manage"], {
+          project: existingProject,
+        });
+
+        if (!teamId && existingProject.visibility === "team") {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message:
+              "This project is visible to its team only. Change who can see it before removing the team.",
+          });
+        }
       }
 
       if (slug !== currentSlug) {
@@ -774,6 +799,19 @@ export const projectRouter = router({
           })
           .where(eq(projects.id, existing.id));
 
+        // The project's tasks and docs follow it to the new team, so team
+        // roles apply to them the same way they apply to the project.
+        if (input.teamId !== existing.teamId) {
+          await tx
+            .update(tasks)
+            .set({ teamId: input.teamId })
+            .where(eq(tasks.projectId, existing.id));
+          await tx
+            .update(docs)
+            .set({ teamId: input.teamId })
+            .where(eq(docs.projectId, existing.id));
+        }
+
         await ctx.audit.record(tx, {
           action: "project.visibility_changed",
           target: { id: existing.id, label: existing.name },
@@ -903,6 +941,62 @@ export const projectRouter = router({
       }
 
       const deletedProject = await db.transaction(async (tx) => {
+        // The project's docs go with it, as the delete dialog says. Left
+        // behind they would lose the project's privacy and show to everyone.
+        const [projectDocs, projectTasks] = await Promise.all([
+          tx
+            .select({ id: docs.id })
+            .from(docs)
+            .where(eq(docs.projectId, existingProject.id)),
+          tx
+            .select({ id: tasks.id })
+            .from(tasks)
+            .where(eq(tasks.projectId, existingProject.id)),
+        ]);
+        const docIds = projectDocs.map((row) => row.id);
+        const taskIds = projectTasks.map((row) => row.id);
+        const gone = [
+          ...(docIds.length
+            ? [
+                and(
+                  eq(workLinks.sourceType, "doc"),
+                  inArray(workLinks.sourceId, docIds),
+                ),
+                and(
+                  eq(workLinks.targetType, "doc"),
+                  inArray(workLinks.targetId, docIds),
+                ),
+              ]
+            : []),
+          ...(taskIds.length
+            ? [
+                and(
+                  eq(workLinks.sourceType, "task"),
+                  inArray(workLinks.sourceId, taskIds),
+                ),
+                and(
+                  eq(workLinks.targetType, "task"),
+                  inArray(workLinks.targetId, taskIds),
+                ),
+              ]
+            : []),
+        ];
+
+        if (gone.length) {
+          await tx
+            .delete(workLinks)
+            .where(
+              and(
+                eq(workLinks.organizationId, activeOrganization.id),
+                or(...gone),
+              ),
+            );
+        }
+
+        if (docIds.length) {
+          await tx.delete(docs).where(inArray(docs.id, docIds));
+        }
+
         const [row] = await tx
           .delete(projects)
           .where(
@@ -1000,7 +1094,7 @@ export const projectRouter = router({
             isNull(tasks.deletedAt),
           ),
         )
-        .orderBy(asc(tasks.key));
+        .orderBy(asc(tasks.taskNumber));
 
       const taskMap = new Map(projectTasks.map((t) => [t.id, t]));
       const taskIds = projectTasks.map((t) => t.id);
@@ -1073,10 +1167,14 @@ export const projectRouter = router({
       }
 
       const memoPath = new Map<string, string[]>();
+      // Tasks on the path being walked; a link back to one is a loop, and
+      // following it would never end.
+      const walking = new Set<string>();
       function getLongestChain(id: string): string[] {
         if (memoPath.has(id)) return memoPath.get(id)!;
+        walking.add(id);
         const children = (outgoing.get(id) ?? []).filter(
-          (cid) => taskMap.get(cid)?.status !== "done",
+          (cid) => taskMap.get(cid)?.status !== "done" && !walking.has(cid),
         );
         let bestChildPath: string[] = [];
         for (const cid of children) {
@@ -1086,6 +1184,7 @@ export const projectRouter = router({
           }
         }
         const result = [id, ...bestChildPath];
+        walking.delete(id);
         memoPath.set(id, result);
         return result;
       }

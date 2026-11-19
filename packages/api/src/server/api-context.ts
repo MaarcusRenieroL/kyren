@@ -52,7 +52,9 @@ export async function apiKeyCaller(owner: ApiKeyOwner, headers: Headers) {
         userId: owner.user.id,
         activeOrganizationId: org.id,
         expiresAt: new Date(Date.now() + 60_000),
-        createdAt: new Date(),
+        // A key is not a person who just signed in: actions that ask for a
+        // recent sign-in (keys, webhooks, erasing people) stay out of reach.
+        createdAt: new Date(0),
         updatedAt: new Date(),
       },
       user: owner.user,

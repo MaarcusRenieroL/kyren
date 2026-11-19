@@ -1,5 +1,13 @@
 import { TRPCError } from "@trpc/server";
-import { and, eq, inArray, isNull, or, type SQL } from "@zentro/db/drizzle";
+import {
+  and,
+  eq,
+  inArray,
+  isNull,
+  or,
+  sql,
+  type SQL,
+} from "@zentro/db/drizzle";
 import {
   chatChannels,
   chatMessages,
@@ -350,6 +358,31 @@ export async function resolveTarget(
   return { type: "doc", id: doc.id, label: doc.title || "Untitled" };
 }
 
+/** Whether following "blocks" links from `start` leads to `goal`. */
+async function blocksReach(
+  ctx: OrganizationContext,
+  db: Pick<OrganizationContext["db"], "execute">,
+  start: Ref,
+  goal: Ref,
+) {
+  const result = (await db.execute(sql`
+    with recursive reach(type, id) as (
+      select ${start.type}::text, ${start.id}::uuid
+      union
+      select ${workLinks.targetType}, ${workLinks.targetId}
+      from ${workLinks}
+      join reach on ${workLinks.sourceType} = reach.type
+        and ${workLinks.sourceId} = reach.id
+      where ${workLinks.organizationId} = ${ctx.activeOrganization.id}
+        and ${workLinks.kind} = 'blocks'
+    )
+    select 1 from reach where type = ${goal.type} and id = ${goal.id}::uuid
+    limit 1
+  `)) as unknown as { rows: unknown[] };
+
+  return result.rows.length > 0;
+}
+
 async function insertLink(
   ctx: OrganizationContext,
   from: Ref,
@@ -368,6 +401,16 @@ async function insertLink(
       code: "BAD_REQUEST",
       message: "Something can’t be linked to itself.",
     });
+  }
+
+  const loop = () =>
+    new TRPCError({
+      code: "BAD_REQUEST",
+      message: `That would make a loop: ${audit.other} already waits on this.`,
+    });
+
+  if (kind === "blocks" && (await blocksReach(ctx, ctx.db, to, from))) {
+    throw loop();
   }
 
   const member = await getCurrentMember(ctx);
@@ -404,6 +447,16 @@ async function insertLink(
   }
 
   return ctx.db.transaction(async (tx) => {
+    if (kind === "blocks") {
+      // Two opposite links made at once would each pass the check above, so
+      // check again while holding the organization's link lock.
+      await tx.execute(
+        sql`select pg_advisory_xact_lock(hashtextextended(${`links:${ctx.activeOrganization.id}`}, 0))`,
+      );
+
+      if (await blocksReach(ctx, tx, to, from)) throw loop();
+    }
+
     const [row] = await tx
       .insert(workLinks)
       .values({

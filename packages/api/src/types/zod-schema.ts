@@ -147,6 +147,21 @@ export const taskStatusSchema = z.enum([
 
 export const taskPrioritySchema = z.enum(["low", "medium", "high"]);
 
+/**
+ * A due date. A bare day (YYYY-MM-DD) from a caller that sends no time means
+ * the end of that day, not its first instant; the app itself sends the end of
+ * the day in the viewer's own zone.
+ */
+const dueDate = z.preprocess(
+  (value) =>
+    value === ""
+      ? null
+      : typeof value === "string" && /^\d{4}-\d{2}-\d{2}$/.test(value)
+        ? `${value}T23:59:59.999Z`
+        : value,
+  z.coerce.date().optional().nullable(),
+);
+
 export const createTaskSchema = z.object({
   /** A doc to link the new task to, when it is created from that doc. */
   linkDocId: z.string().uuid().optional(),
@@ -165,10 +180,7 @@ export const createTaskSchema = z.object({
     .uuid("Choose someone from the list, or leave this empty.")
     .optional()
     .nullable(),
-  dueAt: z.preprocess(
-    (value) => (value === "" ? null : value),
-    z.coerce.date().optional().nullable(),
-  ),
+  dueAt: dueDate,
   estimatePoints: z.number().int().min(0).max(100).optional().nullable(),
 });
 
@@ -184,10 +196,7 @@ export const importTasksSchema = z.object({
         description: z.string().trim().max(10000).optional(),
         status: taskStatusSchema.default("todo"),
         priority: taskPrioritySchema.default("medium"),
-        dueAt: z.preprocess(
-          (value) => (value === "" ? null : value),
-          z.coerce.date().optional().nullable(),
-        ),
+        dueAt: dueDate,
       }),
     )
     .min(1, "Add at least one row.")
@@ -196,6 +205,8 @@ export const importTasksSchema = z.object({
 
 export const getTasksSchema = z.object({
   teamId: z.string().uuid().optional().nullable(),
+  /** Only this project's tasks (still limited to projects the caller sees). */
+  projectId: z.string().uuid().optional(),
 });
 
 export const getTaskByKeySchema = z.object({
@@ -218,10 +229,7 @@ export const updateTaskByKeySchema = z.object({
   assignedToMemberId: z.string().uuid().optional().nullable(),
   estimatePoints: z.number().int().min(0).max(100).optional().nullable(),
   timeSpentMinutes: z.number().int().min(0).optional(),
-  dueAt: z.preprocess(
-    (value) => (value === "" ? null : value),
-    z.coerce.date().optional().nullable(),
-  ),
+  dueAt: dueDate,
 });
 
 export const logTaskTimeSchema = z.object({
@@ -316,6 +324,27 @@ export const updateDocContentSchema = z.object({
   expectedUpdatedAt: z.coerce.date().optional(),
 });
 
+export const docVersionSchema = z.object({
+  id: z.string().uuid(),
+  versionId: z.string().uuid(),
+});
+
+export const restoreDocVersionSchema = z.object({
+  id: z.string().uuid(),
+  versionId: z.string().uuid(),
+  /** The version on screen. A newer one is not overwritten. */
+  expectedUpdatedAt: z.coerce.date(),
+});
+
+export const deleteDocCommentSchema = z.object({
+  id: z.string().uuid(),
+});
+
+export const updateDocCommentSchema = z.object({
+  id: z.string().uuid(),
+  body: z.string().trim().min(1, "Comment is required.").max(10000),
+});
+
 export const deleteDocSchema = z.object({
   id: z.string().uuid(),
 });
@@ -331,6 +360,8 @@ export const getDocCommentsSchema = z.object({
 export const createDocCommentSchema = z.object({
   docId: z.string().uuid(),
   body: z.string().trim().min(1, "Comment is required.").max(10000),
+  /** Reply to this thread (a top-level comment on the same doc). */
+  parentId: z.string().uuid().optional(),
 });
 
 export const resolveDocCommentSchema = z.object({

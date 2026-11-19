@@ -18,6 +18,43 @@ const procedure = (audit?: string[]) =>
     audit,
   });
 
+/** Only an owner may erase an owner; an admin's power stops there. */
+async function assertMayEraseMember(
+  ctx: OrganizationContext,
+  memberId: string,
+) {
+  const [target] = await ctx.db
+    .select({ role: members.role })
+    .from(members)
+    .where(
+      and(
+        eq(members.id, memberId),
+        eq(members.organizationId, ctx.activeOrganization.id),
+      ),
+    )
+    .limit(1);
+
+  if (!target?.role.split(",").includes("owner")) return;
+
+  const [self] = await ctx.db
+    .select({ role: members.role })
+    .from(members)
+    .where(
+      and(
+        eq(members.id, await currentMemberId(ctx)),
+        eq(members.organizationId, ctx.activeOrganization.id),
+      ),
+    )
+    .limit(1);
+
+  if (!self?.role.split(",").includes("owner")) {
+    throw new TRPCError({
+      code: "FORBIDDEN",
+      message: "Only an owner can erase another owner.",
+    });
+  }
+}
+
 const memberLabel = async (ctx: OrganizationContext, memberId: string) => {
   const [row] = await ctx.db
     .select({ name: users.name })
@@ -64,7 +101,12 @@ export const privacyRouter = router({
     }),
 
   /** An administrator removes a member and their personal data. */
-  erase: procedure(["privacy.erased"])
+  erase: permissionProcedure("admin.manage_privacy", undefined, {
+    module: "admin",
+    audit: ["privacy.erased"],
+    // Erasing cannot be undone, so a long-open session must sign in again.
+    fresh: true,
+  })
     .input(
       z.object({
         memberId: z.string().uuid(),
@@ -72,6 +114,8 @@ export const privacyRouter = router({
       }),
     )
     .mutation(async ({ ctx, input }) => {
+      await assertMayEraseMember(ctx, input.memberId);
+
       const label = await memberLabel(ctx, input.memberId);
       const result = await eraseMember(ctx.db, {
         organizationId: ctx.activeOrganization.id,

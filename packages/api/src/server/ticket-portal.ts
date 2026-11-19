@@ -2,6 +2,7 @@ import { and, asc, eq, inArray, sql } from "@zentro/db/drizzle";
 import { ticketMessages, tickets } from "@zentro/db/schema";
 
 import type { DbHandle } from "./access";
+import { ticketsOpenToPublic } from "./tickets-public";
 
 type Tx = DbHandle & {
   execute: (query: ReturnType<typeof sql>) => Promise<unknown>;
@@ -26,7 +27,9 @@ export async function portalView(db: DbHandle, token: string) {
     .where(eq(tickets.portalToken, token))
     .limit(1);
 
-  if (!ticket) return null;
+  if (!ticket || !(await ticketsOpenToPublic(db, ticket.organizationId))) {
+    return null;
+  }
 
   const messages = await db
     .select({
@@ -78,12 +81,18 @@ export async function portalReply(
 
   return db.transaction(async (tx) => {
     const [ticket] = await tx
-      .select({ id: tickets.id, organizationId: tickets.organizationId })
+      .select({
+        id: tickets.id,
+        organizationId: tickets.organizationId,
+        status: tickets.status,
+      })
       .from(tickets)
       .where(eq(tickets.portalToken, token))
       .limit(1);
 
-    if (!ticket) return { ok: false };
+    if (!ticket || !(await ticketsOpenToPublic(tx, ticket.organizationId))) {
+      return { ok: false };
+    }
 
     await tx.insert(ticketMessages).values({
       ticketId: ticket.id,
@@ -92,10 +101,13 @@ export async function portalReply(
       kind: "inbound",
       body,
     });
-    await tx
-      .update(tickets)
-      .set({ status: "open", resolvedAt: null, updatedAt: new Date() })
-      .where(eq(tickets.id, ticket.id));
+    // A reply reopens the ticket for the team, unless it was marked spam.
+    if (ticket.status !== "spam") {
+      await tx
+        .update(tickets)
+        .set({ status: "open", resolvedAt: null, updatedAt: new Date() })
+        .where(eq(tickets.id, ticket.id));
+    }
 
     return { ok: true };
   });
