@@ -261,3 +261,37 @@ test("a deleted board goes to the trash and can be restored @whiteboards", async
   ).toBeVisible();
   await expect(page.getByRole("region", { name: "Trash" })).toHaveCount(0);
 });
+
+test("the board overview moves the view and can be hidden @whiteboards", async ({
+  page,
+}) => {
+  await registerWithOrganization(page, {
+    label: "boards-map",
+    orgName: uniqueName("Boards map org"),
+  });
+  await newBoard(page, uniqueName("Map board"));
+  await drawWith(page, "Rectangle", [400, 200]);
+
+  const overview = page.getByRole("img", { name: "Map of the whole board" });
+  const shape = page.getByTestId("shape-rect");
+
+  await expect(overview).toBeVisible();
+
+  const before = (await shape.boundingBox())!;
+  const map = (await overview.boundingBox())!;
+
+  // Clicking near the overview's corner centres the view there: the shape
+  // moves on screen.
+  await page.mouse.click(map.x + map.width * 0.9, map.y + map.height * 0.9);
+  await expect
+    .poll(async () => (await shape.boundingBox())!.x)
+    .not.toBe(before.x);
+
+  await page.getByRole("button", { name: "Board overview" }).click();
+  await expect(overview).toBeHidden();
+  await page
+    .getByLabel("Whiteboard canvas")
+    .click({ position: { x: 900, y: 500 } });
+  await page.keyboard.press("m");
+  await expect(overview).toBeVisible();
+});

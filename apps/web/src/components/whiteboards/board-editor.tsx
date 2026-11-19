@@ -39,6 +39,7 @@ import {
   MousePointer2Icon,
   PencilIcon,
   PlusIcon,
+  MapIcon,
   PresentationIcon,
   Redo2Icon,
   SendToBackIcon,
@@ -91,6 +92,7 @@ import {
   type Point,
 } from "./canvas/model";
 import { Shape, wrap } from "./canvas/shape";
+import { Minimap } from "./canvas/minimap";
 import { mergeIn, restore } from "./canvas/sync";
 import { TaskPicker, type PickedTask } from "./canvas/task-picker";
 import { templates } from "./canvas/templates";
@@ -178,6 +180,7 @@ const shortcuts: [string, string][] = [
   ["Enter", "Edit the selected shape's text"],
   ["Ctrl/⌘ + / −, Shift 1", "Zoom in, out, fit everything"],
   ["Delete", "Delete the selection"],
+  ["M", "Show or hide the board overview"],
   ["?", "This list"],
 ];
 
@@ -281,6 +284,28 @@ export function BoardEditor({ id }: { id: string }) {
   usePageCrumb(`/whiteboards/${id}`, title);
 
   const shown = useMemo(() => live(elements), [elements]);
+  const [showMap, setShowMap] = useState(true);
+  /** The canvas's size on screen, for the overview's "you are here" box. */
+  const [canvasSize, setCanvasSize] = useState({ w: 0, h: 0 });
+
+  useEffect(() => {
+    const svg = svgRef.current;
+
+    if (!svg) return;
+
+    const observer = new ResizeObserver(([entry]) => {
+      if (entry) {
+        setCanvasSize({
+          w: entry.contentRect.width,
+          h: entry.contentRect.height,
+        });
+      }
+    });
+
+    observer.observe(svg);
+
+    return () => observer.disconnect();
+  }, [state]);
   const byId = useMemo(
     () => new Map(elements.map((el) => [el.id, el])),
     [elements],
@@ -905,6 +930,11 @@ export function BoardEditor({ id }: { id: string }) {
 
       if (event.key === "?") {
         setHelpOpen((open) => !open);
+        return;
+      }
+
+      if (key === "m" && !mod) {
+        setShowMap((shown) => !shown);
         return;
       }
 
@@ -2418,6 +2448,16 @@ export function BoardEditor({ id }: { id: string }) {
             >
               ?
             </Button>
+            <Button
+              size="icon-sm"
+              variant="ghost"
+              aria-label="Board overview"
+              aria-pressed={showMap}
+              title="Board overview — M"
+              onClick={() => setShowMap((value) => !value)}
+            >
+              <MapIcon aria-hidden />
+            </Button>
             {canEdit ? (
               <>
                 <span className="mx-1 h-5 w-px bg-line" aria-hidden />
@@ -2441,6 +2481,26 @@ export function BoardEditor({ id }: { id: string }) {
             ) : null}
           </div>
         )}
+        {presenting === null && showMap && shown.length && canvasSize.w ? (
+          <div className="absolute right-4 bottom-24 z-10">
+            <Minimap
+              shapes={shown}
+              visible={{
+                x: -view.x / view.k,
+                y: -view.y / view.k,
+                w: canvasSize.w / view.k,
+                h: canvasSize.h / view.k,
+              }}
+              onCenter={(point) =>
+                setView((v) => ({
+                  ...v,
+                  x: canvasSize.w / 2 - point.x * v.k,
+                  y: canvasSize.h / 2 - point.y * v.k,
+                }))
+              }
+            />
+          </div>
+        ) : null}
       </div>
 
       <TaskPicker open={picking} onOpenChange={setPicking} onPick={addTask} />
