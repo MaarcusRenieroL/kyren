@@ -582,6 +582,13 @@
       "when": 1798920000000,
       "tag": "0082_kb_article_revisions",
       "breakpoints": true
+    },
+    {
+      "idx": 83,
+      "version": "7",
+      "when": 1798930000000,
+      "tag": "0083_kb_article_trash",
+      "breakpoints": true
     }
   ]
 }

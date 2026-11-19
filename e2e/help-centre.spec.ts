@@ -88,3 +88,42 @@ test("an edited article keeps its earlier version, which can be restored @ticket
   // The replaced text is kept too, so the restore can be undone.
   await expect(history.getByText("Invoices go out on the 5th.")).toBeVisible();
 });
+
+test("a trashed article leaves the help centre and comes back on restore @tickets", async ({
+  page,
+}) => {
+  const orgName = uniqueName("Help trash org");
+
+  await registerWithOrganization(page, { label: "help-trash", orgName });
+
+  const slug = orgName.toLowerCase().replace(/[^a-z0-9]+/g, "-");
+  const title = uniqueName("Refund policy");
+
+  await page.goto("/tickets");
+  await page.getByText("Help articles").click();
+  await page.getByLabel("Article title").fill(title);
+  await page.getByLabel("Article text").fill("Refunds within 30 days.");
+  await page.getByLabel("Status").selectOption("published");
+  await page.getByRole("button", { name: "Add article" }).click();
+  await page
+    .getByRole("button", { name: `Move ${title} to the trash` })
+    .click();
+
+  const trash = page.getByRole("region", { name: "Trashed articles" });
+
+  await expect(trash.getByText(title)).toBeVisible();
+
+  const visitor = await page.context().browser()!.newContext();
+  const help = await visitor.newPage();
+
+  await help.goto(`/help/${slug}`);
+  await expect(help.getByText(title)).toHaveCount(0);
+
+  await trash.getByRole("button", { name: `Restore ${title}` }).click();
+  await expect(
+    page.getByRole("button", { name: title, exact: true }),
+  ).toBeVisible();
+  await help.reload();
+  await expect(help.getByText(title)).toBeVisible();
+  await visitor.close();
+});

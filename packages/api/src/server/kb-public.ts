@@ -1,4 +1,4 @@
-import { and, asc, desc, eq } from "@zentro/db/drizzle";
+import { and, asc, desc, eq, isNull } from "@zentro/db/drizzle";
 import { kbArticles, organizations } from "@zentro/db/schema";
 
 import type { db as database } from "@zentro/db";
@@ -12,6 +12,7 @@ const live = (organizationId: string) =>
     eq(kbArticles.organizationId, organizationId),
     eq(kbArticles.status, "published"),
     eq(kbArticles.audience, "public"),
+    isNull(kbArticles.deletedAt),
   );
 
 const organizationBySlug = async (db: Db, slug: string) => {

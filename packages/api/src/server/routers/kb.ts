@@ -1,5 +1,15 @@
 import { TRPCError } from "@trpc/server";
-import { and, asc, desc, eq, ilike, or, type SQL } from "@zentro/db/drizzle";
+import {
+  and,
+  asc,
+  desc,
+  eq,
+  ilike,
+  isNotNull,
+  isNull,
+  or,
+  type SQL,
+} from "@zentro/db/drizzle";
 import {
   kbArticleRevisions,
   kbArticles,
@@ -40,7 +50,12 @@ async function lockArticle(tx: Tx, id: string, organizationId: string) {
     .select()
     .from(kbArticles)
     .where(
-      and(eq(kbArticles.id, id), eq(kbArticles.organizationId, organizationId)),
+      and(
+        eq(kbArticles.id, id),
+        eq(kbArticles.organizationId, organizationId),
+        // An article in the trash takes no edits until it is restored.
+        isNull(kbArticles.deletedAt),
+      ),
     )
     .for("update")
     .limit(1);
@@ -66,8 +81,34 @@ export const kbRouter = router({
       ctx.db
         .select()
         .from(kbArticles)
-        .where(eq(kbArticles.organizationId, ctx.activeOrganization.id))
+        .where(
+          and(
+            eq(kbArticles.organizationId, ctx.activeOrganization.id),
+            isNull(kbArticles.deletedAt),
+          ),
+        )
         .orderBy(desc(kbArticles.updatedAt), asc(kbArticles.title)),
+    ),
+
+  /** Articles in the trash, most recently trashed first. */
+  trash: procedure("tickets.manage_articles")
+    .input(z.object({}))
+    .query(({ ctx }) =>
+      ctx.db
+        .select({
+          id: kbArticles.id,
+          title: kbArticles.title,
+          deletedAt: kbArticles.deletedAt,
+        })
+        .from(kbArticles)
+        .where(
+          and(
+            eq(kbArticles.organizationId, ctx.activeOrganization.id),
+            isNotNull(kbArticles.deletedAt),
+          ),
+        )
+        .orderBy(desc(kbArticles.deletedAt))
+        .limit(200),
     ),
 
   /** Published articles that mention every word of the question (for an agent writing a reply). */
@@ -96,6 +137,7 @@ export const kbRouter = router({
           and(
             eq(kbArticles.organizationId, ctx.activeOrganization.id),
             eq(kbArticles.status, "published"),
+            isNull(kbArticles.deletedAt),
             ...matches,
           ),
         )
@@ -192,6 +234,7 @@ export const kbRouter = router({
           and(
             eq(kbArticles.id, input.id),
             eq(kbArticles.organizationId, ctx.activeOrganization.id),
+            isNull(kbArticles.deletedAt),
           ),
         )
         .limit(1);
@@ -278,7 +321,60 @@ export const kbRouter = router({
       });
     }),
 
+  /** Moves an article to the trash: off the help centre, restorable. */
   remove: procedure("tickets.manage_articles", ["article.deleted"])
+    .input(z.object({ id: z.string().uuid() }))
+    .mutation(async ({ ctx, input }) =>
+      ctx.db.transaction(async (tx) => {
+        const before = await lockArticle(
+          tx,
+          input.id,
+          ctx.activeOrganization.id,
+        );
+
+        await tx
+          .update(kbArticles)
+          .set({ deletedAt: new Date() })
+          .where(eq(kbArticles.id, before.id));
+        await ctx.audit.record(tx, {
+          action: "article.deleted",
+          target: { id: before.id, label: before.title },
+        });
+
+        return { ok: true };
+      }),
+    ),
+
+  /** Takes an article out of the trash, as it was. */
+  untrash: procedure("tickets.manage_articles", ["article.recovered"])
+    .input(z.object({ id: z.string().uuid() }))
+    .mutation(async ({ ctx, input }) =>
+      ctx.db.transaction(async (tx) => {
+        const [row] = await tx
+          .update(kbArticles)
+          .set({ deletedAt: null })
+          .where(
+            and(
+              eq(kbArticles.id, input.id),
+              eq(kbArticles.organizationId, ctx.activeOrganization.id),
+              isNotNull(kbArticles.deletedAt),
+            ),
+          )
+          .returning({ id: kbArticles.id, title: kbArticles.title });
+
+        if (!row) throw new TRPCError({ code: "NOT_FOUND" });
+
+        await ctx.audit.record(tx, {
+          action: "article.recovered",
+          target: { id: row.id, label: row.title },
+        });
+
+        return { ok: true };
+      }),
+    ),
+
+  /** Deletes a trashed article and its earlier versions for good. */
+  purge: procedure("tickets.manage_articles", ["article.purged"])
     .input(z.object({ id: z.string().uuid() }))
     .mutation(async ({ ctx, input }) =>
       ctx.db.transaction(async (tx) => {
@@ -288,14 +384,16 @@ export const kbRouter = router({
             and(
               eq(kbArticles.id, input.id),
               eq(kbArticles.organizationId, ctx.activeOrganization.id),
+              // Only from the trash, so nothing live vanishes in one click.
+              isNotNull(kbArticles.deletedAt),
             ),
           )
-          .returning();
+          .returning({ id: kbArticles.id, title: kbArticles.title });
 
         if (!row) throw new TRPCError({ code: "NOT_FOUND" });
 
         await ctx.audit.record(tx, {
-          action: "article.deleted",
+          action: "article.purged",
           target: { id: row.id, label: row.title },
         });
 

@@ -100,24 +100,16 @@ export function KnowledgeBase() {
               size="sm"
               variant="outline"
               disabled={busy}
-              aria-label={`Delete ${article.title}`}
-              onClick={() => {
-                if (
-                  !window.confirm(
-                    `Delete "${article.title}" and its earlier versions? This cannot be undone.`,
-                  )
-                ) {
-                  return;
-                }
-
+              aria-label={`Move ${article.title} to the trash`}
+              onClick={() =>
                 void run(async () => {
                   await trpc.kb.remove.mutate({ id: article.id });
 
                   if (draft.id === article.id) setDraft(blank);
-                }, "Article deleted");
-              }}
+                }, "Moved to the trash")
+              }
             >
-              Delete
+              Trash
             </Button>
           </li>
         ))}
@@ -230,6 +222,8 @@ export function KnowledgeBase() {
           }}
         />
       ) : null}
+
+      <Trash key={version} busy={busy} run={run} />
     </details>
   );
 }
@@ -299,6 +293,69 @@ function Revisions({
           ))}
         </ol>
       )}
+    </section>
+  );
+}
+
+/** Trashed articles: restore one, or delete it for good. */
+function Trash({
+  busy,
+  run,
+}: {
+  busy: boolean;
+  run: (work: () => Promise<unknown>, done: string) => Promise<void>;
+}) {
+  const trpc = useTrpcClient();
+  const trashed = useAsyncData(() => trpc.kb.trash.query({}), [trpc]);
+
+  if (!trashed.data?.length) return null;
+
+  return (
+    <section aria-label="Trashed articles" className="mt-4 flex flex-col gap-2">
+      <h3 className="text-sm font-medium text-ink">Trash</h3>
+      <ul className="flex flex-col gap-1 text-sm">
+        {trashed.data.map((article) => (
+          <li key={article.id} className="flex items-center gap-2">
+            <span className="flex-1 truncate text-ink-2">{article.title}</span>
+            <Button
+              size="sm"
+              variant="outline"
+              disabled={busy}
+              aria-label={`Restore ${article.title}`}
+              onClick={() =>
+                void run(
+                  () => trpc.kb.untrash.mutate({ id: article.id }),
+                  "Article restored",
+                )
+              }
+            >
+              Restore
+            </Button>
+            <Button
+              size="sm"
+              variant="ghost"
+              disabled={busy}
+              aria-label={`Delete ${article.title} for good`}
+              onClick={() => {
+                if (
+                  !window.confirm(
+                    `Delete "${article.title}" and its earlier versions for good? This cannot be undone.`,
+                  )
+                ) {
+                  return;
+                }
+
+                void run(
+                  () => trpc.kb.purge.mutate({ id: article.id }),
+                  "Article deleted for good",
+                );
+              }}
+            >
+              Delete forever
+            </Button>
+          </li>
+        ))}
+      </ul>
     </section>
   );
 }

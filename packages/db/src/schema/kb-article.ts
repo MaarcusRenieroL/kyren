@@ -35,6 +35,8 @@ export const kbArticles = pgTable(
     }),
     createdAt: timestamp("createdAt").notNull().defaultNow(),
     updatedAt: timestamp("updatedAt").notNull().defaultNow(),
+    /** Set when moved to the trash; restore clears it. */
+    deletedAt: timestamp("deletedAt"),
   },
   (table) => [
     uniqueIndex("kbArticle_organization_slug_unique").on(
