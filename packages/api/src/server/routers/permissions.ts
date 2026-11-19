@@ -259,6 +259,20 @@ function rankOf(role: string | null | undefined) {
   return 0;
 }
 
+/** Only an owner changes the Admin system role. */
+async function assertOwnerForAdminRole(
+  ctx: OrganizationContext,
+  systemKey: string | null,
+) {
+  if (systemKey !== "admin") return;
+
+  const caller = await ctx.permissions.snapshot();
+
+  if (!caller.baseRole || !isOwnerRole(caller.baseRole)) {
+    throw forbidden("Only an owner can change the Admin role.");
+  }
+}
+
 /**
  * Self-service and rank protection shared by assignments and overrides: you
  * cannot change your own access, an owner's access, or the access of someone
@@ -445,6 +459,10 @@ const rolesRouter = router({
         throw forbidden("This system role cannot be changed.");
       }
 
+      // The Admin role is every admin's access: changing it changes theirs,
+      // and admins don't change each other's access. An owner does.
+      await assertOwnerForAdminRole(ctx, role.systemKey);
+
       if (isBaseSystemRole && input.name && input.name !== role.name) {
         throw forbidden("System roles cannot be renamed.");
       }
@@ -588,6 +606,8 @@ const rolesRouter = router({
   })
     .input(z.object({ systemKey: z.enum(["admin", "member"]) }))
     .mutation(async ({ ctx, input }) => {
+      await assertOwnerForAdminRole(ctx, input.systemKey);
+
       const definition = getSystemRoleDefinition(input.systemKey)!;
       const [role] = await ctx.db
         .select()

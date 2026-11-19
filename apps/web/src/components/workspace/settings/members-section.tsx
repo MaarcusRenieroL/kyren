@@ -440,8 +440,15 @@ export const MembersSection: FC<Props> = ({
           const lastActive = shortAgo(
             extras[member.userId]?.lastActive ?? null,
           );
+          // The owner, and for anyone but the owner other admins, are out
+          // of reach here: only an owner changes or removes an admin.
+          const outranks =
+            member.role === "owner" ||
+            (member.role === "admin" && !canTransfer);
           const canAct =
-            !isCurrentUser && (permissions.canRemoveMembers || canManageAccess);
+            !isCurrentUser &&
+            !outranks &&
+            (permissions.canRemoveMembers || canManageAccess);
 
           return (
             <div
@@ -472,7 +479,7 @@ export const MembersSection: FC<Props> = ({
               </span>
               <span role="cell" className="w-28 sm:w-32">
                 <RoleControl
-                  disabled={!permissions.canUpdateMemberRoles}
+                  disabled={!permissions.canUpdateMemberRoles || outranks}
                   isCurrentUser={isCurrentUser}
                   member={member}
                   onRoleChange={handleRoleChange}

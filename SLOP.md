@@ -25,3 +25,12 @@ Nothing here is deleted without your `[x]`.
       the stats a screen.
 - [ ] apps/web/src/lib/dashboard-data.ts types `DashboardStat`, `DashboardActivityPill`, `DashboardTaskItem` — used
       only by `getDashboardData` above; they go with it (found 2026-11-19 by the dashboard harden pass)
+
+## settings (found 2026-11-19)
+
+- [ ] packages/api/src/server/routers/permissions.ts `permissions.me` — no caller in apps/web (grep `permissions.me` /
+      `.me.query`: none); used only by tests. The page context already carries the viewer's permission snapshot.
+- [ ] packages/api/src/server/routers/organization.ts `organization.flags` — no caller in apps/web (grep
+      `organization.flags` / `flags.query`: none); tested only.
+- [ ] packages/api/src/server/routers/team.ts `team.getById` — no caller in apps/web (grep `team.getById` /
+      `getById.query`: none). The team page loads its team server-side.

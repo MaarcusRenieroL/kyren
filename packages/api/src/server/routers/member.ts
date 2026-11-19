@@ -14,7 +14,7 @@ import { z } from "zod";
 import { assertHoldsAll } from "../access";
 import { awayUntilByMember } from "../away";
 import { callAuth } from "../auth-calls";
-import { permissionProcedure, router } from "../trpc";
+import { permissionProcedure, router, type OrganizationContext } from "../trpc";
 import { isoDate } from "../zod-common";
 
 const memberIdSchema = z.object({ memberId: z.string().uuid() });
@@ -63,6 +63,26 @@ const isOwner = (role: string) =>
     .map((part) => part.trim())
     .includes("owner");
 
+/** When the target is an admin, only an owner may act on them. */
+async function assertOwnerForAdmin(
+  ctx: OrganizationContext,
+  targetRole: string,
+  message: string,
+) {
+  const isAdmin = targetRole
+    .split(",")
+    .map((part) => part.trim())
+    .includes("admin");
+
+  if (!isAdmin) return;
+
+  const caller = await ctx.permissions.snapshot();
+
+  if (!caller.baseRole || !isOwner(caller.baseRole)) {
+    throw new TRPCError({ code: "FORBIDDEN", message });
+  }
+}
+
 export const memberRouter = router({
   getMembers: permissionProcedure("members.view").query(async ({ ctx }) => {
     const { activeOrganization, db } = ctx;
@@ -107,25 +127,11 @@ export const memberRouter = router({
       }
 
       // Admins don't demote or promote each other; an owner does.
-      if (target.role.split(",").includes("admin")) {
-        const [self] = await db
-          .select({ role: members.role })
-          .from(members)
-          .where(
-            and(
-              eq(members.organizationId, activeOrganization.id),
-              eq(members.userId, user.id),
-            ),
-          )
-          .limit(1);
-
-        if (!self || !isOwner(self.role)) {
-          throw new TRPCError({
-            code: "FORBIDDEN",
-            message: "Only an owner can change another admin's role.",
-          });
-        }
-      }
+      await assertOwnerForAdmin(
+        ctx,
+        target.role,
+        "Only an owner can change another admin's role.",
+      );
 
       // Promoting someone to a role is giving them everything it grants.
       const [role] = await db
@@ -187,6 +193,13 @@ export const memberRouter = router({
           message: "Leave the organization instead of removing yourself.",
         });
       }
+
+      // Admins don't remove each other either; an owner does.
+      await assertOwnerForAdmin(
+        ctx,
+        target.role,
+        "Only an owner can remove an admin.",
+      );
 
       const label = await userLabel(ctx, target.userId);
 

@@ -23,6 +23,7 @@ import { Textarea } from "@zentro/ui/shadcn/textarea";
 import { toastError, toastSuccess } from "@zentro/ui/index";
 
 import {
+  useBaseRole,
   usePermission,
   usePermissionMap,
 } from "~/src/components/permissions/permission-provider";
@@ -92,7 +93,12 @@ export const RoleEditor: FC<{ roleId: string }> = ({ roleId }) => {
   const holdsAll = role
     ? role.permissions.every((key) => myPermissions[key])
     : false;
-  const canEdit = Boolean(canUpdate && editableRole && holdsAll);
+  // The Admin role is every admin's access, so only an owner changes it.
+  const isOwner = useBaseRole() === "owner";
+  const adminRoleLocked = role?.systemKey === "admin" && !isOwner;
+  const canEdit = Boolean(
+    canUpdate && editableRole && holdsAll && !adminRoleLocked,
+  );
 
   const groups = useMemo(() => {
     if (!catalog || !role) return [];
@@ -202,6 +208,11 @@ export const RoleEditor: FC<{ roleId: string }> = ({ roleId }) => {
       ) : !canUpdate ? (
         <p className="text-sm text-muted-foreground">
           You can view this role but not change it.
+        </p>
+      ) : adminRoleLocked ? (
+        <p className="text-sm text-muted-foreground">
+          Only the owner can change the Admin role, since it is every
+          admin&apos;s access.
         </p>
       ) : !holdsAll ? (
         <p className="text-sm text-muted-foreground">

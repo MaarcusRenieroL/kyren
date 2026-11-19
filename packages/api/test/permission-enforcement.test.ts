@@ -1461,6 +1461,7 @@ describe("Better Auth endpoints cannot be called directly", () => {
       org,
     );
     const member = await world.userIn(org, "member");
+    const leaving = await world.userIn(org, "member");
 
     const invitation = await admin.invitation.invite({
       email: "new.person@example.test",
@@ -1477,8 +1478,15 @@ describe("Better Auth endpoints cannot be called directly", () => {
     await expect(
       admin.member.updateRole({ memberId: member.member.id, role: "admin" }),
     ).resolves.toEqual({ memberId: member.member.id, role: "admin" });
+    // An admin removes members; another admin only an owner removes.
+    await expect(
+      admin.member.remove({ memberId: leaving.member.id }),
+    ).resolves.toBeDefined();
     await expect(
       admin.member.remove({ memberId: member.member.id }),
+    ).rejects.toMatchObject({ code: "FORBIDDEN" });
+    await expect(
+      owner.member.remove({ memberId: member.member.id }),
     ).resolves.toBeDefined();
 
     // Invitations of another organization are out of reach.
