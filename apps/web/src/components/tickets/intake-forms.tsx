@@ -7,6 +7,7 @@ import { toastError, toastSuccess } from "@zentro/ui/index";
 import { Button } from "@zentro/ui/shadcn/button";
 import { Input } from "@zentro/ui/shadcn/input";
 import { Textarea } from "@zentro/ui/shadcn/textarea";
+import { NativeSelect } from "@zentro/ui/shadcn/native-select";
 
 type FieldType = "name" | "email" | "text" | "longtext" | "choice";
 
@@ -213,9 +214,10 @@ export function IntakeForms() {
               value={field.label}
               onChange={(e) => setField(index, { label: e.target.value })}
             />
-            <select
+            <NativeSelect
               aria-label={`Question ${index + 1} type`}
-              className="rounded-md border border-line bg-surface px-2 py-1"
+              size="sm"
+              className="w-32"
               value={field.type}
               onChange={(e) =>
                 setField(index, { type: e.target.value as FieldType })
@@ -226,7 +228,7 @@ export function IntakeForms() {
                   {label}
                 </option>
               ))}
-            </select>
+            </NativeSelect>
             {field.type === "choice" ? (
               <Input
                 aria-label={`Question ${index + 1} choices`}

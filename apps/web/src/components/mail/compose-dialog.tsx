@@ -1,7 +1,7 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import { XIcon } from "lucide-react";
+import { useMemo, useRef, useState } from "react";
+import { PaperclipIcon, XIcon } from "lucide-react";
 
 import { Button } from "@zentro/ui/shadcn/button";
 import {
@@ -16,6 +16,9 @@ import { Input } from "@zentro/ui/shadcn/input";
 import { Label } from "@zentro/ui/shadcn/label";
 import { Textarea } from "@zentro/ui/shadcn/textarea";
 
+import { fileSize } from "~/src/components/chat/message-body";
+import { apiPath } from "~/src/lib/paths";
+
 export type Person = { id: string; name: string; email: string; isMe: boolean };
 
 export type ComposeDraft = {
@@ -25,7 +28,32 @@ export type ComposeDraft = {
   subject: string;
   body: string;
   replyToId?: string;
+  files?: Attachment[];
 };
+
+export type Attachment = { id: string; name: string; size: number };
+
+/** At most this many files go with one message (the server's limit too). */
+const MAX_FILES = 10;
+
+async function uploadAttachment(file: File): Promise<Attachment> {
+  const body = new FormData();
+
+  body.append("file", file);
+  body.append("mail", "1");
+
+  const response = await fetch(apiPath("/api/files"), {
+    method: "POST",
+    body,
+  });
+  const saved = (await response.json()) as { id?: string; error?: string };
+
+  if (!response.ok || !saved.id) {
+    throw new Error(saved.error ?? `Could not upload ${file.name}.`);
+  }
+
+  return { id: saved.id, name: file.name, size: file.size };
+}
 
 type Props = {
   draft: ComposeDraft | null;
@@ -157,6 +185,9 @@ function ComposeForm({
   const [showCc, setShowCc] = useState(draft.cc.length > 0);
   const [subject, setSubject] = useState(draft.subject);
   const [body, setBody] = useState(draft.body);
+  const [files, setFiles] = useState<Attachment[]>(draft.files ?? []);
+  const [uploading, setUploading] = useState(0);
+  const picker = useRef<HTMLInputElement>(null);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
@@ -167,10 +198,39 @@ function ComposeForm({
     cc,
     subject,
     body,
+    files,
   });
   const hasContent = Boolean(
-    to.length || cc.length || subject.trim() || body.trim(),
+    to.length || cc.length || subject.trim() || body.trim() || files.length,
   );
+
+  async function attach(list: FileList | null) {
+    const chosen = Array.from(list ?? []);
+
+    if (picker.current) picker.current.value = "";
+    if (!chosen.length) return;
+    if (files.length + chosen.length > MAX_FILES) {
+      setError(`A message can carry at most ${MAX_FILES} files.`);
+      return;
+    }
+
+    setError(null);
+    setUploading((n) => n + chosen.length);
+
+    for (const file of chosen) {
+      try {
+        const saved = await uploadAttachment(file);
+
+        setFiles((current) => [...current, saved]);
+      } catch (err) {
+        setError(
+          err instanceof Error ? err.message : `Could not upload ${file.name}.`,
+        );
+      } finally {
+        setUploading((n) => n - 1);
+      }
+    }
+  }
 
   async function send(event: React.FormEvent) {
     event.preventDefault();
@@ -238,6 +298,53 @@ function ComposeForm({
         />
       </div>
 
+      <div className="flex flex-col gap-1.5">
+        <input
+          ref={picker}
+          type="file"
+          multiple
+          hidden
+          aria-label="Files to attach"
+          onChange={(event) => void attach(event.target.files)}
+        />
+        {files.length ? (
+          <ul aria-label="Attachments" className="flex flex-wrap gap-1.5">
+            {files.map((file) => (
+              <li
+                key={file.id}
+                className="flex items-center gap-1.5 rounded-md border border-line px-2 py-1 text-xs"
+              >
+                <PaperclipIcon className="size-3" aria-hidden />
+                <span className="max-w-48 truncate">{file.name}</span>
+                <span className="text-ink-3">{fileSize(file.size)}</span>
+                <button
+                  type="button"
+                  aria-label={`Remove ${file.name}`}
+                  onClick={() =>
+                    setFiles((current) =>
+                      current.filter((item) => item.id !== file.id),
+                    )
+                  }
+                >
+                  <XIcon className="size-3" aria-hidden />
+                </button>
+              </li>
+            ))}
+          </ul>
+        ) : null}
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          className="self-start"
+          disabled={busy || uploading > 0 || files.length >= MAX_FILES}
+          onClick={() => picker.current?.click()}
+        >
+          <PaperclipIcon aria-hidden />
+          {uploading ? "Uploading…" : "Attach files"}
+        </Button>
+      </div>
+
       {error ? (
         <p role="alert" className="text-sm text-danger-text">
           {error}
@@ -257,12 +364,12 @@ function ComposeForm({
         <Button
           type="button"
           variant="outline"
-          disabled={busy}
+          disabled={busy || uploading > 0}
           onClick={() => void close()}
         >
           {hasContent ? "Save draft" : "Close"}
         </Button>
-        <Button type="submit" disabled={busy}>
+        <Button type="submit" disabled={busy || uploading > 0}>
           {busy ? "Sending…" : "Send"}
         </Button>
       </DialogFooter>

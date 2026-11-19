@@ -19,8 +19,7 @@ import { usePageCrumb } from "~/src/components/shell/breadcrumb-context";
 import { useAsyncData } from "~/src/lib/use-async-data";
 
 import { isMissing, messageOf } from "../tickets/labels";
-import { formatMoney, formatPeriod, runTone } from "./money";
-import { csvFileName, runCsv } from "./run-csv";
+import { formatMoney, formatPeriod, runTone, toMajor, toMinor } from "./money";
 
 type Run = inferRouterOutputs<AppRouter>["payroll"]["run"];
 
@@ -88,17 +87,24 @@ export function RunDetail({ id }: { id: string }) {
       </p>
     );
 
-  function exportCsv() {
+  async function exportCsv() {
     if (!run) return;
-    const url = URL.createObjectURL(
-      new Blob([runCsv(run.lines)], { type: "text/csv;charset=utf-8" }),
-    );
-    const link = document.createElement("a");
 
-    link.href = url;
-    link.download = csvFileName(run.label);
-    link.click();
-    URL.revokeObjectURL(url);
+    try {
+      // The server builds the file so every download is recorded.
+      const file = await trpc.payroll.exportRun.mutate({ id: run.id });
+      const url = URL.createObjectURL(
+        new Blob([file.csv], { type: "text/csv;charset=utf-8" }),
+      );
+      const link = document.createElement("a");
+
+      link.href = url;
+      link.download = file.filename;
+      link.click();
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      toastError(error, "Could not export the pay run.");
+    }
   }
 
   const editable = run.status === "draft" && run.canManage;
@@ -129,10 +135,12 @@ export function RunDetail({ id }: { id: string }) {
         description={`${formatPeriod(run.periodStart, run.periodEnd)} · ${run.deductionRateBps / 100}% held back as tax and contributions`}
         actions={
           <>
-            <Button variant="outline" onClick={exportCsv}>
-              <DownloadIcon aria-hidden />
-              Export CSV
-            </Button>
+            {run.status === "draft" ? null : (
+              <Button variant="outline" onClick={() => void exportCsv()}>
+                <DownloadIcon aria-hidden />
+                Export CSV
+              </Button>
+            )}
             {run.status === "draft" && run.canManage ? (
               <Button
                 variant="ghost"
@@ -149,7 +157,16 @@ export function RunDetail({ id }: { id: string }) {
                 Delete
               </Button>
             ) : null}
-            {run.status === "draft" && run.canApprove ? (
+            {run.status === "draft" &&
+            run.canApprove &&
+            run.approvalNeedsSomeoneElse ? (
+              <p className="max-w-56 text-xs text-ink-2">
+                Another admin approves this run: you created or changed it.
+              </p>
+            ) : null}
+            {run.status === "draft" &&
+            run.canApprove &&
+            !run.approvalNeedsSomeoneElse ? (
               <Button
                 disabled={busy}
                 onClick={() =>
@@ -229,7 +246,7 @@ export function RunDetail({ id }: { id: string }) {
                         void act(async () => {
                           await trpc.payroll.setBonus.mutate({
                             payslipId: line.id,
-                            bonus: Math.round(value * 100),
+                            bonus: toMinor(value, line.currency),
                           });
                           setBonuses((current) => {
                             const next = { ...current };
@@ -243,7 +260,10 @@ export function RunDetail({ id }: { id: string }) {
                         aria-label={`Bonus for ${line.employeeName}`}
                         inputMode="decimal"
                         className="w-20 text-right"
-                        value={bonuses[line.id] ?? String(line.bonus / 100)}
+                        value={
+                          bonuses[line.id] ??
+                          String(toMajor(line.bonus, line.currency))
+                        }
                         onChange={(e) =>
                           setBonuses((current) => ({
                             ...current,

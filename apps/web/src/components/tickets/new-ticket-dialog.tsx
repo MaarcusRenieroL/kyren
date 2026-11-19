@@ -15,8 +15,9 @@ import {
 import { Input } from "@zentro/ui/shadcn/input";
 import { Label } from "@zentro/ui/shadcn/label";
 import { Textarea } from "@zentro/ui/shadcn/textarea";
+import { NativeSelect } from "@zentro/ui/shadcn/native-select";
 
-import { messageOf, priorityLabels, selectClass } from "./labels";
+import { messageOf, priorityLabels } from "./labels";
 
 type Props = {
   open: boolean;
@@ -110,9 +111,8 @@ function Form({ onClose, onCreated }: Pick<Props, "onClose" | "onCreated">) {
       <div className="grid grid-cols-2 gap-3">
         <div className="flex flex-col gap-1.5">
           <Label htmlFor="tk-priority">Priority</Label>
-          <select
+          <NativeSelect
             id="tk-priority"
-            className={selectClass}
             value={priority}
             onChange={(e) => setPriority(e.target.value)}
           >
@@ -121,7 +121,7 @@ function Form({ onClose, onCreated }: Pick<Props, "onClose" | "onCreated">) {
                 {label}
               </option>
             ))}
-          </select>
+          </NativeSelect>
         </div>
         <div className="flex flex-col gap-1.5">
           <Label htmlFor="tk-category">Category (optional)</Label>

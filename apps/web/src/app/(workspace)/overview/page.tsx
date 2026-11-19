@@ -4,7 +4,9 @@ import { UnauthorizedEmptyState } from "~/src/components/workspace/authorization
 import { OverviewBoard } from "~/src/components/workspace/overview/overview-board";
 import { AdminFrame } from "~/src/components/workspace/settings/frames";
 import { getDashboardContext } from "~/src/lib/dashboard-context";
-import { getDashboardData } from "~/src/lib/dashboard-data";
+import { getStarterProgress } from "~/src/lib/starter-progress";
+import { getRecentActivity } from "~/src/lib/dashboard-data";
+import { getViewerTimeZone } from "~/src/lib/viewer-time-zone";
 import { getOverviewData } from "~/src/lib/overview-data";
 
 export const metadata = { title: "Overview" };
@@ -23,25 +25,30 @@ export default async function OverviewPage(): Promise<JSX.Element> {
   }
 
   const modules = new Set(enabledModules);
-  const [data, overview] = await Promise.all([
-    getDashboardData({
+  const timeZone = await getViewerTimeZone();
+  const [activity, overview, starter] = await Promise.all([
+    getRecentActivity({
       organizationId: organization.id,
       userId: session.user.id,
       enabledModules: modules,
-      snapshot,
+      timeZone,
     }),
     getOverviewData({
       organizationId: organization.id,
       enabledModules: modules,
+      timeZone,
     }),
+    getStarterProgress(organization.id),
   ]);
 
   return (
     <AdminFrame>
       <OverviewBoard
         data={overview}
-        activity={data.recentActivity}
+        activity={activity}
         canSeeAudit={can("audit_logs.view")}
+        starter={starter}
+        organizationId={organization.id}
       />
     </AdminFrame>
   );

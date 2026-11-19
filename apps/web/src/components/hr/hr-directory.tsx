@@ -11,9 +11,9 @@ import { EmptyState } from "@zentro/ui/components/empty-state";
 import { PageHeader } from "@zentro/ui/components/page-header";
 import { Button } from "@zentro/ui/shadcn/button";
 import { Input } from "@zentro/ui/shadcn/input";
+import { NativeSelect } from "@zentro/ui/shadcn/native-select";
 import { toast } from "@zentro/ui/index";
 
-import { selectClass } from "../tickets/labels";
 import {
   EmployeeDialog,
   employeeStatusLabels,
@@ -105,9 +105,9 @@ export function HrDirectory() {
             onChange={(e) => setQ(e.target.value)}
           />
         </div>
-        <select
+        <NativeSelect
           aria-label="Department"
-          className={selectClass}
+          className="w-48"
           value={department}
           onChange={(e) => setDepartment(e.target.value)}
         >
@@ -117,7 +117,7 @@ export function HrDirectory() {
               {name}
             </option>
           ))}
-        </select>
+        </NativeSelect>
         {directory ? (
           <span className="ml-auto text-sm text-ink-3">
             {shown.length} of {directory.people.length}

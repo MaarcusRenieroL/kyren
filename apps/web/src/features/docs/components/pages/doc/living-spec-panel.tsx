@@ -3,17 +3,12 @@
 import { useMemo, useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import {
-  CheckCircle2Icon,
-  CircleIcon,
-  ClockIcon,
   PlusIcon,
   SparklesIcon,
   ExternalLinkIcon,
   ListTodoIcon,
-  CheckSquareIcon,
   LayersIcon,
   RefreshCwIcon,
-  MoreVerticalIcon,
   Trash2Icon,
 } from "lucide-react";
 import { useTrpcClient } from "@zentro/api/react";
@@ -101,8 +96,8 @@ export function LivingSpecPanel({
           relation: item.relation,
         }));
       setTasks(taskItems);
-    } catch (err) {
-      // Failed to load
+    } catch {
+      // Not loaded (no Tasks access, or offline): the panel stays empty.
     } finally {
       setIsLoading(false);
     }
@@ -411,7 +406,8 @@ export function LivingSpecPanel({
                     <DropdownMenuTrigger asChild>
                       <button
                         type="button"
-                        disabled={!canEdit}
+                        // One change at a time per task.
+                        disabled={!canEdit || updatingTaskKey === task.key}
                         className="mt-0.5 shrink-0 rounded hover:scale-110 transition-transform focus:outline-none"
                         title="Change status"
                       >

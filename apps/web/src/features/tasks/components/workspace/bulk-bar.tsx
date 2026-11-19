@@ -39,6 +39,7 @@ import type {
   TaskStatus,
   WorkspaceTask,
 } from "~/src/features/tasks/lib/types";
+import { dueFromDateInput } from "../task-detail/task-detail-utils";
 
 const statuses: TaskStatus[] = [
   "todo",
@@ -62,9 +63,7 @@ const action =
 
 function toISODate(value: string) {
   // A date picked in the browser means the end of that local day.
-  const [year, month, day] = value.split("-").map(Number);
-
-  return new Date(year!, month! - 1, day!, 17).toISOString();
+  return dueFromDateInput(value)?.toISOString() ?? null;
 }
 
 /** What you can do to the selected tasks: one dark bar under the list. */

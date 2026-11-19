@@ -20,7 +20,9 @@ function Stat({
   return (
     <div className="tile flex flex-col gap-0.5 px-[18px] py-4">
       <span className="eyebrow">{label}</span>
-      <span className="font-serif-italic text-[44px] leading-12">{value}</span>
+      <span className="font-mono font-semibold text-3xl leading-tight text-ink tabular-nums tracking-tight">
+        {value}
+      </span>
       <span className="truncate text-[13px] text-ink-2">{note}</span>
     </div>
   );

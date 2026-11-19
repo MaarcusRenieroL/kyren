@@ -73,7 +73,7 @@ export function NotificationBell() {
 
         {items.length === 0 ? (
           <div className="flex flex-col items-center gap-2 px-6 py-12 text-center">
-            <p className="font-serif-italic text-3xl leading-none">
+            <p className="font-display font-semibold text-base tracking-tight text-ink">
               You’re all caught up.
             </p>
             <p className="max-w-64 text-sm text-ink-2">

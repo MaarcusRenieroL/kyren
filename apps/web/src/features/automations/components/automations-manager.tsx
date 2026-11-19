@@ -2,11 +2,8 @@
 
 import { FC, useEffect, useState } from "react";
 import {
-  AlertTriangleIcon,
   BotIcon,
-  CheckCircle2Icon,
   ClockIcon,
-  FlameIcon,
   PlusIcon,
   PowerIcon,
   SparklesIcon,
@@ -25,6 +22,9 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@zentro/ui/shadcn/dialog";
+import { NativeSelect } from "@zentro/ui/shadcn/native-select";
+
+import { usePermission } from "~/src/components/permissions/permission-provider";
 
 type AutomationRule = {
   id: string;
@@ -62,6 +62,8 @@ const ACTION_LABELS: Record<string, string> = {
 
 export const AutomationsManager: FC = () => {
   const trpc = useTrpcClient();
+  // A rule for every project also runs on private ones, so it is for admins.
+  const canRunEverywhere = usePermission("org.settings.update");
   const [rules, setRules] = useState<AutomationRule[]>([]);
   const [loading, setLoading] = useState(true);
   const [createOpen, setCreateOpen] = useState(false);
@@ -164,6 +166,12 @@ export const AutomationsManager: FC = () => {
   };
 
   const handleDelete = async (id: string, ruleName: string) => {
+    if (
+      !window.confirm(`Delete the rule "${ruleName}"? This cannot be undone.`)
+    ) {
+      return;
+    }
+
     setRules((prev) => prev.filter((r) => r.id !== id));
     try {
       await trpc.automation.delete.mutate({ id });
@@ -179,7 +187,7 @@ export const AutomationsManager: FC = () => {
     try {
       const res = await trpc.automation.seedPresets.mutate();
       if (res.count > 0) {
-        toastSuccess(`Configured ${res.count} killer automation recipes!`);
+        toastSuccess(`Added ${res.count} preset automations`);
       } else {
         toastSuccess("Presets already active.");
       }
@@ -216,6 +224,11 @@ export const AutomationsManager: FC = () => {
     e.preventDefault();
     if (!name.trim()) return;
 
+    if (!projectId && (!canRunEverywhere || actionType === "create_task")) {
+      toastError("No project picked", "Pick the project this rule runs on.");
+      return;
+    }
+
     setIsSubmitting(true);
     try {
       const triggerConfig =
@@ -243,7 +256,7 @@ export const AutomationsManager: FC = () => {
         triggerConfig,
         actionType,
         actionConfig,
-        projectId: actionType === "create_task" ? projectId || null : null,
+        projectId: projectId || null,
       });
 
       toastSuccess(`Created automation "${name.trim()}"`);
@@ -272,12 +285,10 @@ export const AutomationsManager: FC = () => {
             <ZapIcon className="size-5" />
           </div>
           <div className="min-w-0">
-            <h2 className="text-base font-semibold text-ink">
-              Workflow Automations Engine
-            </h2>
+            <h2 className="text-base font-semibold text-ink">Automations</h2>
             <p className="text-xs text-ink-3 mt-0.5">
-              Event-driven reactive rules to auto-transition tasks, rebalance
-              subtasks, and eliminate manual busywork.
+              Rules that move, assign or prioritise tasks when something
+              happens, so nobody has to do it by hand.
             </p>
           </div>
         </div>
@@ -291,10 +302,12 @@ export const AutomationsManager: FC = () => {
             title="Scan and escalate tasks within 24 hours of deadline"
           >
             <ClockIcon className="size-3.5" />
-            <span>{isEscalating ? "Escalating..." : "Run SLA Escalator"}</span>
+            <span>
+              {isEscalating ? "Checking…" : "Raise priority of tasks due soon"}
+            </span>
           </button>
 
-          {rules.length === 0 ? (
+          {rules.length === 0 && canRunEverywhere ? (
             <button
               type="button"
               onClick={handleSeedPresets}
@@ -302,7 +315,7 @@ export const AutomationsManager: FC = () => {
               className="inline-flex items-center gap-1.5 rounded-xl border border-signal bg-signal/10 px-3 py-2 text-xs font-semibold text-signal hover:bg-signal hover:text-on-signal transition-all cursor-pointer"
             >
               <SparklesIcon className="size-3.5" />
-              <span>Deploy Recommended Presets</span>
+              <span>Add the preset automations</span>
             </button>
           ) : null}
 
@@ -313,14 +326,14 @@ export const AutomationsManager: FC = () => {
                 className="inline-flex items-center gap-1.5 rounded-xl bg-ink px-3 py-2 text-xs font-semibold text-ink-inverse hover:bg-ink/90 transition-all cursor-pointer"
               >
                 <PlusIcon className="size-3.5" />
-                <span>New Automation</span>
+                <span>New automation</span>
               </button>
             </DialogTrigger>
             <DialogContent className="max-w-md rounded-2xl border border-hairline bg-surface p-6 shadow-2xl">
               <DialogHeader>
                 <DialogTitle className="flex items-center gap-2 text-base font-semibold text-ink">
                   <WorkflowIcon className="size-4 text-signal" />
-                  Create Automation Rule
+                  New automation rule
                 </DialogTitle>
               </DialogHeader>
 
@@ -329,10 +342,14 @@ export const AutomationsManager: FC = () => {
                 className="flex flex-col gap-4 mt-3"
               >
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-xs font-medium text-ink">
-                    Rule Name
+                  <label
+                    htmlFor="automation-name"
+                    className="text-xs font-medium text-ink"
+                  >
+                    Rule name
                   </label>
                   <input
+                    id="automation-name"
                     type="text"
                     required
                     value={name}
@@ -343,10 +360,14 @@ export const AutomationsManager: FC = () => {
                 </div>
 
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-xs font-medium text-ink">
-                    Description (Optional)
+                  <label
+                    htmlFor="automation-description"
+                    className="text-xs font-medium text-ink"
+                  >
+                    Description (optional)
                   </label>
                   <input
+                    id="automation-description"
                     type="text"
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
@@ -360,10 +381,10 @@ export const AutomationsManager: FC = () => {
                   <span className="text-[11px] font-semibold uppercase tracking-wider text-signal flex items-center gap-1">
                     <ZapIcon className="size-3" /> When (Trigger)
                   </span>
-                  <select
+                  <NativeSelect
+                    aria-label="When"
                     value={triggerEvent}
                     onChange={(e) => setTriggerEvent(e.target.value as any)}
-                    className="h-9 rounded-lg border border-hairline bg-surface px-2.5 text-xs outline-none cursor-pointer"
                   >
                     <option value="task.subtasks_all_done">
                       All Subtasks of a Task are Completed
@@ -381,7 +402,7 @@ export const AutomationsManager: FC = () => {
                     <option value="chat.message_contains">
                       A Chat Message Contains Some Words
                     </option>
-                  </select>
+                  </NativeSelect>
 
                   {triggerEvent === "chat.message_contains" ? (
                     <div className="flex flex-col gap-2">
@@ -393,11 +414,11 @@ export const AutomationsManager: FC = () => {
                         aria-label="Words the message contains"
                         className="h-8 rounded-lg border border-hairline bg-surface px-2.5 text-xs outline-none"
                       />
-                      <select
+                      <NativeSelect
+                        size="sm"
                         value={triggerChannelId}
                         onChange={(e) => setTriggerChannelId(e.target.value)}
                         aria-label="Only in this channel"
-                        className="h-8 rounded-lg border border-hairline bg-surface px-2 text-xs outline-none cursor-pointer"
                       >
                         <option value="">In any conversation</option>
                         {channels.map((channel) => (
@@ -405,23 +426,24 @@ export const AutomationsManager: FC = () => {
                             Only in #{channel.name}
                           </option>
                         ))}
-                      </select>
+                      </NativeSelect>
                     </div>
                   ) : null}
 
                   {triggerEvent === "task.status_changed" ? (
                     <div className="flex items-center gap-2">
                       <span className="text-xs text-ink-3">To status:</span>
-                      <select
+                      <NativeSelect
+                        size="sm"
+                        aria-label="Status it moves to"
                         value={toStatus}
                         onChange={(e) => setToStatus(e.target.value)}
-                        className="h-8 rounded-lg border border-hairline bg-surface px-2 text-xs outline-none cursor-pointer"
                       >
                         <option value="in-progress">In Progress</option>
                         <option value="review">Review</option>
                         <option value="done">Done</option>
                         <option value="todo">To Do</option>
-                      </select>
+                      </NativeSelect>
                     </div>
                   ) : null}
                 </div>
@@ -431,10 +453,10 @@ export const AutomationsManager: FC = () => {
                   <span className="text-[11px] font-semibold uppercase tracking-wider text-success-text flex items-center gap-1">
                     <BotIcon className="size-3" /> Then (Action)
                   </span>
-                  <select
+                  <NativeSelect
+                    aria-label="Then"
                     value={actionType}
                     onChange={(e) => setActionType(e.target.value as any)}
-                    className="h-9 rounded-lg border border-hairline bg-surface px-2.5 text-xs outline-none cursor-pointer"
                   >
                     <option value="update_status">Update Task Status</option>
                     <option value="assign_actor">
@@ -449,14 +471,14 @@ export const AutomationsManager: FC = () => {
                         Create a Task from the Message
                       </option>
                     ) : null}
-                  </select>
+                  </NativeSelect>
 
                   {actionType === "post_to_channel" ? (
-                    <select
+                    <NativeSelect
+                      size="sm"
                       value={postChannelId}
                       onChange={(e) => setPostChannelId(e.target.value)}
                       aria-label="Channel to post in"
-                      className="h-8 rounded-lg border border-hairline bg-surface px-2 text-xs outline-none cursor-pointer"
                     >
                       <option value="">Pick a channel…</option>
                       {channels.map((channel) => (
@@ -464,53 +486,61 @@ export const AutomationsManager: FC = () => {
                           #{channel.name}
                         </option>
                       ))}
-                    </select>
+                    </NativeSelect>
                   ) : null}
 
-                  {actionType === "create_task" ? (
-                    <select
-                      value={projectId}
-                      onChange={(e) => setProjectId(e.target.value)}
-                      aria-label="Project for the new tasks"
-                      className="h-8 rounded-lg border border-hairline bg-surface px-2 text-xs outline-none cursor-pointer"
-                    >
-                      <option value="">Pick a project…</option>
-                      {projectOptions.map((project) => (
-                        <option key={project.id} value={project.id}>
-                          {project.name}
-                        </option>
-                      ))}
-                    </select>
-                  ) : null}
+                  <NativeSelect
+                    size="sm"
+                    value={projectId}
+                    onChange={(e) => setProjectId(e.target.value)}
+                    aria-label={
+                      actionType === "create_task"
+                        ? "Project for the new tasks"
+                        : "Project this rule runs on"
+                    }
+                  >
+                    <option value="">
+                      {canRunEverywhere && actionType !== "create_task"
+                        ? "All projects"
+                        : "Pick a project…"}
+                    </option>
+                    {projectOptions.map((project) => (
+                      <option key={project.id} value={project.id}>
+                        {project.name}
+                      </option>
+                    ))}
+                  </NativeSelect>
 
                   {actionType === "update_status" ? (
                     <div className="flex items-center gap-2">
                       <span className="text-xs text-ink-3">Target status:</span>
-                      <select
+                      <NativeSelect
+                        size="sm"
+                        aria-label="Target status"
                         value={targetStatus}
                         onChange={(e) => setTargetStatus(e.target.value)}
-                        className="h-8 rounded-lg border border-hairline bg-surface px-2 text-xs outline-none cursor-pointer"
                       >
                         <option value="review">Review</option>
                         <option value="in-progress">In Progress</option>
                         <option value="done">Done</option>
                         <option value="todo">To Do</option>
-                      </select>
+                      </NativeSelect>
                     </div>
                   ) : null}
 
                   {actionType === "set_priority" ? (
                     <div className="flex items-center gap-2">
                       <span className="text-xs text-ink-3">Priority:</span>
-                      <select
+                      <NativeSelect
+                        size="sm"
+                        aria-label="Priority to set"
                         value={priority}
                         onChange={(e) => setPriority(e.target.value)}
-                        className="h-8 rounded-lg border border-hairline bg-surface px-2 text-xs outline-none cursor-pointer"
                       >
                         <option value="high">High</option>
                         <option value="medium">Medium</option>
                         <option value="low">Low</option>
-                      </select>
+                      </NativeSelect>
                     </div>
                   ) : null}
                 </div>
@@ -528,7 +558,7 @@ export const AutomationsManager: FC = () => {
                     disabled={isSubmitting}
                     className="h-9 rounded-xl bg-ink px-4 text-xs font-semibold text-ink-inverse hover:bg-ink/90 cursor-pointer"
                   >
-                    Create Rule
+                    Create rule
                   </button>
                 </div>
               </form>
@@ -548,19 +578,30 @@ export const AutomationsManager: FC = () => {
           <h3 className="text-base font-semibold text-ink">
             No automations configured yet
           </h3>
-          <p className="text-xs text-ink-3 max-w-sm mt-1 mb-5">
-            Deploy recommended presets to automatically advance parents when
-            subtasks complete, auto-assign tasks, and resolve blocker chains.
-          </p>
-          <button
-            type="button"
-            onClick={handleSeedPresets}
-            disabled={isSubmitting}
-            className="inline-flex items-center gap-1.5 rounded-xl bg-ink px-4 py-2.5 text-xs font-semibold text-ink-inverse hover:bg-ink/90 transition-all cursor-pointer"
-          >
-            <SparklesIcon className="size-4" />
-            <span>Deploy Standard Presets Now</span>
-          </button>
+          {canRunEverywhere ? (
+            <>
+              <p className="text-xs text-ink-3 max-w-sm mt-1 mb-5">
+                Presets run on every project: they move a parent to review when
+                its subtasks are done, assign tasks moved to in progress, start
+                tasks whose blockers clear, and raise the priority of tasks due
+                within a day.
+              </p>
+              <button
+                type="button"
+                onClick={handleSeedPresets}
+                disabled={isSubmitting}
+                className="inline-flex items-center gap-1.5 rounded-xl bg-ink px-4 py-2.5 text-xs font-semibold text-ink-inverse hover:bg-ink/90 transition-all cursor-pointer"
+              >
+                <SparklesIcon className="size-4" />
+                <span>Add the preset automations</span>
+              </button>
+            </>
+          ) : (
+            <p className="text-xs text-ink-3 max-w-sm mt-1">
+              Create a rule for a project you work on. Rules for every project
+              are set up by an admin.
+            </p>
+          )}
         </div>
       ) : (
         <div className="flex flex-col gap-3">
@@ -635,6 +676,8 @@ export const AutomationsManager: FC = () => {
                   <button
                     type="button"
                     onClick={() => handleToggle(rule)}
+                    aria-pressed={rule.enabled}
+                    aria-label={`Run ${rule.name}`}
                     className={cn(
                       "inline-flex items-center gap-1 rounded-lg border px-2.5 py-1 text-xs font-medium cursor-pointer transition-colors",
                       rule.enabled
@@ -649,6 +692,7 @@ export const AutomationsManager: FC = () => {
                   <button
                     type="button"
                     onClick={() => handleDelete(rule.id, rule.name)}
+                    aria-label={`Delete ${rule.name}`}
                     className="p-1.5 rounded-lg text-ink-3 hover:text-danger-text hover:bg-danger-subtle transition-colors cursor-pointer"
                     title="Delete rule"
                   >

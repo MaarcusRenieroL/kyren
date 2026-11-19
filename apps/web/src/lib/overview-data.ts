@@ -17,8 +17,7 @@ import {
   tasks,
   teams,
 } from "@zentro/db/schema";
-
-const DAY = 24 * 60 * 60 * 1000;
+import { zonedDate, zonedMidnight } from "~/src/lib/time-zone";
 
 export type OverviewRow = {
   id: string;
@@ -54,10 +53,6 @@ export type OverviewData = {
 
 const letters = ["S", "M", "T", "W", "T", "F", "S"];
 
-function dayKey(date: Date) {
-  return `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`;
-}
-
 /**
  * The organization's numbers for Overview: this week against last, where the
  * work is piling up, and who finished what on which day.
@@ -65,15 +60,20 @@ function dayKey(date: Date) {
 export async function getOverviewData(input: {
   organizationId: string;
   enabledModules: Set<string>;
+  /** The viewer's IANA zone, already checked with `safeTimeZone`. */
+  timeZone: string;
 }): Promise<OverviewData> {
-  const { organizationId } = input;
+  const { organizationId, timeZone } = input;
+  // Days are the viewer's days, not the server's.
   const now = new Date();
-  const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  const weekStart = new Date(todayStart.getTime() - 6 * DAY);
-  const prevWeekStart = new Date(weekStart.getTime() - 7 * DAY);
-  const monday = new Date(todayStart);
-
-  monday.setDate(monday.getDate() - ((monday.getDay() + 6) % 7));
+  const today = zonedDate(now, timeZone);
+  const todayWeekday = new Date(
+    Date.UTC(today.year, today.month - 1, today.day),
+  ).getUTCDay();
+  const tomorrowStart = zonedMidnight(timeZone, now, -1);
+  const weekStart = zonedMidnight(timeZone, now, 6);
+  const prevWeekStart = zonedMidnight(timeZone, now, 13);
+  const monday = zonedMidnight(timeZone, now, (todayWeekday + 6) % 7);
 
   const hasTasks = input.enabledModules.has("tasks");
   const hasDocs = input.enabledModules.has("docs");
@@ -84,8 +84,11 @@ export async function getOverviewData(input: {
   );
   const isOpen = sql`${tasks.status} <> 'done'`;
   const isOverdue = sql`${tasks.status} <> 'done' and ${tasks.dueAt} < now()`;
+  // Raw SQL gets dates as UTC text: the driver would send server-local time,
+  // and these columns hold UTC wall time.
+  const at = (date: Date) => sql`${date.toISOString()}::timestamp`;
   const doneSince = (from: Date) =>
-    sql`${tasks.status} = 'done' and ${tasks.completedAt} >= ${from}`;
+    sql`${tasks.status} = 'done' and ${tasks.completedAt} >= ${at(from)}`;
   const n = (expression: ReturnType<typeof sql>) =>
     sql<number>`count(*) filter (where ${expression})`.mapWith(Number);
 
@@ -96,15 +99,15 @@ export async function getOverviewData(input: {
             .select({
               open: n(isOpen),
               openSinceMonday: n(
-                sql`${isOpen} and ${tasks.createdAt} >= ${monday}`,
+                sql`${isOpen} and ${tasks.createdAt} >= ${at(monday)}`,
               ),
               overdue: n(isOverdue),
               overdueSinceMonday: n(
-                sql`${isOverdue} and ${tasks.dueAt} >= ${monday}`,
+                sql`${isOverdue} and ${tasks.dueAt} >= ${at(monday)}`,
               ),
               doneWeek: n(doneSince(weekStart)),
               donePrevWeek: n(
-                sql`${tasks.status} = 'done' and ${tasks.completedAt} >= ${prevWeekStart} and ${tasks.completedAt} < ${weekStart}`,
+                sql`${tasks.status} = 'done' and ${tasks.completedAt} >= ${at(prevWeekStart)} and ${tasks.completedAt} < ${at(weekStart)}`,
               ),
             })
             .from(tasks)
@@ -113,10 +116,10 @@ export async function getOverviewData(input: {
       hasDocs
         ? db
             .select({
-              week: sql<number>`count(*) filter (where ${docs.updatedAt} >= ${weekStart})`.mapWith(
+              week: sql<number>`count(*) filter (where ${docs.updatedAt} >= ${at(weekStart)})`.mapWith(
                 Number,
               ),
-              prev: sql<number>`count(*) filter (where ${docs.updatedAt} >= ${prevWeekStart} and ${docs.updatedAt} < ${weekStart})`.mapWith(
+              prev: sql<number>`count(*) filter (where ${docs.updatedAt} >= ${at(prevWeekStart)} and ${docs.updatedAt} < ${at(weekStart)})`.mapWith(
                 Number,
               ),
             })
@@ -135,10 +138,10 @@ export async function getOverviewData(input: {
       db
         .select({
           week: countDistinct(
-            sql`case when ${sessions.updatedAt} >= ${weekStart} then ${sessions.userId} end`,
+            sql`case when ${sessions.updatedAt} >= ${at(weekStart)} then ${sessions.userId} end`,
           ),
           prev: countDistinct(
-            sql`case when ${sessions.updatedAt} >= ${prevWeekStart} and ${sessions.updatedAt} < ${weekStart} then ${sessions.userId} end`,
+            sql`case when ${sessions.updatedAt} >= ${at(prevWeekStart)} and ${sessions.updatedAt} < ${at(weekStart)} then ${sessions.userId} end`,
           ),
         })
         .from(sessions)
@@ -198,7 +201,7 @@ export async function getOverviewData(input: {
         db
           .select({
             teamId: tasks.teamId,
-            day: sql<string>`to_char(${tasks.completedAt}, 'YYYY-FMMM-FMDD')`,
+            day: sql<string>`to_char((${tasks.completedAt} at time zone 'UTC') at time zone ${timeZone}, 'YYYY-MM-DD')`,
             count: sql<number>`count(*)`.mapWith(Number),
           })
           .from(tasks)
@@ -207,7 +210,7 @@ export async function getOverviewData(input: {
               liveTask,
               eq(tasks.status, "done"),
               gte(tasks.completedAt, weekStart),
-              lt(tasks.completedAt, new Date(todayStart.getTime() + DAY)),
+              lt(tasks.completedAt, tomorrowStart),
             ),
           )
           .groupBy(tasks.teamId, sql`2`),
@@ -215,11 +218,14 @@ export async function getOverviewData(input: {
     : [[], [], [], []];
 
   const days = Array.from({ length: 7 }, (_, index) => {
-    const date = new Date(weekStart.getTime() + index * DAY);
+    // Calendar arithmetic only: a UTC date stands in for the viewer's date.
+    const date = new Date(
+      Date.UTC(today.year, today.month - 1, today.day - 6 + index),
+    );
 
     return {
-      key: dayKey(date),
-      letter: letters[date.getDay()]!,
+      key: date.toISOString().slice(0, 10),
+      letter: letters[date.getUTCDay()]!,
       today: index === 6,
     };
   });

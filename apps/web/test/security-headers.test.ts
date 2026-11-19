@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { securityHeaders } from "../security-headers";
+import { contentSecurityPolicy, securityHeaders } from "../security-headers";
 
 describe("security headers", () => {
   const byKey = Object.fromEntries(
@@ -19,15 +19,17 @@ describe("security headers", () => {
   });
 
   it("limits where scripts, frames, forms and plugins may come from", () => {
-    const csp = byKey["Content-Security-Policy"]!;
+    const csp = contentSecurityPolicy("abc123");
 
     expect(csp).toContain("default-src 'self'");
     expect(csp).toContain("frame-ancestors 'none'");
     expect(csp).toContain("object-src 'none'");
     expect(csp).toContain("base-uri 'self'");
     expect(csp).toContain("form-action 'self'");
-    // Scripts may not load from other sites.
+    // Scripts may not load from other sites, and inline ones need the nonce.
     expect(csp).not.toMatch(/script-src[^;]*https:/);
+    expect(csp).toMatch(/script-src[^;]*'nonce-abc123'/);
+    expect(csp).not.toMatch(/script-src[^;]*'unsafe-inline'/);
   });
 
   it("isolates the window from other sites", () => {

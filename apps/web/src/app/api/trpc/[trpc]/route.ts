@@ -42,8 +42,10 @@ const handler = (request: Request) => {
       }
 
       // The active organization comes from the session, not from the host.
+      // Every request needs the organization, not its member list.
       const activeOrganization = await auth.api.getFullOrganization({
         headers: request.headers,
+        query: { membersLimit: 1 },
       });
 
       return {

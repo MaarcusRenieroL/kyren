@@ -20,7 +20,7 @@ export const EmptyTasks = ({ filtered }: Props = {}) => {
   if (filtered) {
     return (
       <div className="flex flex-col items-center gap-3 rounded-xl border border-dashed border-line-strong px-6 py-18 text-center">
-        <p className="font-serif-italic text-[2.5rem] leading-none text-balance">
+        <p className="font-display font-semibold text-xl tracking-tight text-balance text-ink">
           No tasks match these filters.
         </p>
         <p className="max-w-[420px] text-[15px] text-ink-2">

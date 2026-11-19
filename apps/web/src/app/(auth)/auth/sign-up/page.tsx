@@ -84,6 +84,7 @@ export default function SignupPage() {
 
   return (
     <form
+      method="post"
       noValidate
       onSubmit={handleSubmit(onSubmit, () => {
         if (!terms) setTermsError(true);

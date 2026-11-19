@@ -108,7 +108,7 @@ export default function LoginPage() {
   }
 
   return (
-    <form noValidate onSubmit={handleSubmit(onSubmit)}>
+    <form method="post" noValidate onSubmit={handleSubmit(onSubmit)}>
       <div className="flex flex-col gap-5">
         <AuthHeading
           title="Sign in to Zentro"
@@ -229,7 +229,7 @@ function TwoFactorStep({ onVerified }: { onVerified: () => void }) {
   }
 
   return (
-    <form noValidate onSubmit={submit}>
+    <form method="post" noValidate onSubmit={submit}>
       <div className="flex flex-col gap-5">
         <AuthHeading
           title="Enter your code"

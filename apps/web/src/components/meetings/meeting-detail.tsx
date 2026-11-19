@@ -9,10 +9,12 @@ import { EmptyState } from "@zentro/ui/components/empty-state";
 import { PageHeader } from "@zentro/ui/components/page-header";
 import { Button } from "@zentro/ui/shadcn/button";
 import { Textarea } from "@zentro/ui/shadcn/textarea";
+import { NativeSelect } from "@zentro/ui/shadcn/native-select";
 import { toastError, toastSuccess } from "@zentro/ui/index";
 
 import { usePageCrumb } from "~/src/components/shell/breadcrumb-context";
 import { useAsyncData } from "~/src/lib/use-async-data";
+import { recapActionItems } from "./recap";
 
 const when = new Intl.DateTimeFormat(undefined, {
   weekday: "long",
@@ -83,9 +85,10 @@ function ActionItems({
         </label>
       ))}
       <div className="flex flex-wrap items-center gap-2">
-        <select
+        <NativeSelect
           aria-label="Project for the tasks"
-          className="h-8 rounded-md border border-line bg-surface px-2 text-sm"
+          size="sm"
+          className="w-48 text-sm"
           value={projectId}
           onChange={(event) => setProjectId(event.target.value)}
         >
@@ -95,7 +98,7 @@ function ActionItems({
               {project.name}
             </option>
           ))}
-        </select>
+        </NativeSelect>
         <Button
           size="sm"
           disabled={busy || !projectId || !picked.length}
@@ -284,6 +287,9 @@ export function MeetingDetail({ id }: { id: string }) {
             </p>
           </div>
         ) : null}
+        {canceled ? null : (
+          <ActionItems meetingId={id} items={recapActionItems(data.summary)} />
+        )}
       </section>
 
       {canceled ? null : (

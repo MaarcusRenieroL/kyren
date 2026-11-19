@@ -6,6 +6,7 @@ import { useTrpcClient } from "@zentro/api/react";
 
 import type { AppRouter } from "@zentro/api/server";
 import type { inferRouterOutputs } from "@trpc/server";
+import { everyWhileVisible } from "~/src/lib/poll";
 
 type Outputs = inferRouterOutputs<AppRouter>;
 export type SidebarData = Outputs["chat"]["sidebar"];
@@ -15,7 +16,7 @@ export type SidebarChannel = SidebarData["channels"][number];
 // chat screens, refreshed on a timer and after anything the person does.
 let cache: SidebarData | null = null;
 const listeners = new Set<(data: SidebarData | null) => void>();
-let timer: ReturnType<typeof setInterval> | null = null;
+let stopPolling: (() => void) | null = null;
 let loader: (() => Promise<void>) | null = null;
 
 function publish(data: SidebarData | null) {
@@ -48,16 +49,16 @@ export function useChatSidebar({ poll = 15_000 }: { poll?: number } = {}): {
 
     if (!cache) void refresh();
 
-    if (!timer) {
-      timer = setInterval(() => void loader?.(), poll);
+    if (!stopPolling) {
+      stopPolling = everyWhileVisible(() => loader?.(), poll);
     }
 
     return () => {
       listeners.delete(setData);
 
-      if (!listeners.size && timer) {
-        clearInterval(timer);
-        timer = null;
+      if (!listeners.size && stopPolling) {
+        stopPolling();
+        stopPolling = null;
       }
     };
   }, [refresh, poll]);
@@ -82,11 +83,11 @@ export function useChatBadge(enabled: boolean) {
 
     void load();
 
-    const id = setInterval(load, 30_000);
+    const stop = everyWhileVisible(load, 30_000);
 
     return () => {
       live = false;
-      clearInterval(id);
+      stop();
     };
   }, [enabled, trpc]);
 

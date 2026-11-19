@@ -92,6 +92,7 @@ import { CommentsPanel } from "./comments-panel";
 import { LivingSpecPanel } from "./living-spec-panel";
 import { MentionPopover, type MentionItem } from "./mention-popover";
 import { VersionHistoryPanel } from "./version-history-panel";
+import { ShareDialog } from "./share-dialog";
 
 const slashCommands = [
   {
@@ -746,6 +747,7 @@ export function NotionEditorPage({ slug }: { slug: string }) {
   const [showMentionMenu, setShowMentionMenu] = useState(false);
   const [historyOpen, setHistoryOpen] = useState(false);
   // Open beside the doc on wide screens; on a phone it would cover the page.
+  const [shareOpen, setShareOpen] = useState(false);
   const [commentsOpen, setCommentsOpen] = useState(false);
 
   const handleCompileSelectionToTask = (prefill?: string) => {
@@ -808,6 +810,9 @@ export function NotionEditorPage({ slug }: { slug: string }) {
     editorProps: {
       attributes: {
         class: "docs-editor-content",
+        role: "textbox",
+        "aria-multiline": "true",
+        "aria-label": "Doc body",
       },
     },
     onUpdate({ editor }) {
@@ -1243,20 +1248,15 @@ export function NotionEditorPage({ slug }: { slug: string }) {
             <Button
               size="sm"
               className="h-8 px-3 text-[13px] font-semibold"
-              onClick={() => {
-                void navigator.clipboard
-                  .writeText(window.location.href)
-                  .then(() =>
-                    toastSuccess(
-                      "Link copied",
-                      "Anyone with access can open it.",
-                    ),
-                  )
-                  .catch(() => toastError("Error", "Could not copy the link"));
-              }}
+              onClick={() => setShareOpen(true)}
             >
               Share
             </Button>
+            <ShareDialog
+              docId={doc.id}
+              open={shareOpen}
+              onOpenChange={setShareOpen}
+            />
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="icon-sm" className="size-8">
@@ -1506,7 +1506,15 @@ export function NotionEditorPage({ slug }: { slug: string }) {
             docId={doc.id}
             isOpen={historyOpen}
             onClose={() => setHistoryOpen(false)}
-            onRestore={(restoredContent) => {
+            currentUpdatedAt={doc.updatedAt}
+            onRestore={(restoredContent, updatedAt) => {
+              // Adopt the restore's version, or the next autosave would
+              // collide with it and be refused.
+              setDoc((currentDoc) =>
+                currentDoc
+                  ? { ...currentDoc, content: restoredContent, updatedAt }
+                  : currentDoc,
+              );
               setContent(restoredContent);
               editor?.commands.setContent(markdownToHtml(restoredContent));
             }}

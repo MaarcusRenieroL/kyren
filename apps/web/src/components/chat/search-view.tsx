@@ -11,6 +11,7 @@ import { useTrpcClient } from "@zentro/api/react";
 import { cn } from "@zentro/ui/lib/utils";
 import { Button } from "@zentro/ui/shadcn/button";
 import { Skeleton } from "@zentro/ui/shadcn/skeleton";
+import { NativeSelect } from "@zentro/ui/shadcn/native-select";
 
 import { useChatSidebar } from "./chat-store";
 import { usePeople } from "./channel-view";
@@ -48,18 +49,19 @@ function Filter({
       )}
     >
       <span className="text-ink-3">{label}</span>
-      <select
+      <NativeSelect
+        size="sm"
         value={value}
         onChange={(event) => onChange(event.target.value)}
         aria-label={label}
-        className="max-w-36 bg-transparent font-medium outline-none"
+        className="max-w-36 border-none bg-transparent font-medium"
       >
         {options.map(([optionValue, optionLabel]) => (
           <option key={optionValue} value={optionValue}>
             {optionLabel}
           </option>
         ))}
-      </select>
+      </NativeSelect>
     </label>
   );
 }

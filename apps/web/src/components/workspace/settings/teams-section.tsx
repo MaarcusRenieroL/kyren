@@ -631,7 +631,7 @@ export function TeamsSection({ permissions }: TeamsSectionProps) {
             {stats.map((stat) => (
               <div key={stat.label} className="tile flex flex-col gap-1 p-4">
                 <span className="eyebrow">{stat.label}</span>
-                <span className="font-serif-italic text-[2.25rem] leading-10">
+                <span className="font-mono font-semibold text-2xl leading-none text-ink tabular-nums">
                   {stat.value}
                 </span>
                 <span className="truncate text-xs text-ink-2">{stat.note}</span>
@@ -726,7 +726,7 @@ export function TeamsSection({ permissions }: TeamsSectionProps) {
         </>
       ) : (
         <div className="flex flex-col items-center gap-2 rounded-xl border border-dashed border-line-strong px-6 py-14 text-center">
-          <p className="font-serif-italic text-[2rem] leading-10">
+          <p className="font-display font-semibold text-xl tracking-tight text-ink">
             No teams yet.
           </p>
           <p className="max-w-[440px] text-[15px] leading-[22px] text-ink-2">

@@ -38,7 +38,7 @@ export function SystemPage({
     >
       <div className="flex w-full max-w-[600px] flex-col gap-3.5">
         <p className="eyebrow">{eyebrow}</p>
-        <h1 className="font-serif-italic text-[2.5rem] leading-[1.05] tracking-[-0.01em] text-balance sm:text-[3.5rem] sm:leading-[3.75rem]">
+        <h1 className="font-display font-semibold text-3xl leading-tight tracking-tight text-balance text-ink sm:text-4xl">
           {title}
         </h1>
         {description ? (

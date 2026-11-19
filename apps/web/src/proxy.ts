@@ -4,6 +4,8 @@ import { auth } from "@zentro/auth";
 
 import { paths } from "~/src/lib/paths";
 
+import { contentSecurityPolicy } from "../security-headers";
+
 // Invitation links stay open to users who already belong to an organization.
 const onboardingRoute = "/auth/join-organization";
 
@@ -24,8 +26,43 @@ function appUrl(request: NextRequest, path: string) {
   return url;
 }
 
-export async function proxy(request: NextRequest) {
+/** Pages that need a signed-in, verified person. */
+export const protectedPrefixes = [
+  "/dashboard",
+  "/overview",
+  "/projects",
+  "/settings",
+  "/docs",
+  "/tasks",
+  "/module-disabled",
+  "/inbox",
+  "/files",
+  "/chat",
+  "/admin",
+  "/platform",
+  "/calendar",
+  "/hr",
+  "/mail",
+  "/payroll",
+  "/payslip",
+  "/tickets",
+  "/whiteboards",
+  "/auth/create-organization",
+  "/auth/join-organization",
+  "/auth/invite",
+];
+
+function isProtected(pathname: string) {
+  return protectedPrefixes.some(
+    (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`),
+  );
+}
+
+/** Whether the page may be shown, or where to send the person instead. */
+async function signInGate(request: NextRequest) {
   const { pathname } = request.nextUrl;
+
+  if (!isProtected(pathname)) return null;
 
   const session = await auth.api.getSession({
     headers: request.headers,
@@ -58,31 +95,34 @@ export async function proxy(request: NextRequest) {
     }
   }
 
-  return NextResponse.next();
+  return null;
+}
+
+/**
+ * Every page gets a fresh nonce: its scripts run only with it (see the CSP).
+ * Next.js reads it from the request's CSP header and puts it on its own
+ * scripts; the root layout reads `x-nonce` for the one inline script it adds.
+ */
+export async function proxy(request: NextRequest) {
+  const redirect = await signInGate(request);
+
+  if (redirect) return redirect;
+
+  const nonce = Buffer.from(crypto.randomUUID()).toString("base64");
+  const policy = contentSecurityPolicy(nonce);
+  const requestHeaders = new Headers(request.headers);
+
+  requestHeaders.set("x-nonce", nonce);
+  requestHeaders.set("content-security-policy", policy);
+
+  const response = NextResponse.next({ request: { headers: requestHeaders } });
+
+  response.headers.set("content-security-policy", policy);
+
+  return response;
 }
 
 export const config = {
-  matcher: [
-    "/dashboard/:path*",
-    "/overview/:path*",
-    "/projects/:path*",
-    "/settings/:path*",
-    "/docs/:path*",
-    "/tasks/:path*",
-    "/module-disabled",
-    "/inbox/:path*",
-    "/files/:path*",
-    "/chat/:path*",
-    "/admin/:path*",
-    "/platform/:path*",
-    "/calendar/:path*",
-    "/hr/:path*",
-    "/mail/:path*",
-    "/payroll/:path*",
-    "/tickets/:path*",
-    "/whiteboards/:path*",
-    "/auth/create-organization/:path*",
-    "/auth/join-organization/:path*",
-    "/auth/invite/:path*",
-  ],
+  // Every page, not API routes, Next's own files or files with an extension.
+  matcher: ["/((?!api/|_next/|.*\\.[a-zA-Z0-9]+$).*)"],
 };

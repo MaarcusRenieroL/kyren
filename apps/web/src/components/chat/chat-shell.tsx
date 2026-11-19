@@ -14,6 +14,7 @@ import {
   NewChannelDialog,
   NewDmDialog,
 } from "./chat-dialogs";
+import { apiPath } from "~/src/lib/paths";
 
 type Dialog = "channel" | "dm" | "browse" | null;
 
@@ -33,7 +34,7 @@ export function ChatShell({ children }: { children: ReactNode }) {
         event.key.toLowerCase() === "f"
       ) {
         event.preventDefault();
-        window.location.assign("/chat/search");
+        window.location.assign(apiPath("/chat/search"));
       }
     };
 

@@ -303,6 +303,12 @@ export const TaskWorkspace: FC<Props> = ({
             >
               Goals
             </Link>
+            <Link
+              href="/tasks/trash"
+              className="rounded-xl border border-hairline bg-surface px-3 py-1.5 text-sm text-ink-2 hover:text-ink"
+            >
+              Trash
+            </Link>
             <div
               role="radiogroup"
               aria-label="View"

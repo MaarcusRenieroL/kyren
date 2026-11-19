@@ -7,6 +7,7 @@ import { toastError, toastSuccess } from "@zentro/ui/index";
 import { Button } from "@zentro/ui/shadcn/button";
 import { Input } from "@zentro/ui/shadcn/input";
 import { Textarea } from "@zentro/ui/shadcn/textarea";
+import { NativeSelect } from "@zentro/ui/shadcn/native-select";
 
 import { usePermission } from "~/src/components/permissions/permission-provider";
 import { useAsyncData } from "~/src/lib/use-async-data";
@@ -189,9 +190,10 @@ export function TemplatesPanel({
             onChange={(e) => setDraft({ ...draft, subtasks: e.target.value })}
           />
           <div className="flex flex-wrap items-center gap-2">
-            <select
+            <NativeSelect
               aria-label="Template priority"
-              className="rounded-md border border-line bg-surface px-2 py-1"
+              size="sm"
+              className="w-28 capitalize"
               value={draft.priority}
               onChange={(e) =>
                 setDraft({ ...draft, priority: e.target.value as Priority })
@@ -200,11 +202,12 @@ export function TemplatesPanel({
               <option value="low">Low</option>
               <option value="medium">Medium</option>
               <option value="high">High</option>
-            </select>
+            </NativeSelect>
             <Input
               aria-label="Template points"
               type="number"
               min={0}
+              max={100}
               placeholder="Points"
               className="w-24"
               value={draft.estimatePoints}

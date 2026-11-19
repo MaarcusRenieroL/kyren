@@ -8,6 +8,7 @@ import type { inferRouterInputs, inferRouterOutputs } from "@trpc/server";
 import { toastError, toastSuccess } from "@zentro/ui/index";
 import { Button } from "@zentro/ui/shadcn/button";
 import { Input } from "@zentro/ui/shadcn/input";
+import { NativeSelect } from "@zentro/ui/shadcn/native-select";
 
 type SavedTaskView = inferRouterOutputs<AppRouter>["taskView"]["list"][number];
 export type ViewConfig = SavedTaskView["config"];
@@ -82,9 +83,10 @@ export function SavedViewsMenu({
 
   return (
     <div className="flex flex-wrap items-center gap-2">
-      <select
+      <NativeSelect
         aria-label="Saved views"
-        className="h-8 rounded-lg border border-hairline bg-surface px-2 text-[13px]"
+        size="sm"
+        className="w-40 text-[13px]"
         value={selected}
         onChange={(event) => {
           const view = views.find((entry) => entry.id === event.target.value);
@@ -100,7 +102,7 @@ export function SavedViewsMenu({
             {view.shared && !view.mine ? " (shared)" : ""}
           </option>
         ))}
-      </select>
+      </NativeSelect>
 
       {chosen?.mine ? (
         <Button

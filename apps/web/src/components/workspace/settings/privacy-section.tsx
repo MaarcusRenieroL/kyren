@@ -8,7 +8,7 @@ import { toastError } from "@zentro/ui/index";
 import { Button } from "@zentro/ui/shadcn/button";
 import { Input } from "@zentro/ui/shadcn/input";
 
-import { paths } from "~/src/lib/paths";
+import { apiPath, paths } from "~/src/lib/paths";
 
 import { SettingsRow, SettingsTile } from "./settings-kit";
 
@@ -46,7 +46,7 @@ export function PrivacySection() {
     try {
       await trpc.privacy.eraseMine.mutate({ confirmEmail });
       await authClient.signOut().catch(() => undefined);
-      window.location.assign(paths.auth.signIn());
+      window.location.assign(apiPath(paths.auth.signIn()));
     } catch (error) {
       toastError(error, "Could not erase your account.");
       setBusy(false);

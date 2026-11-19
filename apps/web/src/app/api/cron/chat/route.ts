@@ -4,6 +4,7 @@ import { reportError, runChatJobs } from "@zentro/api/server";
 import { db } from "@zentro/db";
 
 import { storage } from "../../../../lib/storage";
+import { maintenanceResponse } from "../../../../lib/maintenance";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -19,7 +20,9 @@ function sameSecret(given: string | null, secret: string) {
 /**
  * Chat's background work: scheduled messages, reminders, retention and
  * overdue-task notices. Called by a scheduler (see vercel.json) with
- * `Authorization: Bearer $CRON_SECRET`; page loads also run the cheap part.
+ * `Authorization: Bearer $CRON_SECRET`. `?light=1` skips the expensive
+ * sweeps (retention, purges, overdue notices) so a frequent pinger can deliver
+ * reminders and scheduled messages on time; the daily run does everything.
  */
 export async function GET(request: Request) {
   const secret = process.env.CRON_SECRET;
@@ -28,11 +31,17 @@ export async function GET(request: Request) {
     return new Response("Unauthorized", { status: 401 });
   }
 
+  // Background jobs write too (scheduled messages, purges, automations), so
+  // they wait while the platform is read-only; the next run catches up.
+  const paused = await maintenanceResponse();
+
+  if (paused) return paused;
+
   try {
     const result = await runChatJobs(
       db as unknown as Parameters<typeof runChatJobs>[0],
       {
-        heavy: true,
+        heavy: new URL(request.url).searchParams.get("light") !== "1",
         removeFiles: async (keys) => {
           await Promise.all(keys.map((key) => storage().remove(key)));
         },

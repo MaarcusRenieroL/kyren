@@ -5,6 +5,8 @@ import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { Command } from "cmdk";
 import {
   FileTextIcon,
+  FolderKanbanIcon,
+  HashIcon,
   MoonIcon,
   PlusIcon,
   SearchIcon,
@@ -47,6 +49,15 @@ type TaskHit = {
 };
 
 type DocHit = { slug: string; title: string; project: string | null };
+
+type SearchHit = {
+  id: string;
+  type: "task" | "doc" | "project" | "channel";
+  title: string;
+  key?: string | null;
+  snippet?: string | null;
+  href: string;
+};
 
 const itemClass =
   "flex h-10 cursor-pointer items-center gap-3 rounded-md px-3 text-sm text-ink-2 outline-none data-[selected=true]:bg-signal-subtle data-[selected=true]:text-ink data-[selected=true]:ring-1 data-[selected=true]:ring-signal/30 [&_svg]:size-4 [&_svg]:text-ink-3";
@@ -115,6 +126,7 @@ export function CommandPalette({
   const [query, setQuery] = useState("");
   const [tasks, setTasks] = useState<TaskHit[] | null>(null);
   const [docs, setDocs] = useState<DocHit[]>([]);
+  const [searchResults, setSearchResults] = useState<SearchHit[] | null>(null);
   const goPending = useRef<number | null>(null);
 
   const has = (id: string) => modules.some((item) => item.id === id);
@@ -250,6 +262,32 @@ export function CommandPalette({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, trimmed, trpc]);
 
+  useEffect(() => {
+    if (!open || trimmed.length < 2) {
+      setSearchResults(null);
+      return;
+    }
+
+    let cancelled = false;
+    const timer = setTimeout(() => {
+      void trpc.search.query
+        .query({ query: trimmed })
+        .then((res) => {
+          if (!cancelled) {
+            setSearchResults(res);
+          }
+        })
+        .catch(() => {
+          if (!cancelled) setSearchResults(null);
+        });
+    }, 150);
+
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+    };
+  }, [open, trimmed, trpc]);
+
   const taskHits = useMemo(() => {
     if (!trimmed || !tasks) return [];
 
@@ -363,6 +401,64 @@ export function CommandPalette({
                       ) : null}
                     </Command.Item>
                   )),
+                )
+              : null}
+
+            {searching &&
+            searchResults &&
+            searchResults.some((r) => r.type === "project")
+              ? group(
+                  "Projects",
+                  searchResults
+                    .filter((r) => r.type === "project")
+                    .map((proj) => (
+                      <Command.Item
+                        key={proj.id}
+                        value={`project ${proj.key ?? ""} ${proj.title}`}
+                        keywords={[proj.title, proj.key ?? ""]}
+                        onSelect={() => go(proj.href)}
+                        className={itemClass}
+                      >
+                        <FolderKanbanIcon aria-hidden="true" />
+                        {proj.key ? (
+                          <span className="font-mono text-xs text-ink-3">
+                            {proj.key}
+                          </span>
+                        ) : null}
+                        <span className="min-w-0 flex-1 truncate">
+                          <Highlight text={proj.title} query={trimmed} />
+                        </span>
+                      </Command.Item>
+                    )),
+                )
+              : null}
+
+            {searching &&
+            searchResults &&
+            searchResults.some((r) => r.type === "channel")
+              ? group(
+                  "Channels",
+                  searchResults
+                    .filter((r) => r.type === "channel")
+                    .map((chan) => (
+                      <Command.Item
+                        key={chan.id}
+                        value={`channel ${chan.title}`}
+                        keywords={[chan.title]}
+                        onSelect={() => go(chan.href)}
+                        className={itemClass}
+                      >
+                        <HashIcon aria-hidden="true" />
+                        <span className="min-w-0 flex-1 truncate">
+                          <Highlight text={chan.title} query={trimmed} />
+                        </span>
+                        {chan.snippet ? (
+                          <span className="truncate text-xs text-ink-3">
+                            {chan.snippet}
+                          </span>
+                        ) : null}
+                      </Command.Item>
+                    )),
                 )
               : null}
 

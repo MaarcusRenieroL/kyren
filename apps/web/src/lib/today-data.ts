@@ -18,6 +18,7 @@ import {
   activityEvents,
   members,
   projects,
+  runningTimers,
   tasks,
   users,
 } from "@zentro/db/schema";
@@ -25,6 +26,7 @@ import type { ModuleId } from "@zentro/modules";
 import { can, type PermissionSnapshot } from "@zentro/permissions";
 
 import { paths } from "~/src/lib/paths";
+import { zonedDate, zonedMidnight } from "~/src/lib/time-zone";
 
 export type TodayTask = {
   id: string;
@@ -36,8 +38,6 @@ export type TodayTask = {
   createdAt: string;
   projectName: string;
   projectSlug: string;
-  /** When the current "in progress" stretch began, from the activity log. */
-  startedAt: string | null;
   href: string;
 };
 
@@ -53,6 +53,8 @@ export type TodayPulseItem = {
 
 export type TodayData = {
   memberId: string | null;
+  /** The person's running timer, if any. Pausing stops it and logs the time. */
+  timer: { taskKey: string; startedAt: string } | null;
   tasks: TodayTask[];
   /** Tasks this person finished since midnight. */
   doneToday: number;
@@ -64,14 +66,6 @@ export type TodayData = {
   /** Whether the organization has any task this person can see. */
   hasAnyTasks: boolean;
 };
-
-function startOfToday() {
-  const date = new Date();
-
-  date.setHours(0, 0, 0, 0);
-
-  return date;
-}
 
 const weekdayLetter = ["S", "M", "T", "W", "T", "F", "S"];
 
@@ -93,14 +87,18 @@ export async function getTodayData({
   userId,
   enabledModules,
   snapshot,
+  timeZone,
 }: {
   organizationId: string;
   userId: string;
   enabledModules: ReadonlySet<string>;
   snapshot: PermissionSnapshot;
+  /** The viewer's IANA zone, already checked with `safeTimeZone`. */
+  timeZone: string;
 }): Promise<TodayData> {
   const empty: TodayData = {
     memberId: null,
+    timer: null,
     tasks: [],
     doneToday: 0,
     pulse: [],
@@ -142,10 +140,10 @@ export async function getTodayData({
     )
     .limit(1);
   const memberId = member?.id ?? null;
-  const todayStart = startOfToday();
-  const weekStart = new Date(todayStart);
-
-  weekStart.setDate(weekStart.getDate() - 6);
+  // "Today" is the viewer's day, not the server's.
+  const now = new Date();
+  const todayStart = zonedMidnight(timeZone, now);
+  const weekStart = zonedMidnight(timeZone, now, 6);
 
   const visible = await visibleActivityCondition(
     createPermissionContext(db, organizationId, userId),
@@ -171,7 +169,6 @@ export async function getTodayData({
               priority: tasks.priority,
               dueAt: tasks.dueAt,
               createdAt: tasks.createdAt,
-              updatedAt: tasks.updatedAt,
               projectName: projects.name,
               projectSlug: projects.slug,
             })
@@ -222,12 +219,12 @@ export async function getTodayData({
         .limit(10),
       db
         .select({
-          day: sql<string>`to_char(${activityEvents.createdAt}, 'YYYY-MM-DD')`,
+          day: sql<string>`to_char((${activityEvents.createdAt} at time zone 'UTC') at time zone ${timeZone}, 'YYYY-MM-DD')`,
           count: sql<number>`count(*)::int`,
         })
         .from(activityEvents)
         .where(and(taskEvent, gte(activityEvents.createdAt, weekStart)))
-        .groupBy(sql`to_char(${activityEvents.createdAt}, 'YYYY-MM-DD')`),
+        .groupBy(sql`1`),
       memberId
         ? db
             .select({ key: tasks.key, name: tasks.name })
@@ -261,45 +258,38 @@ export async function getTodayData({
         .limit(1),
     ]);
 
-  // When each in-progress task was started: its latest move into "in-progress".
-  const runningIds = open
-    .filter((task) => task.status === "in-progress")
-    .map((task) => task.id);
-  const started = runningIds.length
-    ? await db
-        .select({
-          targetId: activityEvents.targetId,
-          at: sql<Date>`max(${activityEvents.createdAt})`,
-        })
-        .from(activityEvents)
-        .where(
-          and(
-            eq(activityEvents.organizationId, organizationId),
-            eq(activityEvents.action, "task.status_changed"),
-            inArray(activityEvents.targetId, runningIds),
-            sql`${activityEvents.metadata} -> 'changes' -> 0 ->> 'to' = 'in-progress'`,
-          ),
-        )
-        .groupBy(activityEvents.targetId)
-    : [];
-  const startedAt = new Map(started.map((row) => [row.targetId, row.at]));
+  const [timer] = await db
+    .select({ taskKey: tasks.key, startedAt: runningTimers.startedAt })
+    .from(runningTimers)
+    .innerJoin(tasks, eq(tasks.id, runningTimers.taskId))
+    .where(
+      and(
+        eq(runningTimers.organizationId, organizationId),
+        eq(runningTimers.userId, userId),
+        isNull(tasks.deletedAt),
+      ),
+    )
+    .limit(1);
 
   const counts = new Map(weekRows.map((row) => [row.day, row.count]));
+  const today = zonedDate(now, timeZone);
   const week = Array.from({ length: 7 }, (_, index) => {
-    const date = new Date(weekStart);
-
-    date.setDate(weekStart.getDate() + index);
-
-    const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+    // Calendar arithmetic only: a UTC date stands in for the viewer's date.
+    const date = new Date(
+      Date.UTC(today.year, today.month - 1, today.day - 6 + index),
+    );
 
     return {
-      label: weekdayLetter[date.getDay()]!,
-      count: counts.get(key) ?? 0,
+      label: weekdayLetter[date.getUTCDay()]!,
+      count: counts.get(date.toISOString().slice(0, 10)) ?? 0,
     };
   });
 
   return {
     memberId,
+    timer: timer
+      ? { taskKey: timer.taskKey, startedAt: timer.startedAt.toISOString() }
+      : null,
     tasks: open.map((task) => ({
       id: task.id,
       key: task.key,
@@ -310,14 +300,6 @@ export async function getTodayData({
       createdAt: task.createdAt.toISOString(),
       projectName: task.projectName,
       projectSlug: task.projectSlug,
-      startedAt:
-        task.status === "in-progress"
-          ? (
-              (startedAt.get(task.id)
-                ? new Date(startedAt.get(task.id)!)
-                : null) ?? task.updatedAt
-            ).toISOString()
-          : null,
       href: paths.task(task.key),
     })),
     doneToday: doneRows.length,

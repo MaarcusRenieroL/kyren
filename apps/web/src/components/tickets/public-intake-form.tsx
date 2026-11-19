@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, type FormEvent } from "react";
+import { NativeSelect } from "@zentro/ui/shadcn/native-select";
 import { apiPath } from "~/src/lib/paths";
 
 type Field = {
@@ -109,8 +110,7 @@ export function PublicIntakeForm({ token }: { token: string }) {
                 }
               />
             ) : field.type === "choice" ? (
-              <select
-                className={control}
+              <NativeSelect
                 value={answers[field.id] ?? ""}
                 onChange={(e) =>
                   setAnswers({ ...answers, [field.id]: e.target.value })
@@ -122,7 +122,7 @@ export function PublicIntakeForm({ token }: { token: string }) {
                     {option}
                   </option>
                 ))}
-              </select>
+              </NativeSelect>
             ) : (
               <input
                 className={control}

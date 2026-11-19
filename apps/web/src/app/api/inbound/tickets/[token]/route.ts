@@ -21,7 +21,7 @@ const stripHtml = (html: string) =>
 /**
  * Email to ticket. A mail provider (Resend, Postmark, Mailgun, a forwarding
  * rule) posts each incoming message here as JSON:
- * { from, fromName?, subject, text | html, messageId?, autoSubmitted? }.
+ * { from, fromName?, subject, text | html, messageId?, autoSubmitted?, precedence? }.
  * The token in the address is the secret, so it is never logged.
  */
 export async function POST(
@@ -83,6 +83,7 @@ export async function POST(
       text: text(body.text, 100_000) || (html ? stripHtml(html) : ""),
       messageId: text(body.messageId, 500) || null,
       autoSubmitted: text(body.autoSubmitted, 100) || null,
+      precedence: text(body.precedence, 40) || null,
     },
   );
 

@@ -18,7 +18,7 @@ import {
   DropdownMenuTrigger,
 } from "@zentro/ui/shadcn/dropdown-menu";
 
-import { paths } from "~/src/lib/paths";
+import { apiPath, paths } from "~/src/lib/paths";
 
 type Props = {
   user: { name: string; email: string };
@@ -50,7 +50,7 @@ export function UserMenu({ user, links }: Props) {
 
     try {
       await authClient.signOut();
-      window.location.assign(paths.auth.signIn());
+      window.location.assign(apiPath(paths.auth.signIn()));
     } finally {
       setSigningOut(false);
     }

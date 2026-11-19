@@ -6,18 +6,9 @@ import { files } from "@zentro/db/schema";
 
 import { createRequestContext } from "~/src/lib/request-context";
 import { storage } from "~/src/lib/storage";
+import { INLINE_TYPES } from "~/src/lib/file-type";
 
 export const runtime = "nodejs";
-
-// Shown inline; everything else (SVG, HTML, unknown) downloads instead.
-const inline = new Set([
-  "image/png",
-  "image/jpeg",
-  "image/gif",
-  "image/webp",
-  "application/pdf",
-  "text/plain",
-]);
 
 export async function GET(
   request: Request,
@@ -50,7 +41,8 @@ export async function GET(
 
   if (!file || !object) return new Response("Not found", { status: 404 });
 
-  const asInline = inline.has(file.mimeType);
+  // Shown inline; everything else (SVG, HTML, unknown) downloads instead.
+  const asInline = INLINE_TYPES.has(file.mimeType);
 
   return new Response(new Uint8Array(object.body), {
     headers: {

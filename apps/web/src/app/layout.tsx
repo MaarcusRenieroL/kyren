@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
 import localFont from "next/font/local";
 import { JSX } from "react";
 
@@ -74,6 +74,8 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>): Promise<JSX.Element> {
   const density = parseDensity((await cookies()).get(densityCookie)?.value);
+  // Set by the proxy; the CSP lets only scripts carrying it run.
+  const nonce = (await headers()).get("x-nonce") ?? undefined;
 
   return (
     <html
@@ -86,6 +88,7 @@ export default async function RootLayout({
         {/* Marks the page as scripted before first paint, so reveal effects
             only hide content when they are guaranteed to show it again. */}
         <script
+          nonce={nonce}
           dangerouslySetInnerHTML={{
             __html: "document.documentElement.classList.add('js')",
           }}
@@ -97,6 +100,7 @@ export default async function RootLayout({
           defaultTheme="system"
           enableSystem
           disableTransitionOnChange
+          nonce={nonce}
         >
           <AppTRPCProvider>{children}</AppTRPCProvider>
           <Toaster />

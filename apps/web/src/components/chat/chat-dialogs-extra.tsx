@@ -23,6 +23,7 @@ import {
   DialogTitle,
 } from "@zentro/ui/shadcn/dialog";
 import { Input } from "@zentro/ui/shadcn/input";
+import { NativeSelect } from "@zentro/ui/shadcn/native-select";
 import { Skeleton } from "@zentro/ui/shadcn/skeleton";
 
 import { useChatSidebar } from "./chat-store";
@@ -497,21 +498,21 @@ export function StatusDialog({ onClose }: { onClose: () => void }) {
 
         <label className="flex items-center gap-2 text-sm">
           <span className="w-28 text-ink-2">Clear status</span>
-          <select
+          <NativeSelect
             value={clear === null ? "" : String(clear)}
             onChange={(event) =>
               setClear(
                 event.target.value === "" ? null : Number(event.target.value),
               )
             }
-            className="h-9 flex-1 rounded-md border border-hairline bg-surface px-2"
+            className="flex-1"
           >
             {clearChoices.map(([label, value]) => (
               <option key={label} value={value === null ? "" : String(value)}>
                 {label}
               </option>
             ))}
-          </select>
+          </NativeSelect>
         </label>
 
         <div className="rounded-lg border border-hairline p-3">

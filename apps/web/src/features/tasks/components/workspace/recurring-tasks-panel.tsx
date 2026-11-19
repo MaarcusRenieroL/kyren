@@ -6,8 +6,10 @@ import { useTrpcClient } from "@zentro/api/react";
 import { toastError, toastSuccess } from "@zentro/ui/index";
 import { Button } from "@zentro/ui/shadcn/button";
 import { Input } from "@zentro/ui/shadcn/input";
+import { NativeSelect } from "@zentro/ui/shadcn/native-select";
 
 import { useAsyncData } from "~/src/lib/use-async-data";
+import { getDateInputValue } from "../task-detail/task-detail-utils";
 
 const cadenceWords = {
   daily: "Every day",
@@ -27,9 +29,7 @@ export function RecurringTasksPanel({ projectId }: { projectId: string }) {
   const [cadence, setCadence] = useState<"daily" | "weekly" | "monthly">(
     "weekly",
   );
-  const [startsOn, setStartsOn] = useState(() =>
-    new Date().toISOString().slice(0, 10),
-  );
+  const [startsOn, setStartsOn] = useState(() => getDateInputValue(new Date()));
   const [busy, setBusy] = useState(false);
 
   async function run(work: () => Promise<unknown>, done: string) {
@@ -117,16 +117,17 @@ export function RecurringTasksPanel({ projectId }: { projectId: string }) {
           value={name}
           onChange={(e) => setName(e.target.value)}
         />
-        <select
+        <NativeSelect
           aria-label="Repeats"
-          className="rounded-md border border-line bg-surface px-2 py-1"
+          size="sm"
+          className="w-36"
           value={cadence}
           onChange={(e) => setCadence(e.target.value as "daily")}
         >
           <option value="daily">Every day</option>
           <option value="weekly">Every week</option>
           <option value="monthly">Every month</option>
-        </select>
+        </NativeSelect>
         <Input
           aria-label="First task on"
           type="date"

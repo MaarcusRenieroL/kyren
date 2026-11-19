@@ -46,7 +46,7 @@ export function NoAccessView({ channel }: { channel: Channel }) {
     <div className="flex flex-1 flex-col justify-center px-6 py-12 sm:px-16">
       <div className="mx-auto flex w-full max-w-xl flex-col gap-4">
         <p className="eyebrow">Private channel · No access</p>
-        <h2 className="font-serif-italic text-[2.5rem] leading-[3rem]">
+        <h2 className="font-display font-semibold text-2xl tracking-tight text-ink">
           #{channel.name} is private.
         </h2>
         <p className="text-[15px] leading-[22px] text-ink-2">

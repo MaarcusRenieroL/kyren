@@ -35,6 +35,8 @@ export default async function MembersSettingsPage(): Promise<JSX.Element> {
         db
           .select({ userId: sessions.userId, at: max(sessions.updatedAt) })
           .from(sessions)
+          .innerJoin(members, eq(members.userId, sessions.userId))
+          .where(eq(members.organizationId, organization.id))
           .groupBy(sessions.userId),
       ])
     : [[], []];

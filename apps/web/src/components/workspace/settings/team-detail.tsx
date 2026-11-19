@@ -2,12 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import {
-  ChevronLeftIcon,
-  CircleIcon,
-  PlusIcon,
-  Settings2Icon,
-} from "lucide-react";
+import { ChevronLeftIcon, PlusIcon, Settings2Icon } from "lucide-react";
 
 import { useTrpcClient } from "@zentro/api/react";
 import { cn } from "@zentro/ui/lib/utils";
@@ -15,7 +10,6 @@ import { Button } from "@zentro/ui/shadcn/button";
 import { Skeleton } from "@zentro/ui/shadcn/skeleton";
 
 import { StatusGlyph } from "@zentro/ui/components/status-glyph";
-import { ActorAvatar } from "~/src/components/actor-avatar";
 import { DueDate } from "~/src/components/due-date";
 import { usePermission } from "~/src/components/permissions/permission-provider";
 import { usePageCrumb } from "~/src/components/shell/breadcrumb-context";
@@ -124,7 +118,7 @@ export function TeamDetail({ teamId }: { teamId: string }) {
   if (missing) {
     return (
       <div className="flex flex-col items-center gap-3 rounded-xl border border-dashed border-line-strong px-6 py-14 text-center">
-        <p className="font-serif-italic text-[2rem] leading-10">
+        <p className="font-display font-semibold text-xl tracking-tight text-ink">
           This team isn&apos;t here.
         </p>
         <p className="text-[15px] text-ink-2">
@@ -162,8 +156,6 @@ export function TeamDetail({ teamId }: { teamId: string }) {
   const editedToday = docs.filter(
     (doc) => now - new Date(doc.updatedAt).getTime() < DAY,
   ).length;
-  const openFor = (userId: string) =>
-    open.filter((task) => task.assigneeUserId === userId).length;
   const editHref = `${paths.teamsSettings()}?edit=${team.id}`;
 
   const stats = [

@@ -19,9 +19,10 @@ import {
 } from "@zentro/ui/shadcn/dialog";
 import { Input } from "@zentro/ui/shadcn/input";
 import { Label } from "@zentro/ui/shadcn/label";
+import { NativeSelect } from "@zentro/ui/shadcn/native-select";
 import { toast, toastError } from "@zentro/ui/index";
 
-import { messageOf, selectClass } from "../tickets/labels";
+import { messageOf } from "../tickets/labels";
 import { HrTabs } from "./hr-tabs";
 
 type Leave = inferRouterOutputs<AppRouter>["hr"]["leaveList"];
@@ -101,6 +102,23 @@ export function LeaveBoard() {
         actions={requestButton}
       />
       <HrTabs />
+
+      {leave?.balance ? (
+        <p className="text-sm text-ink-2">
+          <span className="font-medium text-ink">
+            {leave.balance.remaining} of{" "}
+            {leave.balance.earned + leave.balance.carried} days
+          </span>{" "}
+          of annual leave left in {leave.balance.year}
+          {leave.balance.accrual === "monthly"
+            ? ` (earned so far of ${leave.balance.allowance} this year)`
+            : ""}
+          {leave.balance.carried
+            ? ` (${leave.balance.carried} carried over from ${leave.balance.year - 1})`
+            : ""}
+          , counting requests still waiting for a decision.
+        </p>
+      ) : null}
 
       {failed ? (
         <EmptyState
@@ -280,9 +298,8 @@ function RequestForm({
       </DialogHeader>
       <div className="flex flex-col gap-1.5">
         <Label htmlFor="lv-type">Type</Label>
-        <select
+        <NativeSelect
           id="lv-type"
-          className={selectClass}
           value={type}
           onChange={(e) => setType(e.target.value)}
         >
@@ -291,7 +308,7 @@ function RequestForm({
               {label}
             </option>
           ))}
-        </select>
+        </NativeSelect>
       </div>
       <div className="grid grid-cols-2 gap-3">
         <div className="flex flex-col gap-1.5">

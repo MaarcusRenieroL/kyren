@@ -10,13 +10,13 @@ import { EmptyState } from "@zentro/ui/components/empty-state";
 import { PageHeader } from "@zentro/ui/components/page-header";
 import { toastError, toastSuccess } from "@zentro/ui/index";
 import { Button } from "@zentro/ui/shadcn/button";
+import { NativeSelect } from "@zentro/ui/shadcn/native-select";
 
 import { useAsyncData } from "~/src/lib/use-async-data";
 
-import { parseTaskCsv, type ParsedImport } from "./import-rows";
+import { dueFromDateInput } from "~/src/features/tasks/components/task-detail/task-detail-utils";
 
-const selectClass =
-  "h-9 w-full max-w-xs rounded-lg border border-line bg-surface px-2.5 text-sm text-ink outline-none focus-visible:ring-2 focus-visible:ring-ring";
+import { parseTaskCsv, type ParsedImport } from "./import-rows";
 
 export function ImportTasks() {
   const trpc = useTrpcClient();
@@ -43,7 +43,13 @@ export function ImportTasks() {
     try {
       const { created } = await trpc.task.importTasks.mutate({
         projectId,
-        rows: parsed.rows,
+        // A due day ends at midnight where the importer is.
+        rows: parsed.rows.map((row) => ({
+          ...row,
+          dueAt: row.dueAt
+            ? dueFromDateInput(row.dueAt)?.toISOString()
+            : undefined,
+        })),
       });
 
       toastSuccess(`Imported ${created} task${created === 1 ? "" : "s"}`);
@@ -90,8 +96,9 @@ export function ImportTasks() {
       <div className="flex max-w-xl flex-col gap-4">
         <label className="flex flex-col gap-1.5 text-sm">
           <span className="text-ink-2">Project</span>
-          <select
-            className={selectClass}
+          <NativeSelect
+            aria-label="Project"
+            className="max-w-xs"
             value={projectId}
             onChange={(e) => setProjectId(e.target.value)}
           >
@@ -101,7 +108,7 @@ export function ImportTasks() {
                 {project.name}
               </option>
             ))}
-          </select>
+          </NativeSelect>
         </label>
 
         <label className="flex flex-col gap-1.5 text-sm">

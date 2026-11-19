@@ -8,6 +8,7 @@ import type { AppRouter } from "@zentro/api/server";
 import type { inferRouterOutputs } from "@trpc/server";
 import { toastError } from "@zentro/ui/index";
 import { Button } from "@zentro/ui/shadcn/button";
+import { getDateInputValue } from "../task-detail/task-detail-utils";
 
 type Outputs = inferRouterOutputs<AppRouter>["timesheet"];
 
@@ -37,7 +38,10 @@ const iso = (date: Date) => date.toISOString().slice(0, 10);
 /** Your logged time for a week, and for people who may, everyone's. */
 export function Timesheet({ canSeeReport }: { canSeeReport: boolean }) {
   const trpc = useTrpcClient();
-  const [start, setStart] = useState(() => weekStart(new Date()));
+  const [start, setStart] = useState(() =>
+    // The viewer's own today, then the week math in UTC like the stored days.
+    weekStart(new Date(getDateInputValue(new Date()))),
+  );
   const [mine, setMine] = useState<Outputs["mine"] | null>(null);
   const [report, setReport] = useState<Outputs["report"] | null>(null);
 
@@ -46,10 +50,13 @@ export function Timesheet({ canSeeReport }: { canSeeReport: boolean }) {
 
   const load = useCallback(async () => {
     try {
-      setMine(await trpc.timesheet.mine.query({ from, to }));
+      // Days start at the viewer's own midnight, not UTC's.
+      const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
+      setMine(await trpc.timesheet.mine.query({ from, to, timeZone }));
 
       if (canSeeReport) {
-        setReport(await trpc.timesheet.report.query({ from, to }));
+        setReport(await trpc.timesheet.report.query({ from, to, timeZone }));
       }
     } catch (error) {
       toastError(error, "Could not load the timesheet.");

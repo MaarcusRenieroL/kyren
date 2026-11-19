@@ -38,6 +38,7 @@ import { AvatarInitials } from "./avatar-initials";
 import { DetailRow } from "./detail-row";
 import {
   formatDate,
+  dueFromDateInput,
   getDateInputValue,
   toTaskPriority,
   toTaskStatus,
@@ -395,7 +396,7 @@ function DuePicker({ value, done, disabled, onChange }: DuePickerProps) {
           className="flex flex-col gap-3"
           onSubmit={(event) => {
             event.preventDefault();
-            onChange(draft ? new Date(draft) : null);
+            onChange(draft ? dueFromDateInput(draft) : null);
             setOpen(false);
           }}
         >

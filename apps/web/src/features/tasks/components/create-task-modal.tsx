@@ -42,6 +42,10 @@ import {
 import { Controller, useForm, useWatch } from "react-hook-form";
 
 import { ActorAvatar } from "~/src/components/actor-avatar";
+import {
+  dueFromDateInput,
+  getDateInputValue as localDateInputValue,
+} from "./task-detail/task-detail-utils";
 
 type ProjectOption = {
   id: string;
@@ -108,15 +112,9 @@ const messages: Partial<Record<keyof CreateTaskFormValues, string>> = {
 };
 
 const getDateInputValue = (value: unknown) => {
-  if (value instanceof Date) {
-    return value.toISOString().slice(0, 10);
-  }
+  if (value instanceof Date) return localDateInputValue(value);
 
-  if (typeof value === "string") {
-    return value;
-  }
-
-  return "";
+  return typeof value === "string" ? value : "";
 };
 
 /** A 44px field box: rose when it has an error, violet ring on focus. */
@@ -547,7 +545,12 @@ const CreateTaskModalInner: FC<Props> = ({
                         value={getDateInputValue(field.value)}
                         onBlur={field.onBlur}
                         onChange={(event) =>
-                          field.onChange(event.target.value || null)
+                          // The picked day, ending in the viewer's own time.
+                          field.onChange(
+                            event.target.value
+                              ? dueFromDateInput(event.target.value)
+                              : null,
+                          )
                         }
                         className={fieldBox(
                           Boolean(fieldState.error),

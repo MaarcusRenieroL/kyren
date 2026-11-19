@@ -7,7 +7,7 @@ export default function ChatPage() {
   return (
     <div className="hidden flex-1 flex-col items-center justify-center gap-2 px-6 text-center md:flex">
       <p className="eyebrow">Chat</p>
-      <h2 className="font-serif-italic text-[2rem] leading-10">
+      <h2 className="font-display font-semibold text-xl tracking-tight text-ink">
         Pick a conversation.
       </h2>
       <p className="max-w-sm text-[15px] text-ink-2">

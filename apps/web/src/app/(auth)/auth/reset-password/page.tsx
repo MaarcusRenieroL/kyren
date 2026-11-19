@@ -93,7 +93,7 @@ function ResetPasswordForm() {
   }
 
   return (
-    <form noValidate onSubmit={handleSubmit(onSubmit)}>
+    <form method="post" noValidate onSubmit={handleSubmit(onSubmit)}>
       <div className="flex flex-col gap-5">
         <AuthHeading
           title="Choose a new password"

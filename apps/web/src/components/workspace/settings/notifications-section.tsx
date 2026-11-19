@@ -52,7 +52,7 @@ export function NotificationsSection() {
       <SettingsHeader
         eyebrow="ACCOUNT"
         title="Notifications"
-        description="Choose what appears in your inbox for this organization. Changes save as you go."
+        description="Choose what appears in your inbox, and what is emailed, for this organization. Changes save as you go."
       />
 
       {status === "error" ? (
@@ -79,6 +79,23 @@ export function NotificationsSection() {
               </label>
             </SettingsRow>
           ))}
+          <SettingsRow
+            label="Chat mention emails"
+            description="An email when someone @mentions you in chat and you haven't read it within 10 minutes."
+          >
+            <label className="flex items-center gap-2 text-sm text-ink">
+              <input
+                type="checkbox"
+                aria-label="Email me when I'm mentioned in chat"
+                className="size-4 accent-[var(--signal)]"
+                checked={!muted.includes("mention_email")}
+                onChange={(event) =>
+                  void toggle("mention_email", event.target.checked)
+                }
+              />
+              Email me
+            </label>
+          </SettingsRow>
         </SettingsTile>
       )}
     </div>

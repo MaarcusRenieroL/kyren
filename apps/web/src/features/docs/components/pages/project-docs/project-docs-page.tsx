@@ -116,7 +116,7 @@ export function ProjectDocsPage() {
         <DocTable docs={shown} />
       ) : (
         <div className="flex flex-col items-center gap-2 rounded-xl border border-dashed border-line-strong px-6 py-14 text-center">
-          <p className="font-serif-italic text-[2.25rem] leading-none">
+          <p className="font-display font-semibold text-xl tracking-tight text-ink">
             No docs in this project yet.
           </p>
           <p className="max-w-[420px] text-sm text-ink-2">

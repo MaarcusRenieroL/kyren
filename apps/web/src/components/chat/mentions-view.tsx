@@ -141,7 +141,7 @@ export function MentionsView() {
 
       {items && shown.length === 0 ? (
         <div className="flex flex-col items-center gap-2 py-16 text-center">
-          <p className="font-serif-italic text-[2rem] leading-10">
+          <p className="font-display font-semibold text-lg tracking-tight text-ink">
             {tab === "unread" ? "You’re all caught up." : "No mentions yet."}
           </p>
           <p className="max-w-sm text-[15px] text-ink-2">

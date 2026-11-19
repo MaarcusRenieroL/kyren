@@ -20,13 +20,12 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-  SidebarRail,
   useSidebar,
 } from "@zentro/ui/shadcn/sidebar";
 import { cn } from "@zentro/ui/lib/utils";
 
 import { getShellIcon } from "~/src/lib/module-icons";
-import { paths } from "~/src/lib/paths";
+import { apiPath, paths } from "~/src/lib/paths";
 
 export type ShellModule = {
   id: string;
@@ -81,12 +80,11 @@ export function AppSidebar({
   const active = findActiveModule(modules, pathname);
   const listRef = useRef<HTMLUListElement>(null);
   const box = useActiveBox(listRef, '[data-active="true"]');
-  const { isMobile, setOpenMobile } = useSidebar();
-  // On a phone the sidebar is a sheet: bigger targets, and it closes once
-  // you pick a place.
+  const { isMobile, setOpen, setOpenMobile } = useSidebar();
   const itemSize = isMobile ? "h-11 text-[15px]" : "h-9";
   const close = () => {
-    if (isMobile) setOpenMobile(false);
+    setOpen(false);
+    setOpenMobile(false);
   };
   const switchOrganization = async (organizationId: string) => {
     const { error } = await authClient.organization.setActive({
@@ -100,42 +98,38 @@ export function AppSidebar({
     }
 
     // A full load, so every query starts from the new organization.
-    window.location.assign(paths.dashboard());
+    window.location.assign(apiPath(paths.dashboard()));
   };
 
   return (
     <Sidebar collapsible="icon" variant="sidebar" aria-label="Main">
-      <SidebarHeader className="flex-row items-center px-3 pt-3 pb-0">
-        <OrgSwitcher
-          organizations={organizations}
-          activeOrgSlug={activeOrgSlug}
-          createOrganizationHref={paths.auth.createOrganization()}
-          onSwitchOrganization={switchOrganization}
-          subtitle={orgSubtitle}
-          mark={
-            <span
-              aria-hidden="true"
-              className="flex size-[26px] shrink-0 items-center justify-center rounded-lg bg-ink"
-            >
-              <span className="h-[13px] w-0.5 rounded-xs bg-signal" />
-            </span>
-          }
-          className={cn(
-            "h-12 rounded-md border border-hairline bg-surface px-2",
-            // The close button takes the chevron's place in the sheet.
-            isMobile && "h-[52px] pr-11 [&>svg:last-child]:hidden",
-          )}
-        />
-        {isMobile ? (
-          <button
-            type="button"
-            onClick={close}
-            aria-label="Close navigation"
-            className="-ml-12 flex size-9 shrink-0 items-center justify-center rounded-md text-ink-2 outline-none hover:bg-hover focus-visible:ring-2 focus-visible:ring-ring"
-          >
-            <XIcon className="size-4" aria-hidden="true" />
-          </button>
-        ) : null}
+      <SidebarHeader className="flex-row items-center gap-2 px-3 pt-3 pb-0">
+        <div className="flex-1 min-w-0">
+          <OrgSwitcher
+            organizations={organizations}
+            activeOrgSlug={activeOrgSlug}
+            createOrganizationHref={paths.auth.createOrganization()}
+            onSwitchOrganization={switchOrganization}
+            subtitle={orgSubtitle}
+            mark={
+              <span
+                aria-hidden="true"
+                className="flex size-[26px] shrink-0 items-center justify-center rounded-lg bg-ink"
+              >
+                <span className="h-[13px] w-0.5 rounded-xs bg-signal" />
+              </span>
+            }
+            className="h-12 w-full rounded-md border border-hairline bg-surface px-2"
+          />
+        </div>
+        <button
+          type="button"
+          onClick={close}
+          aria-label="Close navigation"
+          className="flex size-9 shrink-0 items-center justify-center rounded-md text-ink-2 outline-none transition-colors hover:bg-hover hover:text-ink focus-visible:ring-2 focus-visible:ring-ring"
+        >
+          <XIcon className="size-4" aria-hidden="true" />
+        </button>
       </SidebarHeader>
 
       <SidebarContent className="gap-0 px-3 pt-3.5 pb-3">
@@ -184,7 +178,9 @@ export function AppSidebar({
                                 : "text-ink-3",
                             )}
                           />
-                          <span className="flex-1 truncate">{item.label}</span>
+                          <span className="flex-1 truncate group-data-[collapsible=icon]:hidden">
+                            {item.label}
+                          </span>
                           {item.id === "tasks" && taskCount ? (
                             <span className="font-mono text-[11px] font-semibold px-1.5 py-0.2 rounded-full bg-signal/10 text-signal group-data-[collapsible=icon]:hidden">
                               {taskCount}
@@ -238,7 +234,9 @@ export function AppSidebar({
                         <Icon
                           className={isActive ? "text-signal" : undefined}
                         />
-                        <span>{item.label}</span>
+                        <span className="group-data-[collapsible=icon]:hidden">
+                          {item.label}
+                        </span>
                       </Link>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
@@ -247,8 +245,6 @@ export function AppSidebar({
             })}
         </SidebarFooter>
       ) : null}
-
-      <SidebarRail />
     </Sidebar>
   );
 }

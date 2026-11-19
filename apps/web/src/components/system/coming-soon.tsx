@@ -167,7 +167,7 @@ export function ComingSoon({ kind, email }: { kind: Kind; email: string }) {
         >
           <Icon className="size-[22px]" aria-hidden="true" />
         </span>
-        <h2 className="font-serif-italic text-[2.5rem] leading-none sm:text-[3.5rem] sm:leading-[3.75rem]">
+        <h2 className="font-display font-semibold text-3xl tracking-tight text-ink sm:text-4xl">
           {headline}
         </h2>
         <p className="max-w-[540px] text-base leading-6 text-ink-2">{body}</p>

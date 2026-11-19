@@ -2,8 +2,11 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
+  ArrowLeftIcon,
   DownloadIcon,
   FileIcon,
+  FolderIcon,
+  FolderPlusIcon,
   ImageIcon,
   LayoutGridIcon,
   ListIcon,
@@ -20,10 +23,14 @@ import { EmptyState } from "@zentro/ui/components/empty-state";
 import { PageHeader } from "@zentro/ui/components/page-header";
 import { Button } from "@zentro/ui/shadcn/button";
 import { Input } from "@zentro/ui/shadcn/input";
+import { NativeSelect } from "@zentro/ui/shadcn/native-select";
 import { toast, toastError } from "@zentro/ui/index";
+
+import { usePermission } from "~/src/components/permissions/permission-provider";
 import { apiPath } from "~/src/lib/paths";
 
 type LibraryFile = inferRouterOutputs<AppRouter>["files"]["library"][number];
+type Folder = inferRouterOutputs<AppRouter>["files"]["folders"][number];
 type Kind = "all" | "image" | "document" | "other";
 
 const kinds: { id: Kind; label: string }[] = [
@@ -81,6 +88,7 @@ function Thumb({ file, large }: { file: LibraryFile; large?: boolean }) {
 
 export function FilesLibrary() {
   const trpc = useTrpcClient();
+  const canUpload = usePermission("files.upload");
   const inputRef = useRef<HTMLInputElement>(null);
   const [files, setFiles] = useState<LibraryFile[] | null>(null);
   const [failed, setFailed] = useState(false);
@@ -93,6 +101,11 @@ export function FilesLibrary() {
   const [uploading, setUploading] = useState(0);
   const [renaming, setRenaming] = useState<string | null>(null);
   const [draft, setDraft] = useState("");
+  const [folders, setFolders] = useState<Folder[]>([]);
+  // The folder being looked at; null is the top of the library.
+  const [folderId, setFolderId] = useState<string | null>(null);
+  const [folderDraft, setFolderDraft] = useState<string | null>(null);
+  const folder = folders.find((item) => item.id === folderId) ?? null;
 
   const load = useCallback(async () => {
     try {
@@ -100,14 +113,16 @@ export function FilesLibrary() {
         await trpc.files.library.query({
           search: search || undefined,
           kind,
+          folderId,
         }),
       );
+      setFolders(await trpc.files.folders.query());
       setFailed(false);
       setUsage(await trpc.files.usage.query().catch(() => null));
     } catch {
       setFailed(true);
     }
-  }, [trpc, search, kind]);
+  }, [trpc, search, kind, folderId]);
 
   useEffect(() => {
     const timer = setTimeout(() => void load(), search ? 200 : 0);
@@ -124,6 +139,8 @@ export function FilesLibrary() {
         const body = new FormData();
         body.append("file", file);
         body.append("library", "1");
+        // Uploaded inside a folder, it is filed there in the same step.
+        if (folderId) body.append("folderId", folderId);
         const response = await fetch(apiPath("/api/files"), {
           method: "POST",
           body,
@@ -166,6 +183,67 @@ export function FilesLibrary() {
     }
   }
 
+  async function saveFolder() {
+    const name = folderDraft?.trim();
+
+    setFolderDraft(null);
+
+    if (!name) return;
+
+    try {
+      if (folder) {
+        await trpc.files.renameFolder.mutate({ id: folder.id, name });
+      } else {
+        const { id } = await trpc.files.createFolder.mutate({ name });
+
+        setFolderId(id);
+      }
+
+      await load();
+    } catch (error) {
+      toastError(
+        "Could not save the folder",
+        error instanceof Error ? error.message : undefined,
+      );
+    }
+  }
+
+  async function deleteFolder() {
+    if (
+      !folder ||
+      !window.confirm(
+        `Delete the folder “${folder.name}”? Its files stay in the library.`,
+      )
+    )
+      return;
+
+    try {
+      await trpc.files.deleteFolder.mutate({ id: folder.id });
+      setFolderId(null);
+      toast.success("Folder deleted");
+    } catch (error) {
+      toastError(
+        "Could not delete the folder",
+        error instanceof Error ? error.message : undefined,
+      );
+    }
+  }
+
+  async function move(file: LibraryFile, target: string) {
+    try {
+      await trpc.files.moveFile.mutate({
+        id: file.id,
+        folderId: target || null,
+      });
+      await load();
+    } catch (error) {
+      toastError(
+        "Could not move the file",
+        error instanceof Error ? error.message : undefined,
+      );
+    }
+  }
+
   async function remove(file: LibraryFile) {
     if (!window.confirm(`Delete “${file.name}”? This cannot be undone.`))
       return;
@@ -194,6 +272,21 @@ export function FilesLibrary() {
             <DownloadIcon aria-hidden />
           </a>
         </Button>
+        {file.canManage && folders.length ? (
+          <NativeSelect
+            aria-label={`Move ${file.name}`}
+            value={file.folderId ?? ""}
+            onChange={(event) => void move(file, event.target.value)}
+            className="h-8 w-36 text-xs"
+          >
+            <option value="">No folder</option>
+            {folders.map((item) => (
+              <option key={item.id} value={item.id}>
+                {item.name}
+              </option>
+            ))}
+          </NativeSelect>
+        ) : null}
         {file.canManage ? (
           <>
             <Button
@@ -260,22 +353,25 @@ export function FilesLibrary() {
             : ""
         }`}
         actions={
-          <>
-            <input
-              ref={inputRef}
-              type="file"
-              multiple
-              hidden
-              onChange={(event) => void upload(event.target.files)}
-            />
-            <Button
-              disabled={uploading > 0}
-              onClick={() => inputRef.current?.click()}
-            >
-              <UploadIcon aria-hidden />
-              {uploading > 0 ? `Uploading ${uploading}…` : "Upload"}
-            </Button>
-          </>
+          canUpload ? (
+            <>
+              <input
+                ref={inputRef}
+                type="file"
+                multiple
+                hidden
+                aria-label="Files to upload"
+                onChange={(event) => void upload(event.target.files)}
+              />
+              <Button
+                disabled={uploading > 0}
+                onClick={() => inputRef.current?.click()}
+              >
+                <UploadIcon aria-hidden />
+                {uploading > 0 ? `Uploading ${uploading}…` : "Upload"}
+              </Button>
+            </>
+          ) : undefined
         }
       />
 
@@ -328,6 +424,72 @@ export function FilesLibrary() {
         </div>
       </div>
 
+      {search ? null : folder ? (
+        <div className="flex flex-wrap items-center gap-2">
+          <Button variant="ghost" size="sm" onClick={() => setFolderId(null)}>
+            <ArrowLeftIcon aria-hidden />
+            Library
+          </Button>
+          <h2 className="flex items-center gap-2 text-sm font-semibold">
+            <FolderIcon className="size-4" aria-hidden />
+            {folder.name}
+          </h2>
+          {folder.canManage ? (
+            <div className="ml-auto flex gap-1">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setFolderDraft(folder.name)}
+              >
+                Rename folder
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => void deleteFolder()}
+              >
+                Delete folder
+              </Button>
+            </div>
+          ) : null}
+        </div>
+      ) : (
+        <ul className="flex flex-wrap gap-2" aria-label="Folders">
+          {folders.map((item) => (
+            <li key={item.id}>
+              <Button variant="outline" onClick={() => setFolderId(item.id)}>
+                <FolderIcon aria-hidden />
+                {item.name}
+                <span className="text-xs text-ink-3">{item.files}</span>
+              </Button>
+            </li>
+          ))}
+          {canUpload ? (
+            <li>
+              <Button variant="ghost" onClick={() => setFolderDraft("")}>
+                <FolderPlusIcon aria-hidden />
+                New folder
+              </Button>
+            </li>
+          ) : null}
+        </ul>
+      )}
+
+      {folderDraft !== null ? (
+        <Input
+          autoFocus
+          value={folderDraft}
+          aria-label="Folder name"
+          className="max-w-xs"
+          onChange={(event) => setFolderDraft(event.target.value)}
+          onBlur={() => void saveFolder()}
+          onKeyDown={(event) => {
+            if (event.key === "Enter") void saveFolder();
+            if (event.key === "Escape") setFolderDraft(null);
+          }}
+        />
+      ) : null}
+
       {failed ? (
         <EmptyState
           title="Files did not load"
@@ -341,14 +503,22 @@ export function FilesLibrary() {
       ) : files.length === 0 ? (
         <EmptyState
           icon={<ImageIcon className="size-4" aria-hidden />}
-          title={search || kind !== "all" ? "No files match" : "No files yet"}
+          title={
+            search || kind !== "all"
+              ? "No files match"
+              : folder
+                ? "This folder is empty"
+                : "No files yet"
+          }
           description={
             search || kind !== "all"
               ? "Try a different search or filter."
-              : "Upload a file and it shows up here for everyone."
+              : canUpload
+                ? "Upload a file and it shows up here for everyone."
+                : "Files your team uploads show up here."
           }
           action={
-            search || kind !== "all" ? undefined : (
+            search || kind !== "all" || !canUpload ? undefined : (
               <Button onClick={() => inputRef.current?.click()}>
                 <UploadIcon aria-hidden />
                 Upload a file

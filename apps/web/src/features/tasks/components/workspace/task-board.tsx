@@ -15,7 +15,6 @@ import {
 } from "lucide-react";
 
 import { PriorityGlyph, StatusGlyph } from "@zentro/ui/components/status-glyph";
-import { cn } from "@zentro/ui/lib/utils";
 
 import { ActorAvatar } from "~/src/components/actor-avatar";
 import { statusLabels } from "~/src/features/tasks/lib/constants";
@@ -64,8 +63,6 @@ export const TaskBoard: FC<Props> = ({
   const [collapsedLanes, setCollapsedLanes] = useState<Record<string, boolean>>(
     {},
   );
-
-  if (!tasks.length) return empty ?? <EmptyTasks />;
 
   const shown = columns.filter(
     (status) =>
@@ -363,6 +360,10 @@ export const TaskBoard: FC<Props> = ({
   }
 
   // Classic Board Columns
+
+  // After every hook, so the hook order never changes between renders.
+  if (!tasks.length) return empty ?? <EmptyTasks />;
+
   return (
     <div className="overflow-x-auto pb-2">
       <div

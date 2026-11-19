@@ -13,6 +13,7 @@ import {
 import { useTrpcClient } from "@zentro/api/react";
 
 import type { NotificationItem } from "./notifications";
+import { everyWhileVisible } from "~/src/lib/poll";
 
 export type NotificationsState = "loading" | "ready" | "error";
 
@@ -88,11 +89,11 @@ export function NotificationsProvider({
 
     void load();
 
-    const id = setInterval(load, POLL_MS);
+    const stop = everyWhileVisible(load, POLL_MS);
 
     return () => {
       active = false;
-      clearInterval(id);
+      stop();
     };
   }, [live, trpc, tick]);
 

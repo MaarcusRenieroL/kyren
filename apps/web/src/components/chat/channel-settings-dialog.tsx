@@ -23,6 +23,7 @@ import {
 } from "@zentro/ui/shadcn/dialog";
 import { Input } from "@zentro/ui/shadcn/input";
 import { Textarea } from "@zentro/ui/shadcn/textarea";
+import { NativeSelect } from "@zentro/ui/shadcn/native-select";
 
 import type { ChannelData } from "./channel-view";
 import type { Person } from "./composer";
@@ -391,8 +392,10 @@ export function ChannelSettingsDialog({
                         ) : null}
                       </span>
                       {canManage ? (
-                        <select
+                        <NativeSelect
                           aria-label={`Role of ${person.name}`}
+                          size="sm"
+                          className="w-36 text-sm"
                           value={person.role}
                           disabled={busy}
                           onChange={(event) =>
@@ -404,11 +407,10 @@ export function ChannelSettingsDialog({
                               }),
                             )
                           }
-                          className="rounded-md border border-hairline bg-surface px-2 py-1 text-sm"
                         >
                           <option value="admin">Channel admin</option>
                           <option value="member">Member</option>
-                        </select>
+                        </NativeSelect>
                       ) : (
                         <span className="text-sm text-ink-2">
                           {person.role === "admin" ? "Channel admin" : "Member"}
@@ -582,8 +584,10 @@ export function ChannelSettingsDialog({
                   Older messages are deleted every night. Pinned messages are
                   always kept.
                 </p>
-                <select
+                <NativeSelect
                   aria-label="Retention"
+                  size="sm"
+                  className="w-36 text-sm"
                   disabled={!canManage || busy}
                   value={
                     channel.retentionDays ? String(channel.retentionDays) : ""
@@ -600,13 +604,12 @@ export function ChannelSettingsDialog({
                       "Retention updated",
                     )
                   }
-                  className="h-9 w-fit rounded-md border border-hairline bg-surface px-2 text-sm"
                 >
                   <option value="">Forever</option>
                   <option value="30">30 days</option>
                   <option value="90">90 days</option>
                   <option value="365">1 year</option>
-                </select>
+                </NativeSelect>
                 {!canManage ? (
                   <p className="text-[13px] text-ink-3">Channel admins only.</p>
                 ) : null}

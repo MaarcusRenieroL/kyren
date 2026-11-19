@@ -340,7 +340,7 @@ export const ProjectList = ({
   if (projects.length === 0) {
     return (
       <div className="flex flex-col items-center gap-3 rounded-xl border border-dashed border-line-strong px-6 py-16 text-center">
-        <p className="font-serif-italic text-[2.5rem] leading-none text-balance">
+        <p className="font-display font-semibold text-xl tracking-tight text-balance text-ink">
           {hasFilters ? "No projects match these filters." : "No projects yet."}
         </p>
         <p className="max-w-[460px] text-[15px] text-ink-2">

@@ -1,12 +1,41 @@
-/** Formats whole minor units (cents) as money in the given currency. */
+/**
+ * Decimal places of a currency's minor unit: 2 for USD (cents), 0 for JPY,
+ * 3 for BHD. Amounts are stored as whole minor units.
+ */
+export function minorDigits(currency: string) {
+  try {
+    return (
+      new Intl.NumberFormat("en", {
+        style: "currency",
+        currency,
+      }).resolvedOptions().maximumFractionDigits ?? 2
+    );
+  } catch {
+    return 2;
+  }
+}
+
+/** Whole minor units to an amount people read, such as 1234 cents to 12.34. */
+export function toMajor(minor: number, currency: string) {
+  return minor / 10 ** minorDigits(currency);
+}
+
+/** An amount people typed to whole minor units. */
+export function toMinor(major: number, currency: string) {
+  return Math.round(major * 10 ** minorDigits(currency));
+}
+
+/** Formats whole minor units as money in the given currency. */
 export function formatMoney(minor: number, currency = "USD") {
+  const digits = minorDigits(currency);
+
   try {
     return new Intl.NumberFormat(undefined, {
       style: "currency",
       currency,
-    }).format(minor / 100);
+    }).format(minor / 10 ** digits);
   } catch {
-    return `${(minor / 100).toFixed(2)} ${currency}`;
+    return `${(minor / 10 ** digits).toFixed(digits)} ${currency}`;
   }
 }
 

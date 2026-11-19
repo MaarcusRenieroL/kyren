@@ -3,7 +3,14 @@
 import { Button } from "@zentro/ui/shadcn/button";
 import { Skeleton } from "@zentro/ui/shadcn/skeleton";
 import { Textarea } from "@zentro/ui/shadcn/textarea";
-import { CheckIcon, SendIcon, XIcon } from "lucide-react";
+import {
+  CheckIcon,
+  CornerDownRightIcon,
+  PencilIcon,
+  SendIcon,
+  Trash2Icon,
+  XIcon,
+} from "lucide-react";
 import { useEffect, useState } from "react";
 
 import { useTrpcClient } from "@zentro/api/react";
@@ -15,6 +22,7 @@ import { formatDocDate } from "../../../lib/docs";
 
 type DocComment = {
   id: string;
+  parentId: string | null;
   body: string;
   authorName: string | null;
   authorEmail: string | null;
@@ -22,7 +30,20 @@ type DocComment = {
   resolvedAt: Date | null;
   createdAt: Date;
   updatedAt: Date;
+  canEdit: boolean;
+  canDelete: boolean;
 };
+
+/** Open threads and their replies; a resolved thread hides with its replies. */
+function openOnly(list: DocComment[]) {
+  const open = new Set(
+    list
+      .filter((comment) => !comment.parentId && !comment.resolvedAt)
+      .map((comment) => comment.id),
+  );
+
+  return list.filter((comment) => open.has(comment.parentId ?? comment.id));
+}
 
 type CommentsPanelProps = {
   docId: string;
@@ -42,17 +63,26 @@ export function CommentsPanel({
 }: CommentsPanelProps) {
   const trpc = useTrpcClient();
   const [comments, setComments] = useState<DocComment[]>([]);
+  // Open threads, each with its replies in order.
+  const threads = comments.filter((comment) => !comment.parentId);
+  const repliesOf = (id: string) =>
+    comments.filter((comment) => comment.parentId === id);
 
   useEffect(() => {
-    onCount?.(comments.length);
-  }, [comments.length, onCount]);
+    onCount?.(threads.length);
+  }, [threads.length, onCount]);
+  const [replying, setReplying] = useState<{ id: string; body: string } | null>(
+    null,
+  );
   const [body, setBody] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [savingId, setSavingId] = useState<string | null>(null);
+  const [editing, setEditing] = useState<{ id: string; body: string } | null>(
+    null,
+  );
 
   async function fetchComments() {
-    const commentList = await trpc.docs.getComments.query({ docId });
-    setComments(commentList.filter((comment) => !comment.resolvedAt));
+    setComments(openOnly(await trpc.docs.getComments.query({ docId })));
   }
 
   useEffect(() => {
@@ -63,7 +93,7 @@ export function CommentsPanel({
         const commentList = await trpc.docs.getComments.query({ docId });
 
         if (isMounted) {
-          setComments(commentList.filter((comment) => !comment.resolvedAt));
+          setComments(openOnly(commentList));
         }
       } catch (error) {
         toastError(error, "Failed to load comments");
@@ -102,6 +132,28 @@ export function CommentsPanel({
     }
   }
 
+  async function sendReply() {
+    if (!replying || !replying.body.trim() || savingId) {
+      return;
+    }
+
+    try {
+      setSavingId(`reply:${replying.id}`);
+      await trpc.docs.createComment.mutate({
+        docId,
+        body: replying.body,
+        parentId: replying.id,
+      });
+      setReplying(null);
+      await fetchComments();
+      toastSuccess("Reply added");
+    } catch (error) {
+      toastError(error, "Failed to add reply");
+    } finally {
+      setSavingId(null);
+    }
+  }
+
   async function resolveComment(id: string) {
     try {
       setSavingId(id);
@@ -113,6 +165,141 @@ export function CommentsPanel({
     } finally {
       setSavingId(null);
     }
+  }
+
+  async function saveEdit() {
+    if (!editing || !editing.body.trim() || savingId) {
+      return;
+    }
+
+    try {
+      setSavingId(editing.id);
+      await trpc.docs.editComment.mutate(editing);
+      setEditing(null);
+      await fetchComments();
+      toastSuccess("Comment updated");
+    } catch (error) {
+      toastError(error, "Failed to update comment");
+    } finally {
+      setSavingId(null);
+    }
+  }
+
+  async function deleteComment(id: string) {
+    if (!window.confirm("Delete this comment? This cannot be undone.")) {
+      return;
+    }
+
+    try {
+      setSavingId(id);
+      await trpc.docs.deleteComment.mutate({ id });
+      await fetchComments();
+      toastSuccess("Comment deleted");
+    } catch (error) {
+      toastError(error, "Failed to delete comment");
+    } finally {
+      setSavingId(null);
+    }
+  }
+
+  function renderComment(comment: DocComment, isReply: boolean) {
+    const author =
+      comment.authorName ?? comment.authorEmail ?? "Unknown author";
+
+    return (
+      <div className={`flex gap-2.5 rounded-xl p-3 ${isReply ? "pt-1" : ""}`}>
+        <ActorAvatar name={author} size={28} />
+        <div className="min-w-0 flex-1">
+          <p className="flex items-baseline gap-2 text-sm">
+            <span className="truncate font-medium">{author}</span>
+            <span className="font-mono text-[11px] text-ink-3">
+              {formatDocDate(comment.createdAt)}
+            </span>
+          </p>
+          {editing?.id === comment.id ? (
+            <div className="mt-1 flex flex-col gap-1.5">
+              <Textarea
+                className="min-h-16 resize-none"
+                aria-label="Edit comment"
+                value={editing.body}
+                onChange={(event) =>
+                  setEditing({ id: comment.id, body: event.target.value })
+                }
+              />
+              <div className="flex justify-end gap-1.5">
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={() => setEditing(null)}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  size="sm"
+                  disabled={!editing.body.trim() || savingId === comment.id}
+                  onClick={saveEdit}
+                >
+                  {savingId === comment.id ? "Saving..." : "Save"}
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <p className="mt-1 text-sm leading-5 text-ink-2">{comment.body}</p>
+          )}
+          {editing?.id !== comment.id ? (
+            <div className="mt-1.5 flex items-center gap-3 text-xs">
+              {canComment && !isReply ? (
+                <button
+                  type="button"
+                  onClick={() => setReplying({ id: comment.id, body: "" })}
+                  aria-label={`Reply to ${author}`}
+                  className="flex items-center gap-1 rounded-xs text-ink-2 outline-none hover:underline focus-visible:ring-2 focus-visible:ring-ring"
+                >
+                  <CornerDownRightIcon className="size-3.5" />
+                  Reply
+                </button>
+              ) : null}
+              {canComment && !isReply ? (
+                <button
+                  type="button"
+                  disabled={savingId === comment.id}
+                  onClick={() => resolveComment(comment.id)}
+                  className="flex items-center gap-1 rounded-xs text-signal outline-none hover:underline focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50"
+                >
+                  <CheckIcon className="size-3.5" />
+                  {savingId === comment.id ? "Working..." : "Resolve"}
+                </button>
+              ) : null}
+              {canComment && comment.canEdit ? (
+                <button
+                  type="button"
+                  disabled={savingId === comment.id}
+                  onClick={() =>
+                    setEditing({ id: comment.id, body: comment.body })
+                  }
+                  className="flex items-center gap-1 rounded-xs text-ink-2 outline-none hover:underline focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50"
+                >
+                  <PencilIcon className="size-3.5" />
+                  Edit
+                </button>
+              ) : null}
+              {canComment && comment.canDelete ? (
+                <button
+                  type="button"
+                  disabled={savingId === comment.id}
+                  onClick={() => deleteComment(comment.id)}
+                  aria-label={`Delete comment by ${author}`}
+                  className="flex items-center gap-1 rounded-xs text-ink-2 outline-none hover:text-danger hover:underline focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50"
+                >
+                  <Trash2Icon className="size-3.5" />
+                  Delete
+                </button>
+              ) : null}
+            </div>
+          ) : null}
+        </div>
+      </div>
+    );
   }
 
   if (!isOpen) {
@@ -128,7 +315,7 @@ export function CommentsPanel({
         <div className="flex items-center gap-2 px-[18px] pt-4 pb-3">
           <h2 className="text-[15px] font-semibold">Comments</h2>
           <span className="rounded-full border border-hairline px-2 py-px font-mono text-xs text-ink-2">
-            {comments.length} open
+            {threads.length} open
           </span>
           <span className="flex-1" />
           <Button variant="ghost" size="icon-sm" onClick={onClose}>
@@ -152,39 +339,53 @@ export function CommentsPanel({
             </p>
           ) : null}
 
-          {comments.map((comment) => {
-            const author =
-              comment.authorName ?? comment.authorEmail ?? "Unknown author";
-
-            return (
-              <div
-                key={comment.id}
-                className="flex gap-2.5 rounded-xl border-t border-hairline/60 p-3 first:border-t-0"
-              >
-                <ActorAvatar name={author} size={28} />
-                <div className="min-w-0 flex-1">
-                  <p className="flex items-baseline gap-2 text-sm">
-                    <span className="truncate font-medium">{author}</span>
-                    <span className="font-mono text-[11px] text-ink-3">
-                      {formatDocDate(comment.createdAt)}
-                    </span>
-                  </p>
-                  <p className="mt-1 text-sm leading-5 text-ink-2">
-                    {comment.body}
-                  </p>
-                  <button
-                    type="button"
-                    disabled={savingId === comment.id}
-                    onClick={() => resolveComment(comment.id)}
-                    className="mt-1.5 flex items-center gap-1 rounded-xs text-xs text-signal outline-none hover:underline focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50"
-                  >
-                    <CheckIcon className="size-3.5" />
-                    {savingId === comment.id ? "Resolving..." : "Resolve"}
-                  </button>
+          {threads.map((thread) => (
+            <div
+              key={thread.id}
+              className="flex flex-col border-t border-hairline/60 first:border-t-0"
+            >
+              {renderComment(thread, false)}
+              {repliesOf(thread.id).map((reply) => (
+                <div key={reply.id} className="ml-8">
+                  {renderComment(reply, true)}
                 </div>
-              </div>
-            );
-          })}
+              ))}
+              {replying?.id === thread.id ? (
+                <div className="ml-8 flex flex-col gap-1.5 px-3 pb-3">
+                  <Textarea
+                    autoFocus
+                    className="min-h-16 resize-none"
+                    aria-label="Reply"
+                    value={replying.body}
+                    onChange={(event) =>
+                      setReplying({ id: thread.id, body: event.target.value })
+                    }
+                  />
+                  <div className="flex justify-end gap-1.5">
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => setReplying(null)}
+                    >
+                      Cancel
+                    </Button>
+                    <Button
+                      size="sm"
+                      disabled={
+                        !replying.body.trim() ||
+                        savingId === `reply:${thread.id}`
+                      }
+                      onClick={sendReply}
+                    >
+                      {savingId === `reply:${thread.id}`
+                        ? "Posting..."
+                        : "Send reply"}
+                    </Button>
+                  </div>
+                </div>
+              ) : null}
+            </div>
+          ))}
         </div>
 
         {canComment ? (

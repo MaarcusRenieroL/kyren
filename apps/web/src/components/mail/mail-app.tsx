@@ -15,6 +15,7 @@ import {
   StarIcon,
   Trash2Icon,
   ForwardIcon,
+  PaperclipIcon,
 } from "lucide-react";
 
 import { useTrpcClient } from "@zentro/api/react";
@@ -22,6 +23,7 @@ import type { AppRouter } from "@zentro/api/server";
 import type { inferRouterOutputs } from "@trpc/server";
 import { Button } from "@zentro/ui/shadcn/button";
 import { Input } from "@zentro/ui/shadcn/input";
+import { NativeSelect } from "@zentro/ui/shadcn/native-select";
 import { toast, toastError } from "@zentro/ui/index";
 
 import {
@@ -29,9 +31,12 @@ import {
   type ComposeDraft,
   type Person,
 } from "./compose-dialog";
+import { fileSize } from "~/src/components/chat/message-body";
+import { apiPath } from "~/src/lib/paths";
+import { everyWhileVisible } from "~/src/lib/poll";
 
 type Outputs = inferRouterOutputs<AppRouter>["mail"];
-type Row = Outputs["list"][number];
+type Row = Outputs["list"]["items"][number];
 type Conversation = Outputs["get"];
 type Folder = "inbox" | "starred" | "sent" | "drafts" | "trash";
 
@@ -72,6 +77,10 @@ export function MailApp() {
   const [folder, setFolder] = useState<Folder>("inbox");
   const [search, setSearch] = useState("");
   const [rows, setRows] = useState<Row[] | null>(null);
+  // Where the next older page starts, and how many pages are on screen.
+  const [cursor, setCursor] = useState<string | null>(null);
+  const [pages, setPages] = useState(1);
+  const [loadingOlder, setLoadingOlder] = useState(false);
   const [failed, setFailed] = useState(false);
   const [openId, setOpenId] = useState<string | null>(null);
   const [conversation, setConversation] = useState<Conversation | null>(null);
@@ -79,19 +88,73 @@ export function MailApp() {
   const [people, setPeople] = useState<Person[]>([]);
   const [compose, setCompose] = useState<ComposeDraft | null>(null);
 
+  /** Fetches `count` pages from the newest message on. */
+  const fetchPages = useCallback(
+    async (count: number) => {
+      const items: Row[] = [];
+      let next: string | null = null;
+
+      for (let page = 0; page < count; page += 1) {
+        const result = await trpc.mail.list.query({
+          folder,
+          search: search || undefined,
+          cursor: next ?? undefined,
+        });
+
+        items.push(...result.items);
+        next = result.nextCursor;
+
+        if (!next) break;
+      }
+
+      return { items, next };
+    },
+    [trpc, folder, search],
+  );
+
+  // Every refresh reloads as many pages as are on screen, so changes and new
+  // mail show up everywhere and nothing slips between pages.
   const load = useCallback(async () => {
     try {
       const [list, count] = await Promise.all([
-        trpc.mail.list.query({ folder, search: search || undefined }),
+        fetchPages(pages),
         trpc.mail.unread.query(),
       ]);
-      setRows(list);
+
+      setRows(list.items);
+      setCursor(list.next);
       setUnread(count.count);
       setFailed(false);
     } catch {
       setFailed(true);
     }
-  }, [trpc, folder, search]);
+  }, [trpc, fetchPages, pages]);
+
+  // Another folder or search starts from the newest messages again.
+  useEffect(() => {
+    setPages(1);
+  }, [folder, search]);
+
+  async function loadOlder() {
+    if (!cursor) return;
+
+    setLoadingOlder(true);
+    try {
+      const page = await trpc.mail.list.query({
+        folder,
+        search: search || undefined,
+        cursor,
+      });
+
+      setRows((current) => [...(current ?? []), ...page.items]);
+      setCursor(page.nextCursor);
+      setPages((count) => count + 1);
+    } catch {
+      toastError("Could not load older messages");
+    } finally {
+      setLoadingOlder(false);
+    }
+  }
 
   useEffect(() => {
     const timer = setTimeout(() => void load(), search ? 200 : 0);
@@ -99,8 +162,7 @@ export function MailApp() {
   }, [load, search]);
 
   useEffect(() => {
-    const timer = setInterval(() => void load(), 30_000);
-    return () => clearInterval(timer);
+    return everyWhileVisible(load, 30_000);
   }, [load]);
 
   useEffect(() => {
@@ -161,8 +223,13 @@ export function MailApp() {
     }
   }
 
+  const outgoing = ({ files, ...draft }: ComposeDraft) => ({
+    ...draft,
+    fileIds: (files ?? []).map((file) => file.id),
+  });
+
   async function send(draft: ComposeDraft) {
-    await trpc.mail.send.mutate(draft);
+    await trpc.mail.send.mutate(outgoing(draft));
     setCompose(null);
     toast.success("Message sent");
     await load();
@@ -170,7 +237,7 @@ export function MailApp() {
   }
 
   async function keep(draft: ComposeDraft) {
-    await trpc.mail.saveDraft.mutate(draft);
+    await trpc.mail.saveDraft.mutate(outgoing(draft));
     setCompose(null);
     toast.success("Draft saved");
     await load();
@@ -239,6 +306,7 @@ export function MailApp() {
             cc: draft.cc.map((p) => p.id),
             subject: draft.subject,
             body: draft.body,
+            files: draft.attachments,
           });
       } catch (error) {
         toastError("Could not open the draft", reason(error));
@@ -292,21 +360,21 @@ export function MailApp() {
         className={`min-w-0 flex-col border-r border-line md:flex md:w-80 md:shrink-0 lg:w-96 ${openId ? "hidden" : "flex w-full"}`}
       >
         <div className="flex items-center gap-2 border-b border-line p-3 lg:hidden">
-          <select
+          <NativeSelect
             aria-label="Folder"
             value={folder}
             onChange={(event) => {
               setFolder(event.target.value as Folder);
               setRows(null);
             }}
-            className="h-9 flex-1 rounded-md border border-line bg-transparent px-2 text-sm"
+            className="flex-1 text-sm"
           >
             {folders.map(({ id, label }) => (
               <option key={id} value={id}>
                 {label}
               </option>
             ))}
-          </select>
+          </NativeSelect>
           <Button
             size="sm"
             onClick={() =>
@@ -392,6 +460,18 @@ export function MailApp() {
                   </button>
                 </li>
               ))}
+              {cursor ? (
+                <li className="p-3 text-center">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    disabled={loadingOlder}
+                    onClick={() => void loadOlder()}
+                  >
+                    {loadingOlder ? "Loading…" : "Load older messages"}
+                  </Button>
+                </li>
+              ) : null}
             </ul>
           )}
         </div>
@@ -500,6 +580,31 @@ export function MailApp() {
                   <div className="text-sm leading-relaxed whitespace-pre-wrap">
                     {message.body}
                   </div>
+                  {message.attachments.length ? (
+                    <ul
+                      aria-label="Attachments"
+                      className="mt-3 flex flex-wrap gap-2"
+                    >
+                      {message.attachments.map((file) => (
+                        <li key={file.id}>
+                          <a
+                            href={apiPath(file.url)}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="flex items-center gap-1.5 rounded-md border border-line px-2 py-1 text-xs hover:bg-sunken"
+                          >
+                            <PaperclipIcon className="size-3" aria-hidden />
+                            <span className="max-w-56 truncate">
+                              {file.name}
+                            </span>
+                            <span className="text-ink-3">
+                              {fileSize(file.size)}
+                            </span>
+                          </a>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : null}
                 </section>
               ))}
 

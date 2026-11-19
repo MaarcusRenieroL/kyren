@@ -106,7 +106,9 @@ const above = "relative [&_a]:relative";
 export function ListEmpty({ title, hint }: { title: string; hint: string }) {
   return (
     <div className="flex flex-col items-center gap-2 py-16 text-center">
-      <p className="font-serif-italic text-[2rem] leading-10">{title}</p>
+      <p className="font-display font-semibold text-lg tracking-tight text-ink">
+        {title}
+      </p>
       <p className="max-w-sm text-[15px] text-ink-2">{hint}</p>
     </div>
   );

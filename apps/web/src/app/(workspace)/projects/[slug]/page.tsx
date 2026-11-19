@@ -53,15 +53,11 @@ export default function ProjectPage() {
 
         // Hidden when the tasks module is off or not readable.
         const taskList = await trpc.task.getTasksByOrgId
-          .query({})
+          .query({ projectId: data.id })
           .catch(() => []);
 
         if (isMounted) {
-          setTasks(
-            taskList
-              .filter((task) => task.projectSlug === params.slug)
-              .map(toWorkspaceTask),
-          );
+          setTasks(taskList.map(toWorkspaceTask));
           setProject(data as ProjectDetail);
           setEnabledModules(
             moduleList

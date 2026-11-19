@@ -3,7 +3,7 @@
 import { useEffect, useState, type FormEvent } from "react";
 
 import { authClient } from "@zentro/auth/client";
-import { toastError, toastSuccess } from "@zentro/ui/index";
+import { toastSuccess } from "@zentro/ui/index";
 import { Button } from "@zentro/ui/shadcn/button";
 import { Input } from "@zentro/ui/shadcn/input";
 

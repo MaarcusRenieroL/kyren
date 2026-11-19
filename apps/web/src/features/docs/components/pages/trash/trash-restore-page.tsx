@@ -114,7 +114,7 @@ export function TrashRestorePage() {
 
         {!isLoading && !docs.length ? (
           <div className="flex flex-col items-center gap-2 rounded-xl border border-dashed border-line-strong px-6 py-14 text-center">
-            <p className="font-serif-italic text-[2.25rem] leading-none">
+            <p className="font-display font-semibold text-xl tracking-tight text-ink">
               Trash is empty.
             </p>
             <p className="text-sm text-ink-2">

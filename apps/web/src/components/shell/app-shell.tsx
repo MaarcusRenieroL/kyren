@@ -14,12 +14,14 @@ import { TooltipProvider } from "@zentro/ui/shadcn/tooltip";
 
 import { AppSidebar, type ShellModule } from "./app-sidebar";
 import { OfflineBanner } from "./offline-banner";
+import { AiCopilotBubble } from "./ai-copilot-bubble";
 import { NotificationsProvider } from "~/src/components/notifications/notifications-provider";
 
 import { BreadcrumbProvider } from "./breadcrumb-context";
 import { RouteProgress } from "./route-progress";
 import { ShellContext } from "./shell-context";
 import { TopBar } from "./top-bar";
+import { TimeZoneSync } from "./time-zone-sync";
 
 type Props = {
   modules: ShellModule[];
@@ -64,6 +66,7 @@ export function AppShell({
               <Suspense fallback={null}>
                 <RouteProgress />
               </Suspense>
+              <TimeZoneSync />
               <AppSidebar
                 modules={modules}
                 organizations={organizations}
@@ -95,6 +98,7 @@ export function AppShell({
                     {children}
                   </div>
                 </main>
+                <AiCopilotBubble />
               </SidebarInset>
             </SidebarProvider>
           </TooltipProvider>

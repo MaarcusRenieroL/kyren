@@ -14,6 +14,7 @@ import { SlaTargets } from "./sla-targets";
 import { IntakeForms } from "./intake-forms";
 import { KnowledgeBase } from "./knowledge-base";
 import { SupportInbox } from "./support-inbox";
+import { TicketAssignment } from "./ticket-assignment";
 import { PageHeader } from "@zentro/ui/components/page-header";
 import { usePermission } from "~/src/components/permissions/permission-provider";
 import { Button } from "@zentro/ui/shadcn/button";
@@ -93,6 +94,7 @@ export function TicketQueue({ canCreate }: { canCreate: boolean }) {
 
       {canManageSla ? <SlaTargets /> : null}
       {canManageInbox ? <SupportInbox /> : null}
+      {canManageInbox ? <TicketAssignment /> : null}
       {canManageArticles ? <KnowledgeBase /> : null}
       {canManageForms ? <IntakeForms /> : null}
 

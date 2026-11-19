@@ -5,6 +5,7 @@ import { XIcon } from "lucide-react";
 
 import { useTrpcClient } from "@zentro/api/react";
 import { cn } from "@zentro/ui/lib/utils";
+import { NativeSelect } from "@zentro/ui/shadcn/native-select";
 
 import { ActorAvatar } from "~/src/components/actor-avatar";
 
@@ -185,7 +186,7 @@ export function LinkPicker({
           ))}
         </div>
         {mode !== "none" ? (
-          <select
+          <NativeSelect
             aria-label={mode === "team" ? "Team" : "Project"}
             value={value?.id ?? ""}
             disabled={disabled}
@@ -195,14 +196,14 @@ export function LinkPicker({
                 id: event.target.value,
               })
             }
-            className="h-9 min-w-48 rounded-lg border border-input bg-surface px-2.5 text-sm"
+            className="min-w-48 text-sm"
           >
             {options.map((option) => (
               <option key={option.id} value={option.id}>
                 {option.name}
               </option>
             ))}
-          </select>
+          </NativeSelect>
         ) : null}
       </div>
       <p className="text-[13px] text-ink-3">

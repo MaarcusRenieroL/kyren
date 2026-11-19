@@ -14,6 +14,7 @@ import { PageHeader } from "@zentro/ui/components/page-header";
 import { Button } from "@zentro/ui/shadcn/button";
 import { Input } from "@zentro/ui/shadcn/input";
 import { Textarea } from "@zentro/ui/shadcn/textarea";
+import { NativeSelect } from "@zentro/ui/shadcn/native-select";
 import { toast, toastError } from "@zentro/ui/index";
 
 import { SuggestedArticles } from "./suggested-articles";
@@ -27,7 +28,6 @@ import {
   isMissing,
   messageOf,
   priorityLabels,
-  selectClass,
   statusLabels,
 } from "./labels";
 
@@ -323,8 +323,8 @@ export function TicketDetail({ id }: { id: string }) {
         <aside className="flex flex-col gap-4 text-sm">
           <label className="flex flex-col gap-1.5">
             <span className="text-ink-2">Status</span>
-            <select
-              className={selectClass}
+            <NativeSelect
+              aria-label="Status"
               disabled={!ticket.canUpdate || busy}
               value={ticket.status}
               onChange={(e) =>
@@ -336,12 +336,12 @@ export function TicketDetail({ id }: { id: string }) {
                   {label}
                 </option>
               ))}
-            </select>
+            </NativeSelect>
           </label>
           <label className="flex flex-col gap-1.5">
             <span className="text-ink-2">Priority</span>
-            <select
-              className={selectClass}
+            <NativeSelect
+              aria-label="Priority"
               disabled={!ticket.canUpdate || busy}
               value={ticket.priority}
               onChange={(e) =>
@@ -353,12 +353,12 @@ export function TicketDetail({ id }: { id: string }) {
                   {label}
                 </option>
               ))}
-            </select>
+            </NativeSelect>
           </label>
           <label className="flex flex-col gap-1.5">
             <span className="text-ink-2">Assignee</span>
-            <select
-              className={selectClass}
+            <NativeSelect
+              aria-label="Assignee"
               disabled={!ticket.canUpdate || busy}
               value={ticket.assigneeMemberId ?? ""}
               onChange={(e) =>
@@ -374,7 +374,7 @@ export function TicketDetail({ id }: { id: string }) {
                     : ""}
                 </option>
               ))}
-            </select>
+            </NativeSelect>
             {awayLabel(ticket.assigneeAwayUntil) ? (
               <span role="status" className="text-xs text-warning-text">
                 The assignee is {awayLabel(ticket.assigneeAwayUntil)}. Consider

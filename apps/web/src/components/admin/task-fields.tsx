@@ -8,6 +8,7 @@ import type { inferRouterOutputs } from "@trpc/server";
 import { toastError, toastSuccess } from "@zentro/ui/index";
 import { Button } from "@zentro/ui/shadcn/button";
 import { Input } from "@zentro/ui/shadcn/input";
+import { NativeSelect } from "@zentro/ui/shadcn/native-select";
 
 import { Shell } from "./admin-console";
 
@@ -102,19 +103,19 @@ export function TaskFields() {
           </label>
           <label className="flex flex-col gap-1.5 text-sm">
             <span className="text-ink-2">Type</span>
-            <select
-              className="h-9 rounded-md border border-line bg-surface px-2 text-sm capitalize"
+            <NativeSelect
               value={type}
               onChange={(event) =>
                 setType(event.target.value as (typeof types)[number])
               }
+              className="h-9 w-32 capitalize"
             >
               {types.map((option) => (
-                <option key={option} value={option}>
+                <option key={option} value={option} className="capitalize">
                   {option}
                 </option>
               ))}
-            </select>
+            </NativeSelect>
           </label>
           {type === "select" ? (
             <label className="flex min-w-40 flex-1 flex-col gap-1.5 text-sm">

@@ -23,12 +23,28 @@ export function toTaskPriority(value: string): TaskPriority {
     : "medium";
 }
 
+/** The viewer's own calendar day of a due date, for a date input. */
 export function getDateInputValue(value: Date | null) {
   if (!value) {
     return "";
   }
 
-  return value.toISOString().slice(0, 10);
+  const pad = (n: number) => String(n).padStart(2, "0");
+
+  return `${value.getFullYear()}-${pad(value.getMonth() + 1)}-${pad(value.getDate())}`;
+}
+
+/**
+ * A day picked in a date input (YYYY-MM-DD) as a due date: the end of that
+ * day in the viewer's own time. Read as midnight UTC instead, a task due the
+ * 19th showed as the 18th west of UTC and turned overdue as the 19th began.
+ */
+export function dueFromDateInput(value: string): Date | null {
+  const [year, month, day] = value.split("-").map(Number);
+
+  if (!year || !month || !day) return null;
+
+  return new Date(year, month - 1, day, 23, 59, 59, 999);
 }
 
 export function formatDate(value: Date | null) {

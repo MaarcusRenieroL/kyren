@@ -128,7 +128,7 @@ export default function ForgotPasswordPage(): JSX.Element {
   }
 
   return (
-    <form noValidate onSubmit={handleSubmit(onSubmit)}>
+    <form method="post" noValidate onSubmit={handleSubmit(onSubmit)}>
       <div className="flex flex-col gap-5">
         <BackToSignIn />
         <AuthHeading

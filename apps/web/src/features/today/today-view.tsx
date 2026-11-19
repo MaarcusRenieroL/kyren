@@ -19,17 +19,22 @@ import { describeFocusReason, formatDueDate, rankTasks } from "@zentro/utils";
 
 import { ActorAvatar } from "~/src/components/actor-avatar";
 import { DueDate } from "~/src/components/due-date";
+import { WorkspaceStarterChecklist } from "~/src/components/onboarding/workspace-starter-checklist";
 import { CreateTaskModal } from "~/src/features/tasks/components/create-task-modal";
 import { useReachable } from "~/src/components/permissions/permission-provider";
 import type { DashboardWorkItem } from "~/src/lib/dashboard-data";
 import { paths } from "~/src/lib/paths";
+import type { StarterProgress } from "~/src/lib/starter-progress";
 import type { TodayData, TodayTask } from "~/src/lib/today-data";
+import { everyWhileVisible } from "~/src/lib/poll";
 
 type Props = {
   firstName: string;
   data: TodayData;
   recentWork: DashboardWorkItem[];
   links: { tasks?: string };
+  starter: StarterProgress;
+  organizationId: string;
 };
 
 const dayMs = 86_400_000;
@@ -105,7 +110,14 @@ const workTint: Record<DashboardWorkItem["kind"], string> = {
   task: "bg-tint-tasks!",
 };
 
-export function TodayView({ firstName, data, recentWork, links }: Props) {
+export function TodayView({
+  firstName,
+  data,
+  recentWork,
+  links,
+  starter,
+  organizationId,
+}: Props) {
   const trpc = useTrpcClient();
   const router = useRouter();
   const canAssign = useReachable("tasks.assign");
@@ -113,6 +125,7 @@ export function TodayView({ firstName, data, recentWork, links }: Props) {
   const canInvite = useReachable("members.invite");
   const [tasks, setTasks] = useState<TodayTask[]>(data.tasks);
   const [done, setDone] = useState(data.doneToday);
+  const [timer, setTimer] = useState(data.timer);
   const [celebrating, setCelebrating] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [local, setLocal] = useState<PulseItem[]>([]);
@@ -146,17 +159,16 @@ export function TodayView({ firstName, data, recentWork, links }: Props) {
 
   // Teammates move work too: look again every half minute.
   useEffect(() => {
-    const id = setInterval(() => router.refresh(), 30_000);
-
-    return () => clearInterval(id);
+    return everyWhileVisible(() => router.refresh(), 30_000);
   }, [router]);
 
   useEffect(() => {
     if (!celebrating) {
       setTasks(data.tasks);
       setDone(data.doneToday);
+      setTimer(data.timer);
     }
-  }, [data.tasks, data.doneToday, celebrating]);
+  }, [data.tasks, data.doneToday, data.timer, celebrating]);
 
   const ranked = useMemo(() => rankTasks(tasks), [tasks]);
   const focus = ranked[0] ?? null;
@@ -186,7 +198,8 @@ export function TodayView({ firstName, data, recentWork, links }: Props) {
         item.status === "in-progress" ||
         (item.dueAt && new Date(item.dueAt).getTime() < today + dayMs),
     ).length;
-  const running = task?.status === "in-progress";
+  // Running means this person's timer is on this task, not just its status.
+  const running = Boolean(task && timer?.taskKey === task.key);
   const inProgress = tasks.filter(
     (item) => item.status === "in-progress",
   ).length;
@@ -235,65 +248,73 @@ export function TodayView({ firstName, data, recentWork, links }: Props) {
   );
 
   const start = useCallback(async () => {
-    if (!task || busy || task.status === "in-progress") return;
+    if (!task || busy || running) return;
 
     setBusy(true);
 
-    const previous = tasks;
+    const previous = { tasks, timer };
 
     setTasks((current) =>
       current.map((item) =>
-        item.key === task.key
-          ? {
-              ...item,
-              status: "in-progress",
-              startedAt: new Date().toISOString(),
-            }
-          : item,
+        item.key === task.key ? { ...item, status: "in-progress" } : item,
       ),
     );
-    announce("started", task);
+    setTimer({ taskKey: task.key, startedAt: new Date().toISOString() });
 
     try {
-      await setStatus(task, "in-progress");
+      if (task.status !== "in-progress") {
+        await setStatus(task, "in-progress");
+        announce("started", task);
+      }
     } catch {
-      setTasks(previous);
+      setTasks(previous.tasks);
+      setTimer(previous.timer);
       toastError(
         "Could not start the task",
         "Your change was not saved. Try again in a moment.",
       );
+      setBusy(false);
+
+      return;
+    }
+
+    try {
+      // Starting here stops and logs a timer running on another task.
+      await trpc.timesheet.start.mutate({ key: task.key });
+    } catch {
+      // The task is in progress on the server; only the timer failed.
+      setTimer(previous.timer);
+      toastError(
+        "The task is in progress, but the timer did not start",
+        "Press Resume to try the timer again.",
+      );
     } finally {
       setBusy(false);
     }
-  }, [task, busy, tasks, announce, setStatus]);
+  }, [task, busy, running, tasks, timer, announce, setStatus, trpc]);
 
+  /** Stops the timer and logs the time. The task stays in progress. */
   const pause = useCallback(async () => {
-    if (!task || busy || task.status !== "in-progress") return;
+    if (!task || busy || !running) return;
 
     setBusy(true);
 
-    const previous = tasks;
+    const previous = timer;
 
-    setTasks((current) =>
-      current.map((item) =>
-        item.key === task.key
-          ? { ...item, status: "todo", startedAt: null }
-          : item,
-      ),
-    );
+    setTimer(null);
 
     try {
-      await trpc.task.updateTaskByKey.mutate({ key: task.key, status: "todo" });
+      await trpc.timesheet.stop.mutate();
     } catch {
-      setTasks(previous);
+      setTimer(previous);
       toastError(
-        "Could not pause the task",
+        "Could not pause the timer",
         "Your change was not saved. Try again in a moment.",
       );
     } finally {
       setBusy(false);
     }
-  }, [task, busy, tasks, trpc]);
+  }, [task, busy, running, timer, trpc]);
 
   const finish = useCallback(async () => {
     if (!task || busy || celebrating) return;
@@ -305,14 +326,24 @@ export function TodayView({ firstName, data, recentWork, links }: Props) {
       "(prefers-reduced-motion: reduce)",
     ).matches;
 
+    // The time spent so far is logged before the task closes.
+    let logged = false;
+
     try {
+      if (running) {
+        await trpc.timesheet.stop.mutate();
+        setTimer(null);
+        logged = true;
+      }
       await setStatus(task, "done");
     } catch {
       setCelebrating(null);
       setBusy(false);
       toastError(
         "Could not mark the task done",
-        "Your change was not saved. Try again in a moment.",
+        logged
+          ? "Your time was logged, but the task is still open. Try again in a moment."
+          : "Your change was not saved. Try again in a moment.",
       );
 
       return;
@@ -330,7 +361,7 @@ export function TodayView({ firstName, data, recentWork, links }: Props) {
       },
       reduced ? 0 : 900,
     );
-  }, [task, busy, celebrating, announce, setStatus, router]);
+  }, [task, busy, celebrating, running, announce, setStatus, router, trpc]);
 
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
@@ -388,7 +419,8 @@ export function TodayView({ firstName, data, recentWork, links }: Props) {
   const todayIndex = data.week.length - 1;
   const priorityBars =
     task?.priority === "high" ? 3 : task?.priority === "low" ? 1 : 2;
-  const startedMs = task?.startedAt ? new Date(task.startedAt).getTime() : null;
+  const startedMs =
+    running && timer ? new Date(timer.startedAt).getTime() : null;
 
   return (
     <div className="flex w-full flex-col">
@@ -397,13 +429,17 @@ export function TodayView({ firstName, data, recentWork, links }: Props) {
           {greeting ? `${greeting.date} · ` : ""}
           {counts}
         </p>
-        <h1 className="font-display text-[1.75rem] leading-8 sm:text-[length:var(--title-size)] sm:leading-9">
+        <h1 className="font-display font-semibold text-[1.75rem] leading-8 tracking-tight sm:text-[length:var(--title-size)] sm:leading-9">
           {greeting?.hello ?? "Welcome back"},{" "}
-          <span className="font-serif-italic text-[1.12em] tracking-[-0.01em]">
-            {firstName}
-          </span>
+          <span className="text-ink">{firstName}</span>
         </h1>
       </header>
+
+      <WorkspaceStarterChecklist
+        className="mt-5"
+        progress={starter}
+        organizationId={organizationId}
+      />
 
       <div className="mt-6 grid grid-cols-2 gap-4 lg:grid-cols-12">
         <section
@@ -503,9 +539,9 @@ export function TodayView({ firstName, data, recentWork, links }: Props) {
 
               <div className="relative flex flex-wrap items-end justify-between gap-4">
                 <div className="flex flex-col gap-1.5">
-                  <span className="eyebrow">Time today</span>
-                  {running && task.startedAt ? (
-                    <RunningTimer since={task.startedAt} />
+                  <span className="eyebrow">Timer</span>
+                  {running && timer ? (
+                    <RunningTimer since={timer.startedAt} />
                   ) : (
                     <span className="font-mono text-[34px] leading-none tracking-[-0.03em] text-ink-3 sm:text-[44px]">
                       00:00:00
@@ -528,6 +564,15 @@ export function TodayView({ firstName, data, recentWork, links }: Props) {
                           })}
                         </span>
                       </>
+                    ) : task.status === "in-progress" ? (
+                      <>
+                        <StatusGlyph
+                          status="in-progress"
+                          size={10}
+                          decorative
+                        />
+                        In progress, timer paused
+                      </>
                     ) : (
                       <>
                         <StatusGlyph status="todo" size={10} decorative />
@@ -536,7 +581,7 @@ export function TodayView({ firstName, data, recentWork, links }: Props) {
                     )}
                   </span>
                 </div>
-                {/* Running: pause or finish. Not started: finish or start. */}
+                {/* Timer running: pause or finish. Otherwise: finish, or start/resume. */}
                 <div className="flex flex-wrap gap-2">
                   <Button
                     variant="outline"
@@ -553,7 +598,11 @@ export function TodayView({ firstName, data, recentWork, links }: Props) {
                     disabled={busy}
                     className="h-11 px-4 text-sm font-semibold"
                   >
-                    {running ? "Mark done" : "Start"}
+                    {running
+                      ? "Mark done"
+                      : task.status === "in-progress"
+                        ? "Resume"
+                        : "Start"}
                     <Kbd className="ml-1 border-transparent bg-on-signal/20 text-on-signal">
                       {running ? "D" : "S"}
                     </Kbd>
@@ -567,7 +616,7 @@ export function TodayView({ firstName, data, recentWork, links }: Props) {
               <div className="flex-1" />
               {data.hasAnyTasks ? (
                 <>
-                  <h2 className="font-serif-italic text-[2.75rem] leading-none tracking-[-0.01em] sm:text-[4rem]">
+                  <h2 className="font-display font-semibold text-2xl tracking-tight text-ink sm:text-3xl">
                     Nothing left today.
                   </h2>
                   <p className="max-w-[520px] text-[15px] leading-[22px] text-ink-2">
@@ -597,7 +646,7 @@ export function TodayView({ firstName, data, recentWork, links }: Props) {
                 </>
               ) : (
                 <>
-                  <h2 className="font-serif-italic text-[2.75rem] leading-none tracking-[-0.01em] sm:text-[4rem]">
+                  <h2 className="font-display font-semibold text-2xl tracking-tight text-ink sm:text-3xl">
                     No tasks yet.
                   </h2>
                   <p className="max-w-[520px] text-[15px] leading-[22px] text-ink-2">
@@ -643,7 +692,7 @@ export function TodayView({ firstName, data, recentWork, links }: Props) {
           <div className="flex min-w-0 flex-col gap-1.5">
             <span className="eyebrow">Your day</span>
             <span className="flex items-baseline gap-1.5">
-              <span className="font-serif-italic text-[44px] leading-none">
+              <span className="font-mono font-semibold text-3xl leading-none text-ink tabular-nums">
                 {done}
               </span>
               <span className="font-mono text-[13px] text-ink-2">

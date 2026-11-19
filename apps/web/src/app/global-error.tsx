@@ -38,7 +38,7 @@ export default function GlobalError({ error, reset }: Props) {
           <Logo />
           <div className="mx-auto my-auto flex w-full max-w-[560px] flex-col gap-4">
             <p className="eyebrow">SOMETHING WENT WRONG</p>
-            <h1 className="font-serif-italic text-[3rem] leading-none tracking-[-0.01em] sm:text-[4rem]">
+            <h1 className="font-display font-semibold text-3xl leading-tight tracking-tight text-ink sm:text-4xl">
               Zentro couldn’t start.
             </h1>
             <p className="max-w-[500px] text-base leading-6 text-ink-2">

@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
 import { Logo } from "@zentro/ui/components/logo";
 import { Button } from "@zentro/ui/shadcn/button";
 
-import { paths } from "~/src/lib/paths";
+import { apiPath, paths } from "~/src/lib/paths";
 
 const clock = (ms: number) =>
   new Date(ms).toLocaleTimeString("en-GB", {
@@ -46,7 +46,7 @@ export function MaintenanceView({
       try {
         const response = await fetch(paths.auth.signIn(), { method: "HEAD" });
 
-        if (response.ok) window.location.assign(paths.home());
+        if (response.ok) window.location.assign(apiPath(paths.home()));
       } catch {
         // Still down; keep waiting.
       }
@@ -78,7 +78,7 @@ export function MaintenanceView({
         <p className="eyebrow">
           SCHEDULED MAINTENANCE · {day} · {clock(start)}–{clock(end)} {zone}
         </p>
-        <h1 className="font-serif-italic text-[3rem] leading-none tracking-[-0.01em] text-balance sm:text-[4rem]">
+        <h1 className="font-display font-semibold text-3xl leading-tight tracking-tight text-balance text-ink sm:text-4xl">
           {remaining > 0 ? minutesLabel(remaining) : "Just a little longer."}
         </h1>
         <p className="max-w-[500px] text-base leading-6 text-ink-2">

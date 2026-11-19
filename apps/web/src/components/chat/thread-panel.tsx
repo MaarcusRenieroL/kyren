@@ -16,6 +16,7 @@ import {
   type MessageActions,
   type MessageView,
 } from "./message-item";
+import { everyWhileVisible } from "~/src/lib/poll";
 
 type Thread = { parent: MessageView; replies: MessageView[] };
 
@@ -68,9 +69,7 @@ export function ThreadPanel({
     count.current = 0;
     void load();
 
-    const id = setInterval(() => void load(), 5000);
-
-    return () => clearInterval(id);
+    return everyWhileVisible(load, 5000);
   }, [load]);
 
   useEffect(() => {

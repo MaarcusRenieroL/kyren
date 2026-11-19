@@ -8,16 +8,19 @@ import type { inferRouterOutputs } from "@trpc/server";
 import { toastError, toastSuccess } from "@zentro/ui/index";
 import { Button } from "@zentro/ui/shadcn/button";
 import { Input } from "@zentro/ui/shadcn/input";
+import { NativeSelect } from "@zentro/ui/shadcn/native-select";
 
 import { useAsyncData } from "~/src/lib/use-async-data";
 import type { WorkspaceTask } from "~/src/features/tasks/lib/types";
+import { getDateInputValue } from "../task-detail/task-detail-utils";
 
 export type SprintScope = "all" | "sprint" | "backlog";
 
 type Sprint = inferRouterOutputs<AppRouter>["sprint"]["list"][number];
 
 const DAY = 86_400_000;
-const today = () => new Date().toISOString().slice(0, 10);
+/** Today in the viewer's own time zone. */
+const today = () => getDateInputValue(new Date());
 const range = (from: string, to: string) => `${from} to ${to}`;
 
 function daysLeft(endsOn: string) {
@@ -34,7 +37,12 @@ function Burndown({
 }) {
   const trpc = useTrpcClient();
   const data = useAsyncData(
-    () => trpc.sprint.burndown.query({ projectId, id: sprint.id }),
+    () =>
+      trpc.sprint.burndown.query({
+        projectId,
+        id: sprint.id,
+        timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+      }),
     [trpc, sprint.id, sprint.doneTasks],
   );
 
@@ -106,7 +114,7 @@ export function SprintPanel({
   const [name, setName] = useState("");
   const [startsOn, setStartsOn] = useState(today);
   const [endsOn, setEndsOn] = useState(() =>
-    new Date(Date.now() + 13 * DAY).toISOString().slice(0, 10),
+    getDateInputValue(new Date(Date.now() + 13 * DAY)),
   );
   const [leftover, setLeftover] = useState<"next" | "backlog">("next");
   const [busy, setBusy] = useState(false);
@@ -252,10 +260,12 @@ export function SprintPanel({
 
         {active ? (
           <>
-            <label className="flex items-center gap-1 text-xs text-ink-2">
+            <label className="flex items-center gap-1.5 text-xs text-ink-2">
               Unfinished work goes to
-              <select
-                className="h-8 rounded-md border border-line bg-surface px-1"
+              <NativeSelect
+                aria-label="Unfinished work goes to"
+                size="sm"
+                className="w-36 text-xs"
                 value={leftover}
                 onChange={(event) =>
                   setLeftover(event.target.value as "next" | "backlog")
@@ -263,7 +273,7 @@ export function SprintPanel({
               >
                 <option value="next">the next sprint</option>
                 <option value="backlog">the backlog</option>
-              </select>
+              </NativeSelect>
             </label>
             <Button
               size="sm"

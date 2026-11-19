@@ -1,14 +1,7 @@
 "use client";
 
 import { FC, useEffect, useState } from "react";
-import {
-  CheckIcon,
-  ClockIcon,
-  EyeIcon,
-  HistoryIcon,
-  RotateCcwIcon,
-  XIcon,
-} from "lucide-react";
+import { EyeIcon, HistoryIcon, RotateCcwIcon, XIcon } from "lucide-react";
 
 import { useTrpcClient } from "@zentro/api/react";
 import { cn } from "@zentro/ui/lib/utils";
@@ -17,11 +10,9 @@ import { ActorAvatar } from "~/src/components/actor-avatar";
 
 type VersionEntry = {
   id: string;
-  action: string;
-  createdAt: string | Date;
-  actorName: string;
+  savedAt: Date;
+  authorName: string;
   snippet: string;
-  snapshot: string | null;
   length: number;
 };
 
@@ -29,19 +20,26 @@ type Props = {
   docId: string;
   isOpen: boolean;
   onClose: () => void;
-  onRestore: (content: string) => void;
+  /** The doc version on screen; a restore over a newer one is refused. */
+  currentUpdatedAt: Date;
+  /** Gets the restored text and the doc's new version. */
+  onRestore: (content: string, updatedAt: Date) => void;
 };
 
 export const VersionHistoryPanel: FC<Props> = ({
   docId,
   isOpen,
   onClose,
+  currentUpdatedAt,
   onRestore,
 }) => {
   const trpc = useTrpcClient();
   const [history, setHistory] = useState<VersionEntry[]>([]);
   const [loading, setLoading] = useState(true);
-  const [previewId, setPreviewId] = useState<string | null>(null);
+  const [preview, setPreview] = useState<{
+    id: string;
+    content: string | null;
+  } | null>(null);
   const [restoringId, setRestoringId] = useState<string | null>(null);
 
   useEffect(() => {
@@ -54,13 +52,13 @@ export const VersionHistoryPanel: FC<Props> = ({
       .query({ id: docId })
       .then((data) => {
         if (active) {
-          setHistory(data as unknown as VersionEntry[]);
+          setHistory(data);
           setLoading(false);
         }
       })
       .catch(() => {
         if (active) {
-          toastError("Error", "Could not fetch document version history");
+          toastError("Error", "Could not load the version history");
           setLoading(false);
         }
       });
@@ -72,25 +70,47 @@ export const VersionHistoryPanel: FC<Props> = ({
 
   if (!isOpen) return null;
 
-  const handleRestore = async (entry: VersionEntry) => {
-    if (!entry.snapshot) return;
+  const togglePreview = async (entry: VersionEntry) => {
+    if (preview?.id === entry.id) {
+      setPreview(null);
 
-    setRestoringId(entry.id);
+      return;
+    }
+
+    setPreview({ id: entry.id, content: null });
     try {
-      await trpc.docs.restoreVersion.mutate({
+      const version = await trpc.docs.getVersion.query({
         id: docId,
-        content: entry.snapshot,
+        versionId: entry.id,
       });
 
-      onRestore(entry.snapshot);
+      setPreview((current) =>
+        current?.id === entry.id
+          ? { id: entry.id, content: version.content }
+          : current,
+      );
+    } catch (error) {
+      setPreview(null);
+      toastError(error, "Could not load this version");
+    }
+  };
+
+  const handleRestore = async (entry: VersionEntry) => {
+    setRestoringId(entry.id);
+    try {
+      const restored = await trpc.docs.restoreVersion.mutate({
+        id: docId,
+        versionId: entry.id,
+        expectedUpdatedAt: currentUpdatedAt,
+      });
+
+      onRestore(restored.content, restored.updatedAt);
       toastSuccess(
-        `Restored document to snapshot from ${new Date(
-          entry.createdAt,
-        ).toLocaleDateString()}`,
+        `Restored the version from ${new Date(entry.savedAt).toLocaleString()}`,
       );
       onClose();
-    } catch {
-      toastError("Error", "Failed to restore version snapshot");
+    } catch (error) {
+      toastError(error, "Failed to restore this version");
     } finally {
       setRestoringId(null);
     }
@@ -117,7 +137,6 @@ export const VersionHistoryPanel: FC<Props> = ({
         </button>
       </div>
 
-      {/* Snapshots List */}
       <div className="flex-1 overflow-y-auto divide-y divide-hairline/50 py-3">
         {loading ? (
           <div className="flex flex-col gap-3 py-4">
@@ -134,7 +153,7 @@ export const VersionHistoryPanel: FC<Props> = ({
           </div>
         ) : (
           history.map((entry, index) => {
-            const isPreviewing = previewId === entry.id;
+            const isPreviewing = preview?.id === entry.id;
             const isLatest = index === 0;
 
             return (
@@ -147,9 +166,9 @@ export const VersionHistoryPanel: FC<Props> = ({
               >
                 <div className="flex items-center justify-between gap-2">
                   <div className="flex items-center gap-2 min-w-0">
-                    <ActorAvatar name={entry.actorName} size={18} />
+                    <ActorAvatar name={entry.authorName} size={18} />
                     <span className="truncate text-xs font-medium text-ink">
-                      {entry.actorName}
+                      {entry.authorName}
                     </span>
                     {isLatest && (
                       <span className="rounded-full bg-signal/15 px-1.5 py-0.2 font-mono text-[10px] font-semibold text-signal">
@@ -158,7 +177,7 @@ export const VersionHistoryPanel: FC<Props> = ({
                     )}
                   </div>
                   <span className="font-mono text-[11px] text-ink-3 shrink-0">
-                    {new Date(entry.createdAt).toLocaleDateString("en-US", {
+                    {new Date(entry.savedAt).toLocaleDateString("en-US", {
                       month: "short",
                       day: "numeric",
                       hour: "2-digit",
@@ -173,35 +192,29 @@ export const VersionHistoryPanel: FC<Props> = ({
                   </p>
                 ) : null}
 
-                {/* Expanded Snapshot Preview Box */}
-                {isPreviewing && entry.snapshot && (
+                {isPreviewing && (
                   <div className="mt-1 flex flex-col gap-2 rounded-lg border border-hairline bg-canvas p-2.5 text-xs text-ink">
                     <div className="flex items-center justify-between text-[11px] text-ink-3 border-b border-hairline/60 pb-1">
-                      <span>Snapshot Preview</span>
-                      <span>{entry.snapshot.length} chars</span>
+                      <span>Preview</span>
+                      <span>{entry.length} chars</span>
                     </div>
                     <pre className="max-h-36 overflow-y-auto whitespace-pre-wrap font-mono text-[11px] leading-relaxed text-ink-2">
-                      {entry.snapshot}
+                      {preview?.content ?? "Loading…"}
                     </pre>
                   </div>
                 )}
 
-                {/* Action Buttons */}
                 <div className="mt-1 flex items-center justify-end gap-2">
-                  {entry.snapshot && (
-                    <button
-                      type="button"
-                      onClick={() =>
-                        setPreviewId(isPreviewing ? null : entry.id)
-                      }
-                      className="inline-flex items-center gap-1 rounded-lg px-2 py-1 text-[11px] font-medium text-ink-2 hover:bg-surface hover:text-ink transition-colors cursor-pointer"
-                    >
-                      <EyeIcon className="size-3" />
-                      <span>{isPreviewing ? "Hide" : "Preview"}</span>
-                    </button>
-                  )}
+                  <button
+                    type="button"
+                    onClick={() => void togglePreview(entry)}
+                    className="inline-flex items-center gap-1 rounded-lg px-2 py-1 text-[11px] font-medium text-ink-2 hover:bg-surface hover:text-ink transition-colors cursor-pointer"
+                  >
+                    <EyeIcon className="size-3" />
+                    <span>{isPreviewing ? "Hide" : "Preview"}</span>
+                  </button>
 
-                  {!isLatest && entry.snapshot && (
+                  {!isLatest && (
                     <button
                       type="button"
                       onClick={() => handleRestore(entry)}

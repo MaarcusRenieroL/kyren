@@ -1,13 +1,7 @@
 "use client";
 
 import { FC, useEffect, useMemo, useRef, useState } from "react";
-import {
-  CheckSquareIcon,
-  FileTextIcon,
-  SearchIcon,
-  UserIcon,
-  XIcon,
-} from "lucide-react";
+import { FileTextIcon, SearchIcon, XIcon } from "lucide-react";
 
 import { useTrpcClient } from "@zentro/api/react";
 import { cn } from "@zentro/ui/lib/utils";

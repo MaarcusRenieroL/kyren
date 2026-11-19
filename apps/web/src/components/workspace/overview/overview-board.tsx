@@ -4,16 +4,21 @@ import type { FC, ReactNode } from "react";
 
 import { cn } from "@zentro/ui/lib/utils";
 
-import type { DashboardData } from "~/src/lib/dashboard-data";
+import type { DashboardActivityItem } from "~/src/lib/dashboard-data";
 import type { OverviewData, OverviewRow } from "~/src/lib/overview-data";
 import { paths } from "~/src/lib/paths";
 
 import { MostDiscussed } from "./most-discussed";
+import { WorkspaceStarterChecklist } from "~/src/components/onboarding/workspace-starter-checklist";
+
+import type { StarterProgress } from "~/src/lib/starter-progress";
 
 type Props = {
   data: OverviewData;
-  activity: DashboardData["recentActivity"];
+  activity: DashboardActivityItem[];
   canSeeAudit: boolean;
+  starter: StarterProgress;
+  organizationId: string;
 };
 
 /** "↑ 12% vs last week", or "Same as last week". */
@@ -83,7 +88,7 @@ function Kpi({
       <span className="flex items-baseline gap-1.5">
         <span
           className={cn(
-            "font-serif-italic text-[2.5rem] leading-[2.75rem]",
+            "font-mono font-semibold text-3xl leading-tight tabular-nums tracking-tight text-ink",
             tone === "bad" && value > 0 && "text-danger-text",
           )}
         >
@@ -203,13 +208,23 @@ function Breakdown({
 }
 
 /** The organization at a glance, for owners and admins. */
-export const OverviewBoard: FC<Props> = ({ data, activity, canSeeAudit }) => {
+export const OverviewBoard: FC<Props> = ({
+  data,
+  activity,
+  canSeeAudit,
+  starter,
+  organizationId,
+}) => {
   const { kpis } = data;
   const max = Math.max(0, ...data.heatmap.flatMap((row) => row.counts));
   const doneTotal = data.heatmap.reduce((sum, row) => sum + row.total, 0);
 
   return (
     <div className="flex flex-col gap-6">
+      <WorkspaceStarterChecklist
+        progress={starter}
+        organizationId={organizationId}
+      />
       <section aria-labelledby="workspace-numbers">
         <h2 id="workspace-numbers" className="sr-only">
           Workspace numbers

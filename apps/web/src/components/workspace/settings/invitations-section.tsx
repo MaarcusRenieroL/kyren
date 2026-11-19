@@ -533,7 +533,7 @@ export const InvitationsSection: FC<Props> = ({
             </ul>
           ) : (
             <div className="flex flex-col items-center gap-2 rounded-xl border border-dashed border-line-strong px-6 py-14 text-center">
-              <p className="font-serif-italic text-[2rem] leading-10">
+              <p className="font-display font-semibold text-xl tracking-tight text-ink">
                 No invites waiting.
               </p>
               <p className="max-w-[380px] text-[15px] leading-[22px] text-ink-2">

@@ -3,7 +3,11 @@ import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 
 import { auth } from "@zentro/auth";
-import { loadEnabledModules, loadPermissionSnapshot } from "@zentro/api/server";
+import {
+  loadEnabledModules,
+  loadPermissionSnapshot,
+  workspaceAccessBlock,
+} from "@zentro/api/server";
 import { db } from "@zentro/db";
 import { and, eq, isNull } from "@zentro/db/drizzle";
 import {
@@ -121,6 +125,12 @@ export const getDashboardContext = cache(async () => {
     if (policy?.required) {
       redirect(paths.auth.twoFactorRequired());
     }
+  }
+
+  // Suspension and the organization's network allow-list apply to pages too,
+  // not only to API calls, since pages read the database directly.
+  if (await workspaceAccessBlock(db, organization.id, requestHeaders)) {
+    redirect(paths.auth.accessBlocked());
   }
 
   const snapshot = await loadPermissionSnapshot(

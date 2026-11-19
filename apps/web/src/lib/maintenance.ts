@@ -20,3 +20,31 @@ export async function maintenanceResponse() {
     { status: 503, headers: { "retry-after": "300" } },
   );
 }
+
+/**
+ * Auth calls that still work during maintenance: getting in and out, the
+ * second factor, picking an organization to read, and ending a session that
+ * isn't yours. Everything else that changes data (sign-up, new organizations,
+ * invitations, roles, passwords) waits until maintenance ends.
+ */
+const authDuringMaintenance = new Set([
+  "sign-in/email",
+  "sign-out",
+  "two-factor/verify-totp",
+  "two-factor/verify-backup-code",
+  "organization/set-active",
+  "organization/check-slug",
+  "revoke-session",
+  "revoke-other-sessions",
+]);
+
+/** Whether an auth POST to this path may run while in maintenance. */
+export function authAllowedDuringMaintenance(pathname: string) {
+  const at = pathname.indexOf("/api/auth/");
+
+  if (at === -1) return false;
+
+  const action = pathname.slice(at + "/api/auth/".length).replace(/\/+$/, "");
+
+  return authDuringMaintenance.has(action);
+}

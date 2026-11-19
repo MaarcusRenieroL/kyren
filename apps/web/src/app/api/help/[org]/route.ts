@@ -1,3 +1,4 @@
+import { clientIpFrom } from "@zentro/audit/server";
 import { hit, publicArticle, publicArticles } from "@zentro/api/server";
 import { db } from "@zentro/db";
 
@@ -10,8 +11,7 @@ export async function GET(
   { params }: { params: Promise<{ org: string }> },
 ) {
   const { org } = await params;
-  const ip =
-    request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown";
+  const ip = clientIpFrom(request.headers) ?? "unknown";
   const limit = await hit(db, `help:${ip}`, { max: 120, windowMs: 60_000 });
 
   if (!limit.allowed) {

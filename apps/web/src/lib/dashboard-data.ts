@@ -34,6 +34,7 @@ import {
 } from "@zentro/db/schema";
 import type { ModuleId } from "@zentro/modules";
 import { paths } from "~/src/lib/paths";
+import { zonedMidnight } from "~/src/lib/time-zone";
 
 export type DashboardStat = {
   value: number;
@@ -74,6 +75,20 @@ export type DashboardActivityItem = {
   href: string;
 };
 
+/** Links to the work modules the caller can reach; disabled ones are left out. */
+export type DashboardLinks = {
+  docs?: string;
+  projects?: string;
+  tasks?: string;
+  newDoc?: string;
+  newTask?: string;
+};
+
+/**
+ * Counts and lists computed for the dashboard. Today and Overview render only
+ * `recentWork`, `links` and `recentActivity`, through `getRecentWork` and
+ * `getRecentActivity`; the rest has no screen (see SLOP.md).
+ */
 export type DashboardData = {
   activityPills: DashboardActivityPill[];
   workspaceStats: DashboardStat[];
@@ -85,14 +100,16 @@ export type DashboardData = {
     tasks: boolean;
     docs: boolean;
   };
-  // Links to disabled modules are left out.
-  links: {
-    docs?: string;
-    projects?: string;
-    tasks?: string;
-    newDoc?: string;
-    newTask?: string;
-  };
+  links: DashboardLinks;
+};
+
+type Viewer = {
+  organizationId: string;
+  userId: string;
+  enabledModules: ReadonlySet<string>;
+  snapshot: PermissionSnapshot;
+  /** The viewer's IANA zone, already checked with `safeTimeZone`. */
+  timeZone: string;
 };
 
 function pluralize(
@@ -116,7 +133,7 @@ function getInitials(value?: string | null) {
     .join("");
 }
 
-function formatRelativeDate(value: Date | null) {
+function formatRelativeDate(value: Date | null, timeZone: string) {
   if (!value) {
     return "Recently";
   }
@@ -133,24 +150,11 @@ function formatRelativeDate(value: Date | null) {
   const days = Math.round(hours / 24);
   if (days < 7) return `${days}d ago`;
 
-  return value.toLocaleDateString(undefined, {
+  return value.toLocaleDateString("en-US", {
     month: "short",
     day: "numeric",
+    timeZone,
   });
-}
-
-function startOfToday() {
-  const date = new Date();
-  date.setHours(0, 0, 0, 0);
-
-  return date;
-}
-
-function endOfToday() {
-  const date = new Date();
-  date.setHours(23, 59, 59, 999);
-
-  return date;
 }
 
 // Disabled modules are not queried; their widgets stay empty.
@@ -158,22 +162,14 @@ function when<T>(enabled: boolean, query: () => PromiseLike<T[]>) {
   return enabled ? query() : Promise.resolve<T[]>([]);
 }
 
-export async function getDashboardData({
-  organizationId,
-  userId,
-  enabledModules,
-  snapshot,
-}: {
-  organizationId: string;
-  userId: string;
-  enabledModules: ReadonlySet<string>;
-  snapshot: PermissionSnapshot;
-}): Promise<DashboardData> {
-  const todayStart = startOfToday();
-  const todayEnd = endOfToday();
-
-  // Everything below only counts what the caller is allowed to see: projects
-  // hidden from them, and the tasks and docs inside those projects, stay out.
+/**
+ * What the caller may see: projects hidden from them, and the tasks and docs
+ * inside those projects, stay out of every query that uses these conditions.
+ */
+async function visibleScope(
+  organizationId: string,
+  snapshot: PermissionSnapshot,
+) {
   const projectRows = await db
     .select({
       id: projects.id,
@@ -231,6 +227,238 @@ export async function getDashboardData({
       docProjectIds.length ? inArray(docs.projectId, docProjectIds) : undefined,
     ) ?? sql`false`;
 
+  return { reachable, projectsVisible, tasksVisible, docsVisible };
+}
+
+/**
+ * Today's "Jump back in": the latest docs, projects and tasks the caller can
+ * see, and links to the modules they can reach.
+ */
+export async function getRecentWork({
+  organizationId,
+  enabledModules,
+  snapshot,
+  timeZone,
+}: Omit<Viewer, "userId">): Promise<{
+  recentWork: DashboardWorkItem[];
+  links: DashboardLinks;
+}> {
+  const { reachable, projectsVisible, tasksVisible, docsVisible } =
+    await visibleScope(organizationId, snapshot);
+
+  const [recentProjects, recentDocs, recentTasks] = await Promise.all([
+    when(enabledModules.has("projects"), () =>
+      db
+        .select({
+          id: projects.id,
+          name: projects.name,
+          slug: projects.slug,
+          updatedAt: projects.updatedAt,
+        })
+        .from(projects)
+        .where(
+          and(
+            eq(projects.organizationId, organizationId),
+            projectsVisible,
+            isNull(projects.deletedAt),
+          ),
+        )
+        .orderBy(desc(projects.updatedAt))
+        .limit(3),
+    ),
+    when(enabledModules.has("docs"), () =>
+      db
+        .select({
+          id: docs.id,
+          title: docs.title,
+          slug: docs.slug,
+          updatedAt: docs.updatedAt,
+        })
+        .from(docs)
+        .where(
+          and(
+            eq(docs.organizationId, organizationId),
+            docsVisible,
+            isNull(docs.deletedAt),
+          ),
+        )
+        .orderBy(desc(docs.updatedAt))
+        .limit(3),
+    ),
+    when(enabledModules.has("tasks"), () =>
+      db
+        .select({
+          id: tasks.id,
+          key: tasks.key,
+          name: tasks.name,
+          updatedAt: tasks.updatedAt,
+        })
+        .from(tasks)
+        .where(
+          and(
+            eq(tasks.organizationId, organizationId),
+            tasksVisible,
+            isNull(tasks.deletedAt),
+          ),
+        )
+        .orderBy(desc(tasks.updatedAt))
+        .limit(2),
+    ),
+  ]);
+
+  const recentWork: DashboardWorkItem[] = [
+    ...recentDocs.map((doc) => ({
+      id: doc.id,
+      kind: "doc" as const,
+      title: doc.title,
+      label: "Docs",
+      updatedAt: formatRelativeDate(doc.updatedAt, timeZone),
+      href: paths.doc(doc.slug),
+    })),
+    ...recentProjects.map((project) => ({
+      id: project.id,
+      kind: "project" as const,
+      title: project.name,
+      label: "Projects",
+      updatedAt: formatRelativeDate(project.updatedAt, timeZone),
+      href: paths.project(project.slug),
+    })),
+    ...recentTasks.map((task) => ({
+      id: task.id,
+      kind: "task" as const,
+      title: task.name,
+      label: "Tasks",
+      updatedAt: formatRelativeDate(task.updatedAt, timeZone),
+      href: paths.task(task.key),
+    })),
+  ].slice(0, 5);
+
+  const links: DashboardLinks = {
+    ...(enabledModules.has("docs") && reachable["docs.view"]
+      ? {
+          docs: paths.docs(),
+          ...(reachable["docs.create"] ? { newDoc: paths.docs() } : {}),
+        }
+      : {}),
+    ...(enabledModules.has("projects") && reachable["projects.view"]
+      ? { projects: paths.projects() }
+      : {}),
+    ...(enabledModules.has("tasks") && reachable["tasks.view"]
+      ? {
+          tasks: paths.tasks(),
+          ...(reachable["tasks.create"] ? { newTask: paths.tasks() } : {}),
+        }
+      : {}),
+  };
+
+  return { recentWork, links };
+}
+
+/** Overview's recent activity: the latest events the caller may see. */
+export async function getRecentActivity({
+  organizationId,
+  userId,
+  enabledModules,
+  timeZone,
+}: Omit<Viewer, "snapshot">): Promise<DashboardActivityItem[]> {
+  // Everything the caller may see, from the unified store.
+  const recentEvents = await visibleActivityCondition(
+    createPermissionContext(db, organizationId, userId),
+    enabledModules as ReadonlySet<ModuleId>,
+  ).then((visible) =>
+    db
+      .select({
+        id: activityEvents.id,
+        action: activityEvents.action,
+        targetType: activityEvents.targetType,
+        targetLabel: activityEvents.targetLabel,
+        metadata: activityEvents.metadata,
+        createdAt: activityEvents.createdAt,
+        actorUserId: activityEvents.actorUserId,
+        actorName: users.name,
+        actorEmail: users.email,
+      })
+      .from(activityEvents)
+      .leftJoin(users, eq(users.id, activityEvents.actorUserId))
+      .where(
+        and(
+          eq(activityEvents.organizationId, organizationId),
+          eq(activityEvents.auditOnly, false),
+          visible,
+        ),
+      )
+      .orderBy(desc(activityEvents.createdAt), desc(activityEvents.id))
+      .limit(6),
+  );
+
+  return recentEvents.map((event) => {
+    const name = actorName(
+      event.actorName || event.actorEmail
+        ? { name: event.actorName, email: event.actorEmail }
+        : null,
+      event.actorUserId,
+    );
+    const sentence = describeEvent(
+      {
+        action: event.action,
+        targetType: event.targetType,
+        targetLabel: event.targetLabel,
+        metadata: event.metadata,
+      },
+      name,
+    );
+    const slug =
+      typeof event.metadata?.slug === "string" ? event.metadata.slug : null;
+
+    return {
+      id: event.id,
+      user: name,
+      userInitials: getInitials(event.actorName ?? event.actorEmail),
+      // The sentence without the actor, which the card shows in bold.
+      action: sentence.slice(name.length).trim(),
+      target: "",
+      app:
+        event.targetType === "task"
+          ? "Tasks"
+          : event.targetType === "doc"
+            ? "Docs"
+            : event.targetType === "project"
+              ? "Projects"
+              : "Workspace",
+      time: formatRelativeDate(event.createdAt, timeZone),
+      kind:
+        event.action === "task.status_changed" &&
+        (
+          event.metadata?.changes as Array<{ to: string | null }> | undefined
+        )?.[0]?.to === "done"
+          ? "completed"
+          : event.action.includes("comment")
+            ? "commented"
+            : event.action.endsWith("created")
+              ? "created"
+              : "updated",
+      href:
+        event.targetType === "task" && event.targetLabel
+          ? paths.task(event.targetLabel)
+          : event.targetType === "doc" && slug
+            ? paths.doc(slug)
+            : event.targetType === "project" && slug
+              ? paths.project(slug)
+              : paths.dashboard(),
+    };
+  });
+}
+
+/** Every dashboard number and list for the caller; see `DashboardData`. */
+export async function getDashboardData(viewer: Viewer): Promise<DashboardData> {
+  const { organizationId, userId, enabledModules, snapshot, timeZone } = viewer;
+  // The viewer's day: from their midnight up to the next one.
+  const now = new Date();
+  const todayStart = zonedMidnight(timeZone, now);
+  const todayEnd = new Date(zonedMidnight(timeZone, now, -1).getTime() - 1);
+  const { reachable, projectsVisible, tasksVisible, docsVisible } =
+    await visibleScope(organizationId, snapshot);
+
   const [
     memberCount,
     projectCount,
@@ -242,10 +470,8 @@ export async function getDashboardData({
     docsUpdatedTodayCount,
     teamCount,
     currentMember,
-    recentProjects,
-    recentDocs,
-    recentTasks,
-    recentEvents,
+    recent,
+    recentActivity,
   ] = await Promise.all([
     db
       .select({ count: count() })
@@ -358,95 +584,8 @@ export async function getDashboardData({
         ),
       )
       .limit(1),
-    when(enabledModules.has("projects"), () =>
-      db
-        .select({
-          id: projects.id,
-          name: projects.name,
-          slug: projects.slug,
-          updatedAt: projects.updatedAt,
-        })
-        .from(projects)
-        .where(
-          and(
-            eq(projects.organizationId, organizationId),
-            projectsVisible,
-            isNull(projects.deletedAt),
-          ),
-        )
-        .orderBy(desc(projects.updatedAt))
-        .limit(3),
-    ),
-    when(enabledModules.has("docs"), () =>
-      db
-        .select({
-          id: docs.id,
-          title: docs.title,
-          slug: docs.slug,
-          updatedAt: docs.updatedAt,
-        })
-        .from(docs)
-        .where(
-          and(
-            eq(docs.organizationId, organizationId),
-            docsVisible,
-            isNull(docs.deletedAt),
-          ),
-        )
-        .orderBy(desc(docs.updatedAt))
-        .limit(3),
-    ),
-    when(enabledModules.has("tasks"), () =>
-      db
-        .select({
-          id: tasks.id,
-          key: tasks.key,
-          name: tasks.name,
-          status: tasks.status,
-          priority: tasks.priority,
-          dueAt: tasks.dueAt,
-          updatedAt: tasks.updatedAt,
-        })
-        .from(tasks)
-        .where(
-          and(
-            eq(tasks.organizationId, organizationId),
-            tasksVisible,
-            isNull(tasks.deletedAt),
-          ),
-        )
-        .orderBy(desc(tasks.updatedAt))
-        .limit(5),
-    ),
-    // Recent activity: everything the caller may see, from the unified store.
-    visibleActivityCondition(
-      createPermissionContext(db, organizationId, userId),
-      enabledModules as ReadonlySet<ModuleId>,
-    ).then((visible) =>
-      db
-        .select({
-          id: activityEvents.id,
-          action: activityEvents.action,
-          targetType: activityEvents.targetType,
-          targetLabel: activityEvents.targetLabel,
-          metadata: activityEvents.metadata,
-          createdAt: activityEvents.createdAt,
-          actorUserId: activityEvents.actorUserId,
-          actorName: users.name,
-          actorEmail: users.email,
-        })
-        .from(activityEvents)
-        .leftJoin(users, eq(users.id, activityEvents.actorUserId))
-        .where(
-          and(
-            eq(activityEvents.organizationId, organizationId),
-            eq(activityEvents.auditOnly, false),
-            visible,
-          ),
-        )
-        .orderBy(desc(activityEvents.createdAt), desc(activityEvents.id))
-        .limit(6),
-    ),
+    getRecentWork(viewer),
+    getRecentActivity(viewer),
   ]);
 
   const memberId = currentMember[0]?.id;
@@ -483,90 +622,6 @@ export async function getDashboardData({
     status: task.status,
     href: paths.task(task.key),
   }));
-
-  const recentWork: DashboardWorkItem[] = [
-    ...recentDocs.map((doc) => ({
-      id: doc.id,
-      kind: "doc" as const,
-      title: doc.title,
-      label: "Docs",
-      updatedAt: formatRelativeDate(doc.updatedAt),
-      href: paths.doc(doc.slug),
-    })),
-    ...recentProjects.map((project) => ({
-      id: project.id,
-      kind: "project" as const,
-      title: project.name,
-      label: "Projects",
-      updatedAt: formatRelativeDate(project.updatedAt),
-      href: paths.project(project.slug),
-    })),
-    ...recentTasks.slice(0, 2).map((task) => ({
-      id: task.id,
-      kind: "task" as const,
-      title: task.name,
-      label: "Tasks",
-      updatedAt: formatRelativeDate(task.updatedAt),
-      href: paths.task(task.key),
-    })),
-  ].slice(0, 5);
-
-  const recentActivity: DashboardActivityItem[] = recentEvents.map((event) => {
-    const name = actorName(
-      event.actorName || event.actorEmail
-        ? { name: event.actorName, email: event.actorEmail }
-        : null,
-      event.actorUserId,
-    );
-    const sentence = describeEvent(
-      {
-        action: event.action,
-        targetType: event.targetType,
-        targetLabel: event.targetLabel,
-        metadata: event.metadata,
-      },
-      name,
-    );
-    const slug =
-      typeof event.metadata?.slug === "string" ? event.metadata.slug : null;
-
-    return {
-      id: event.id,
-      user: name,
-      userInitials: getInitials(event.actorName ?? event.actorEmail),
-      // The sentence without the actor, which the card shows in bold.
-      action: sentence.slice(name.length).trim(),
-      target: "",
-      app:
-        event.targetType === "task"
-          ? "Tasks"
-          : event.targetType === "doc"
-            ? "Docs"
-            : event.targetType === "project"
-              ? "Projects"
-              : "Workspace",
-      time: formatRelativeDate(event.createdAt),
-      kind:
-        event.action === "task.status_changed" &&
-        (
-          event.metadata?.changes as Array<{ to: string | null }> | undefined
-        )?.[0]?.to === "done"
-          ? "completed"
-          : event.action.includes("comment")
-            ? "commented"
-            : event.action.endsWith("created")
-              ? "created"
-              : "updated",
-      href:
-        event.targetType === "task" && event.targetLabel
-          ? paths.task(event.targetLabel)
-          : event.targetType === "doc" && slug
-            ? paths.doc(slug)
-            : event.targetType === "project" && slug
-              ? paths.project(slug)
-              : paths.dashboard(),
-    };
-  });
 
   const modules = {
     projects: enabledModules.has("projects"),
@@ -629,26 +684,10 @@ export async function getDashboardData({
         ? [{ value: teamCount[0]?.count ?? 0, label: "Teams" }]
         : []),
     ],
-    recentWork,
+    recentWork: recent.recentWork,
     recentActivity,
     tasks: taskItems,
     modules,
-    links: {
-      ...(modules.docs && reachable["docs.view"]
-        ? {
-            docs: paths.docs(),
-            ...(reachable["docs.create"] ? { newDoc: paths.docs() } : {}),
-          }
-        : {}),
-      ...(modules.projects && reachable["projects.view"]
-        ? { projects: paths.projects() }
-        : {}),
-      ...(modules.tasks && reachable["tasks.view"]
-        ? {
-            tasks: paths.tasks(),
-            ...(reachable["tasks.create"] ? { newTask: paths.tasks() } : {}),
-          }
-        : {}),
-    },
+    links: recent.links,
   };
 }

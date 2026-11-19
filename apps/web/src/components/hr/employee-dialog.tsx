@@ -16,8 +16,9 @@ import {
 } from "@zentro/ui/shadcn/dialog";
 import { Input } from "@zentro/ui/shadcn/input";
 import { Label } from "@zentro/ui/shadcn/label";
+import { NativeSelect } from "@zentro/ui/shadcn/native-select";
 
-import { messageOf, selectClass } from "../tickets/labels";
+import { messageOf } from "../tickets/labels";
 
 export type Person =
   inferRouterOutputs<AppRouter>["hr"]["directory"]["people"][number];
@@ -76,6 +77,17 @@ function Form({
   const [status, setStatus] = useState(person?.status ?? "active");
   const [startDate, setStartDate] = useState(person?.startDate ?? "");
   const [endDate, setEndDate] = useState(person?.endDate ?? "");
+  const [allowance, setAllowance] = useState(
+    person?.annualLeaveDays == null ? "" : String(person.annualLeaveDays),
+  );
+  const [accrual, setAccrual] = useState<"upfront" | "monthly">(
+    person?.annualLeaveAccrual === "monthly" ? "monthly" : "upfront",
+  );
+  const [carryOver, setCarryOver] = useState(
+    person?.annualLeaveCarryOverDays == null
+      ? ""
+      : String(person.annualLeaveCarryOverDays),
+  );
   const [managerId, setManagerId] = useState(person?.managerId ?? "");
   const [memberId, setMemberId] = useState(person?.memberId ?? "");
   const [linkable, setLinkable] = useState<Linkable>([]);
@@ -102,6 +114,10 @@ function Form({
       endDate: endDate || null,
       managerId: managerId || null,
       memberId: memberId || null,
+      annualLeaveDays: allowance.trim() === "" ? null : Number(allowance),
+      annualLeaveAccrual: accrual,
+      annualLeaveCarryOverDays:
+        carryOver.trim() === "" ? null : Number(carryOver),
     };
 
     try {
@@ -166,9 +182,8 @@ function Form({
         {field("emp-loc", "Location", location, setLocation)}
         <div className="flex flex-col gap-1.5">
           <Label htmlFor="emp-status">Status</Label>
-          <select
+          <NativeSelect
             id="emp-status"
-            className={selectClass}
             value={status}
             onChange={(e) => setStatus(e.target.value)}
           >
@@ -177,15 +192,41 @@ function Form({
                 {label}
               </option>
             ))}
-          </select>
+          </NativeSelect>
         </div>
         {field("emp-start", "Start date", startDate, setStartDate, "date")}
         {field("emp-end", "Last day", endDate, setEndDate, "date")}
+        {field(
+          "emp-allowance",
+          "Annual leave days a year (empty: no limit)",
+          allowance,
+          setAllowance,
+          "number",
+        )}
+        <div className="flex flex-col gap-1.5">
+          <Label htmlFor="emp-accrual">Annual leave is earned</Label>
+          <NativeSelect
+            id="emp-accrual"
+            value={accrual}
+            onChange={(e) =>
+              setAccrual(e.target.value as "upfront" | "monthly")
+            }
+          >
+            <option value="upfront">All at the start of the year</option>
+            <option value="monthly">A twelfth each month</option>
+          </NativeSelect>
+        </div>
+        {field(
+          "emp-carry-over",
+          "Unused days that carry into next year (empty: none)",
+          carryOver,
+          setCarryOver,
+          "number",
+        )}
         <div className="flex flex-col gap-1.5">
           <Label htmlFor="emp-manager">Reports to</Label>
-          <select
+          <NativeSelect
             id="emp-manager"
-            className={selectClass}
             value={managerId}
             onChange={(e) => setManagerId(e.target.value)}
           >
@@ -197,13 +238,12 @@ function Form({
                   {other.name}
                 </option>
               ))}
-          </select>
+          </NativeSelect>
         </div>
         <div className="flex flex-col gap-1.5">
           <Label htmlFor="emp-member">Sign-in account</Label>
-          <select
+          <NativeSelect
             id="emp-member"
-            className={selectClass}
             value={memberId}
             onChange={(e) => setMemberId(e.target.value)}
           >
@@ -217,7 +257,7 @@ function Form({
                 {member.name} ({member.email})
               </option>
             ))}
-          </select>
+          </NativeSelect>
         </div>
       </div>
 

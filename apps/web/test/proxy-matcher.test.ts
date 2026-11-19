@@ -6,7 +6,7 @@ import { describe, expect, it, vi } from "vitest";
 vi.mock("@zentro/auth", () => ({ auth: {} }));
 vi.mock("~/src/lib/paths", () => ({ paths: {} }));
 
-const { config } = await import("../src/proxy");
+const { protectedPrefixes } = await import("../src/proxy");
 
 describe("the sign-in proxy", () => {
   it("covers every workspace page folder, so no module is reachable signed out", () => {
@@ -14,7 +14,7 @@ describe("the sign-in proxy", () => {
     const folders = readdirSync(root).filter((name) =>
       statSync(path.join(root, name)).isDirectory(),
     );
-    const covered = config.matcher.map((entry) => entry.split("/")[1]);
+    const covered = protectedPrefixes.map((entry) => entry.split("/")[1]);
 
     expect(folders.length).toBeGreaterThan(10);
     expect(folders.filter((name) => !covered.includes(name))).toEqual([]);

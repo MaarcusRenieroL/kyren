@@ -6,16 +6,12 @@ import {
   CalendarIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
-  FlagIcon,
   FlameIcon,
-  LayersIcon,
-  Maximize2Icon,
   SearchIcon,
-  SparklesIcon,
 } from "lucide-react";
 
 import { useTrpcClient } from "@zentro/api/react";
-import { PriorityGlyph, StatusGlyph } from "@zentro/ui/components/status-glyph";
+import { StatusGlyph } from "@zentro/ui/components/status-glyph";
 import { cn } from "@zentro/ui/lib/utils";
 import { ActorAvatar } from "~/src/components/actor-avatar";
 import type { WorkspaceTask } from "~/src/features/tasks/lib/types";

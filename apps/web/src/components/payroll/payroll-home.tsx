@@ -24,7 +24,7 @@ import { Label } from "@zentro/ui/shadcn/label";
 import { toast, toastError } from "@zentro/ui/index";
 
 import { messageOf } from "../tickets/labels";
-import { formatMoney, formatPeriod, runTone } from "./money";
+import { formatMoney, formatPeriod, runTone, toMajor, toMinor } from "./money";
 
 type Runs = inferRouterOutputs<AppRouter>["payroll"]["runs"];
 type Salaries = inferRouterOutputs<AppRouter>["payroll"]["salaries"];
@@ -85,6 +85,7 @@ function RunsTab() {
   const [runs, setRuns] = useState<Runs | null>(null);
   const [failed, setFailed] = useState(false);
   const [creating, setCreating] = useState(false);
+  const [offCycle, setOffCycle] = useState(false);
 
   const load = useCallback(async () => {
     try {
@@ -100,10 +101,15 @@ function RunsTab() {
   }, [load]);
 
   const button = runs?.canManage ? (
-    <Button onClick={() => setCreating(true)}>
-      <PlusIcon aria-hidden />
-      New pay run
-    </Button>
+    <div className="flex gap-2">
+      <Button variant="outline" onClick={() => setOffCycle(true)}>
+        Off-cycle run
+      </Button>
+      <Button onClick={() => setCreating(true)}>
+        <PlusIcon aria-hidden />
+        New pay run
+      </Button>
+    </div>
   ) : null;
 
   if (failed)
@@ -148,8 +154,13 @@ function RunsTab() {
                   </span>
                 </span>
                 <span className="font-mono text-sm text-ink">
-                  {formatMoney(run.net)}
+                  {formatMoney(run.net, run.currency)}
                 </span>
+                {run.kind === "off_cycle" ? (
+                  <span className="rounded-full border border-line px-2 py-0.5 text-xs text-ink-2">
+                    Off-cycle
+                  </span>
+                ) : null}
                 <span
                   className={`rounded-full px-2 py-0.5 text-xs capitalize ${runTone[run.status]}`}
                 >
@@ -165,7 +176,156 @@ function RunsTab() {
         onClose={() => setCreating(false)}
         onCreated={(id) => router.push(`/payroll/${id}`)}
       />
+      <Dialog
+        open={offCycle}
+        onOpenChange={(next) => !next && setOffCycle(false)}
+      >
+        <DialogContent>
+          {offCycle ? (
+            <OffCycleForm
+              onClose={() => setOffCycle(false)}
+              onCreated={(id) => router.push(`/payroll/${id}`)}
+            />
+          ) : null}
+        </DialogContent>
+      </Dialog>
     </>
+  );
+}
+
+/** A correction or one-off payment for some people, on one date. */
+function OffCycleForm({
+  onClose,
+  onCreated,
+}: {
+  onClose: () => void;
+  onCreated: (id: string) => void;
+}) {
+  const trpc = useTrpcClient();
+  const [people, setPeople] = useState<Array<{ id: string; name: string }>>([]);
+  const [chosen, setChosen] = useState<string[]>([]);
+  const [label, setLabel] = useState("");
+  const [payDate, setPayDate] = useState("");
+  const [currency, setCurrency] = useState("USD");
+  const [rate, setRate] = useState("20");
+  const [error, setError] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+
+  useEffect(() => {
+    void trpc.payroll.salaries.query().then(
+      (data) => setPeople(data.people),
+      () => undefined,
+    );
+  }, [trpc]);
+
+  async function submit(event: React.FormEvent) {
+    event.preventDefault();
+
+    if (!payDate) return setError("Pick the pay date.");
+
+    setBusy(true);
+    setError(null);
+    try {
+      const { id } = await trpc.payroll.createOffCycleRun.mutate({
+        label,
+        payDate,
+        currency,
+        deductionRateBps: Math.round(Number(rate) * 100),
+        employeeIds: chosen,
+      });
+      onCreated(id);
+    } catch (err) {
+      setError(messageOf(err) ?? "Could not create the run.");
+      setBusy(false);
+    }
+  }
+
+  return (
+    <form onSubmit={submit} className="flex flex-col gap-4">
+      <DialogHeader>
+        <DialogTitle>Off-cycle run</DialogTitle>
+        <DialogDescription>
+          For a correction or a one-off payment. It starts at zero: enter each
+          amount as a bonus on the run, then it is approved like any run.
+        </DialogDescription>
+      </DialogHeader>
+      <div className="flex flex-col gap-1.5">
+        <Label htmlFor="off-label">Name</Label>
+        <Input
+          id="off-label"
+          autoFocus
+          placeholder="June correction"
+          value={label}
+          onChange={(e) => setLabel(e.target.value)}
+        />
+      </div>
+      <div className="grid grid-cols-3 gap-3">
+        <div className="flex flex-col gap-1.5">
+          <Label htmlFor="off-date">Pay date</Label>
+          <Input
+            id="off-date"
+            type="date"
+            value={payDate}
+            onChange={(e) => setPayDate(e.target.value)}
+          />
+        </div>
+        <div className="flex flex-col gap-1.5">
+          <Label htmlFor="off-currency">Currency</Label>
+          <Input
+            id="off-currency"
+            maxLength={3}
+            value={currency}
+            onChange={(e) => setCurrency(e.target.value.toUpperCase())}
+          />
+        </div>
+        <div className="flex flex-col gap-1.5">
+          <Label htmlFor="off-rate">Tax (%)</Label>
+          <Input
+            id="off-rate"
+            type="number"
+            min={0}
+            max={100}
+            step="0.1"
+            value={rate}
+            onChange={(e) => setRate(e.target.value)}
+          />
+        </div>
+      </div>
+      <fieldset className="flex max-h-48 flex-col gap-1.5 overflow-y-auto">
+        <legend className="mb-1 text-sm font-medium text-ink">
+          Who is paid
+        </legend>
+        {people.map((person) => (
+          <label key={person.id} className="flex items-center gap-2 text-sm">
+            <input
+              type="checkbox"
+              checked={chosen.includes(person.id)}
+              onChange={(e) =>
+                setChosen((current) =>
+                  e.target.checked
+                    ? [...current, person.id]
+                    : current.filter((id) => id !== person.id),
+                )
+              }
+            />
+            {person.name}
+          </label>
+        ))}
+      </fieldset>
+      {error ? (
+        <p role="alert" className="text-sm text-danger-text">
+          {error}
+        </p>
+      ) : null}
+      <DialogFooter>
+        <Button type="button" variant="ghost" onClick={onClose}>
+          Cancel
+        </Button>
+        <Button type="submit" disabled={busy || !chosen.length}>
+          Create draft
+        </Button>
+      </DialogFooter>
+    </form>
   );
 }
 
@@ -199,6 +359,7 @@ function RunForm({
   const [periodStart, setPeriodStart] = useState("");
   const [periodEnd, setPeriodEnd] = useState("");
   const [rate, setRate] = useState("20");
+  const [currency, setCurrency] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
@@ -215,6 +376,7 @@ function RunForm({
         periodStart,
         periodEnd,
         deductionRateBps: Math.round(Number(rate) * 100),
+        ...(currency.trim() ? { currency: currency.trim() } : {}),
       });
       onCreated(id);
     } catch (err) {
@@ -228,7 +390,8 @@ function RunForm({
       <DialogHeader>
         <DialogTitle>New pay run</DialogTitle>
         <DialogDescription>
-          Each paid employee gets a line worth one twelfth of their salary.
+          Each paid employee gets a line for the days they worked in the period.
+          A run pays one currency.
         </DialogDescription>
       </DialogHeader>
       <div className="flex flex-col gap-1.5">
@@ -272,6 +435,16 @@ function RunForm({
           step="0.1"
           value={rate}
           onChange={(e) => setRate(e.target.value)}
+        />
+      </div>
+      <div className="flex flex-col gap-1.5">
+        <Label htmlFor="run-currency">Currency</Label>
+        <Input
+          id="run-currency"
+          maxLength={3}
+          placeholder="Only needed if people are paid in several"
+          value={currency}
+          onChange={(e) => setCurrency(e.target.value.toUpperCase())}
         />
       </div>
       {error ? (
@@ -320,7 +493,7 @@ function SalariesTab() {
     try {
       await trpc.payroll.setSalary.mutate({
         employeeId: person.id,
-        annualSalary: Math.round(value * 100),
+        annualSalary: toMinor(value, person.currency ?? "USD"),
         currency: person.currency ?? "USD",
       });
       setDrafts((current) => {
@@ -391,7 +564,12 @@ function SalariesTab() {
                   value={
                     draft ??
                     (person.annualSalary !== null
-                      ? String(person.annualSalary / 100)
+                      ? String(
+                          toMajor(
+                            person.annualSalary,
+                            person.currency ?? "USD",
+                          ),
+                        )
                       : "")
                   }
                   onChange={(e) =>
@@ -420,10 +598,77 @@ function SalariesTab() {
                   : "Not set"}
               </span>
             )}
+            {person.annualSalary !== null ? (
+              <SalaryHistory employeeId={person.id} name={person.name} />
+            ) : null}
           </li>
         );
       })}
     </ul>
+  );
+}
+
+/** Past salaries for one person, loaded when opened. */
+function SalaryHistory({
+  employeeId,
+  name,
+}: {
+  employeeId: string;
+  name: string;
+}) {
+  const trpc = useTrpcClient();
+  const [rows, setRows] = useState<Awaited<
+    ReturnType<typeof trpc.payroll.salaryHistory.query>
+  > | null>(null);
+  const [open, setOpen] = useState(false);
+
+  async function toggle() {
+    const next = !open;
+
+    setOpen(next);
+
+    if (next) {
+      try {
+        setRows(await trpc.payroll.salaryHistory.query({ employeeId }));
+      } catch (error) {
+        toastError(error, "Could not load the salary history.");
+      }
+    }
+  }
+
+  return (
+    <div className="basis-full">
+      <Button
+        size="sm"
+        variant="ghost"
+        aria-expanded={open}
+        aria-label={`Salary history for ${name}`}
+        onClick={() => void toggle()}
+      >
+        History
+      </Button>
+      {open && !rows ? (
+        <p role="status" className="mt-1 text-sm text-ink-2">
+          Loading history…
+        </p>
+      ) : null}
+      {open && rows && rows.length === 0 ? (
+        <p className="mt-1 text-sm text-ink-2">No changes recorded yet.</p>
+      ) : null}
+      {open && rows && rows.length ? (
+        <ul className="mt-1 flex flex-col gap-1 text-sm text-ink-2">
+          {rows.map((row) => (
+            <li key={row.id} className="flex flex-wrap gap-x-3">
+              <span className="font-mono text-ink">
+                {formatMoney(row.annualSalary, row.currency)}
+              </span>
+              <span>{new Date(row.at).toLocaleDateString()}</span>
+              <span>{row.changedBy ? `by ${row.changedBy}` : ""}</span>
+            </li>
+          ))}
+        </ul>
+      ) : null}
+    </div>
   );
 }
 
@@ -482,6 +727,13 @@ function MineTab() {
           >
             {slip.status}
           </span>
+          <Link
+            href={`/payslip/${slip.id}`}
+            className="text-sm underline"
+            aria-label={`Payslip for ${slip.label}`}
+          >
+            Payslip
+          </Link>
         </li>
       ))}
     </ul>

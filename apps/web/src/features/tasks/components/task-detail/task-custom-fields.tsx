@@ -7,6 +7,7 @@ import type { AppRouter } from "@zentro/api/server";
 import type { inferRouterOutputs } from "@trpc/server";
 import { toastError } from "@zentro/ui/index";
 import { Input } from "@zentro/ui/shadcn/input";
+import { NativeSelect } from "@zentro/ui/shadcn/native-select";
 
 type Field =
   inferRouterOutputs<AppRouter>["customField"]["valuesForTask"][number];
@@ -21,12 +22,15 @@ export function TaskCustomFields({
 }) {
   const trpc = useTrpcClient();
   const [fields, setFields] = useState<Field[]>([]);
+  const [failed, setFailed] = useState(false);
 
   const load = useCallback(async () => {
     try {
       setFields(await trpc.customField.valuesForTask.query({ key: taskKey }));
+      setFailed(false);
     } catch {
-      // The section simply stays hidden if fields can't be loaded.
+      // Said out loud, so fields never vanish without a word.
+      setFailed(true);
     }
   }, [trpc, taskKey]);
 
@@ -50,6 +54,17 @@ export function TaskCustomFields({
     await load();
   }
 
+  if (failed && !fields.length) {
+    return (
+      <p role="status" className="tile px-[22px] py-[18px] text-sm text-ink-2">
+        This task's details did not load.{" "}
+        <button type="button" className="underline" onClick={() => void load()}>
+          Retry
+        </button>
+      </p>
+    );
+  }
+
   if (!fields.length) return null;
 
   return (
@@ -63,9 +78,8 @@ export function TaskCustomFields({
             </dt>
             <dd>
               {field.type === "select" ? (
-                <select
+                <NativeSelect
                   id={`field-${field.fieldId}`}
-                  className="h-9 w-full rounded-md border border-line bg-surface px-2 text-sm"
                   disabled={!canEdit}
                   value={field.value ?? ""}
                   onChange={(event) =>
@@ -78,7 +92,7 @@ export function TaskCustomFields({
                       {option}
                     </option>
                   ))}
-                </select>
+                </NativeSelect>
               ) : (
                 <Input
                   // Remount on save so the box shows what the server kept.

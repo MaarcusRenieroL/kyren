@@ -11,12 +11,11 @@ import {
   GaugeIcon,
   PalmtreeIcon,
   ScaleIcon,
-  SparklesIcon,
   UsersIcon,
 } from "lucide-react";
 
 import { useTrpcClient } from "@zentro/api/react";
-import { StatusGlyph, PriorityMeter } from "@zentro/ui/components/status-glyph";
+import { StatusGlyph } from "@zentro/ui/components/status-glyph";
 import { cn } from "@zentro/ui/lib/utils";
 import { toastError, toastSuccess } from "@zentro/ui/index";
 import {
@@ -221,7 +220,6 @@ export const TeamWorkloadBalancer: FC<Props> = ({
   const underutilizedCount = liveMemberLoads.filter(
     (m) => m.isUnderutilized,
   ).length;
-  const oooCount = liveMemberLoads.filter((m) => m.isOoo).length;
   const totalOpenPoints = openTasks.reduce(
     (sum, t) => sum + (t.estimatePoints ?? 0),
     0,

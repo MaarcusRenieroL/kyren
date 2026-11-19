@@ -1,9 +1,4 @@
-import {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-} from "@zentro/ui/shadcn/card";
+import { Card } from "@zentro/ui/shadcn/card";
 import {
   CalendarIcon,
   CheckCheckIcon,

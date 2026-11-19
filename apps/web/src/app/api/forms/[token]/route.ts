@@ -1,3 +1,4 @@
+import { clientIpFrom } from "@zentro/audit/server";
 import { hit, publicForm, submitIntake } from "@zentro/api/server";
 import { maintenanceResponse } from "~/src/lib/maintenance";
 import { db } from "@zentro/db";
@@ -8,8 +9,7 @@ export const dynamic = "force-dynamic";
 const noStore = { "cache-control": "no-store" };
 
 async function limited(request: Request, token: string, max: number) {
-  const ip =
-    request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown";
+  const ip = clientIpFrom(request.headers) ?? "unknown";
   const result = await hit(db, `intake:${token.slice(0, 16)}:${ip}`, {
     max,
     windowMs: 60_000,

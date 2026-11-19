@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import {
   ChevronDownIcon,
+  CompassIcon,
   FileTextIcon,
   LayoutGridIcon,
   MenuIcon,
@@ -42,6 +43,7 @@ import { isRecentPath, useRecent } from "./use-recent";
 import { OPEN_PALETTE_EVENT } from "~/src/components/system/open-palette-button";
 import { useShell } from "./shell-context";
 import { UserMenu } from "./user-menu";
+import { TourStepper } from "~/src/components/walkthrough/tour-stepper";
 
 type Props = {
   orgName?: string;
@@ -60,8 +62,21 @@ export function TopBar({
 }: Props) {
   const { toggleSidebar } = useSidebar();
   const [paletteOpen, setPaletteOpen] = useState(false);
+  const [tourOpen, setTourOpen] = useState(false);
   const pathname = usePathname();
   const crumbs = useCrumbs();
+
+  const activeTour = pathname.startsWith("/tasks")
+    ? "tasks"
+    : pathname.startsWith("/whiteboards")
+      ? "whiteboards"
+      : pathname.startsWith("/docs")
+        ? "docs"
+        : pathname.startsWith("/tickets")
+          ? "tickets"
+          : pathname.startsWith("/hr") || pathname.startsWith("/payroll")
+            ? "hr"
+            : "general";
 
   const { record } = useRecent();
   const entries = getBreadcrumbs(pathname, crumbs);
@@ -204,9 +219,25 @@ export function TopBar({
             </DropdownMenuContent>
           </DropdownMenu>
         ) : null}
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => setTourOpen(true)}
+          className="hidden h-8 gap-1.5 px-2 text-xs text-ink-2 hover:text-ink sm:inline-flex"
+          aria-label="Take a tour"
+        >
+          <CompassIcon className="size-3.5" />
+          <span>Tour</span>
+        </Button>
         <NotificationBell />
         <UserMenu user={user} links={links} />
       </div>
+
+      <TourStepper
+        tourId={activeTour}
+        open={tourOpen}
+        onOpenChange={setTourOpen}
+      />
 
       <CommandPalette
         open={paletteOpen}

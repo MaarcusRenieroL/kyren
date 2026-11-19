@@ -258,6 +258,8 @@ export const MembersSection: FC<Props> = ({
   );
 
   const handleRoleChange = async (memberId: string, role: Role) => {
+    const previous = members.find((member) => member.id === memberId)?.role;
+
     setMembers((currentMembers) =>
       currentMembers.map((member) =>
         member.id === memberId ? { ...member, role } : member,
@@ -272,6 +274,14 @@ export const MembersSection: FC<Props> = ({
     );
 
     if (error) {
+      // Put the role back: the change did not happen.
+      if (previous) {
+        setMembers((currentMembers) =>
+          currentMembers.map((member) =>
+            member.id === memberId ? { ...member, role: previous } : member,
+          ),
+        );
+      }
       toastError(error.statusText, error.message);
       return;
     }
@@ -382,7 +392,7 @@ export const MembersSection: FC<Props> = ({
 
       {members.length === 1 && canInvite ? (
         <div className="flex flex-col items-center gap-2 rounded-xl border border-dashed border-line-strong px-6 py-14 text-center">
-          <p className="font-serif-italic text-[2rem] leading-10">
+          <p className="font-display font-semibold text-xl tracking-tight text-ink">
             Just you so far.
           </p>
           <p className="max-w-[420px] text-[15px] leading-[22px] text-ink-2">

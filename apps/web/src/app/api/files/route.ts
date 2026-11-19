@@ -5,6 +5,7 @@ import { TRPCError } from "@trpc/server";
 import { createRequestContext } from "~/src/lib/request-context";
 import { maintenanceResponse } from "~/src/lib/maintenance";
 import { BodyTooLargeError, readLimited } from "~/src/lib/read-limited";
+import { verifiedMimeType } from "~/src/lib/file-type";
 import { newStorageKey, storage } from "~/src/lib/storage";
 
 export const runtime = "nodejs";
@@ -90,6 +91,11 @@ export async function POST(request: Request) {
   const file = form?.get("file");
   // The Files library has its own permission and does not need Chat.
   const library = form?.get("library") === "1";
+  // A mail attachment needs the right to send mail, and stays out of Files.
+  const mail = !library && form?.get("mail") === "1";
+  const folder = form?.get("folderId");
+  const folderId =
+    library && typeof folder === "string" && folder ? folder : null;
 
   if (!(file instanceof File)) {
     return Response.json(
@@ -101,7 +107,9 @@ export async function POST(request: Request) {
   try {
     await (library
       ? caller.files.libraryAuthorize({ size: file.size || 1 })
-      : caller.files.authorizeUpload({ size: file.size || 1 }));
+      : mail
+        ? caller.files.mailAuthorize({ size: file.size || 1 })
+        : caller.files.authorizeUpload({ size: file.size || 1 }));
 
     const bytes = Buffer.from(await file.arrayBuffer());
 
@@ -112,7 +120,8 @@ export async function POST(request: Request) {
       );
     }
 
-    const mimeType = file.type || "application/octet-stream";
+    // A claimed image or PDF must really be one before it is ever shown.
+    const mimeType = verifiedMimeType(bytes, file.type);
     const key = newStorageKey(ctx.activeOrganization!.id, file.name);
     const { width, height } = imageSize(bytes, mimeType);
 
@@ -120,7 +129,9 @@ export async function POST(request: Request) {
 
     const register = library
       ? caller.files.libraryRegister
-      : caller.files.register;
+      : mail
+        ? caller.files.mailRegister
+        : caller.files.register;
     const saved = await register({
       name: file.name.slice(0, 255) || "file",
       mimeType,
@@ -128,6 +139,7 @@ export async function POST(request: Request) {
       width,
       height,
       storageKey: key,
+      folderId,
     }).catch(async (error: unknown) => {
       // Do not leave an unreferenced object behind.
       await storage()

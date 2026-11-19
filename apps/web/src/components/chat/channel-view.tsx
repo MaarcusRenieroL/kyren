@@ -72,6 +72,7 @@ import {
 } from "./message-item";
 import { NoAccessView } from "./states";
 import { ThreadPanel } from "./thread-panel";
+import { everyWhileVisible } from "~/src/lib/poll";
 
 type Outputs = inferRouterOutputs<AppRouter>;
 export type ChannelData = Extract<Outputs["chat"]["get"], { access: "full" }>;
@@ -348,9 +349,7 @@ export function ChannelView({ name, id }: { name?: string; id?: string }) {
   useEffect(() => {
     if (!full) return;
 
-    const id = setInterval(() => void refresh(), 4000);
-
-    return () => clearInterval(id);
+    return everyWhileVisible(refresh, 4000);
   }, [full, refresh]);
 
   // Reconnect countdown for the offline banner.
@@ -947,7 +946,7 @@ export function ChannelView({ name, id }: { name?: string; id?: string }) {
   if (error === "missing") {
     return (
       <div className="flex flex-1 flex-col items-center justify-center gap-3 p-8 text-center">
-        <p className="font-serif-italic text-[2rem] leading-10">
+        <p className="font-display font-semibold text-xl tracking-tight text-ink">
           That channel isn’t here.
         </p>
         <p className="max-w-sm text-[15px] text-ink-2">

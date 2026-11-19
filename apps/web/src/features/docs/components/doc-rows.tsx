@@ -2,17 +2,10 @@
 
 import Link from "next/link";
 import { useMemo, type FC } from "react";
-import {
-  FileTextIcon,
-  CopyIcon,
-  FolderIcon,
-  SparklesIcon,
-  ExternalLinkIcon,
-} from "lucide-react";
+import { FileTextIcon, CopyIcon, FolderIcon, SparklesIcon } from "lucide-react";
 
 import { cn } from "@zentro/ui/lib/utils";
 import { toastSuccess } from "@zentro/ui/index";
-import { Button } from "@zentro/ui/shadcn/button";
 
 import { ActorAvatar } from "~/src/components/actor-avatar";
 import { StarButton } from "~/src/components/favorites/star-button";

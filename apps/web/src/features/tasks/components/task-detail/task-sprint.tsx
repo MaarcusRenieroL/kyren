@@ -2,6 +2,7 @@
 
 import { useTrpcClient } from "@zentro/api/react";
 import { toastError } from "@zentro/ui/index";
+import { NativeSelect } from "@zentro/ui/shadcn/native-select";
 
 import { useAsyncData } from "~/src/lib/use-async-data";
 
@@ -31,8 +32,8 @@ export function TaskSprint({
     <section aria-label="Sprint" className="tile px-[22px] py-[18px]">
       <label className="flex items-center justify-between gap-3 text-sm">
         <span className="font-semibold text-ink">Sprint</span>
-        <select
-          className="h-9 rounded-md border border-line bg-surface px-2 text-sm"
+        <NativeSelect
+          className="w-48"
           disabled={!canEdit}
           value={sprintId ?? ""}
           onChange={(event) => {
@@ -58,7 +59,7 @@ export function TaskSprint({
               {s.status === "active" ? " (running)" : ""}
             </option>
           ))}
-        </select>
+        </NativeSelect>
       </label>
     </section>
   );

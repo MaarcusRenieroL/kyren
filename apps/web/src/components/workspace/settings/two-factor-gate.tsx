@@ -1,9 +1,12 @@
 "use client";
 
+import Link from "next/link";
+
 import { authClient } from "@zentro/auth/client";
 import { Button } from "@zentro/ui/shadcn/button";
 
 import { TwoFactorSection } from "./two-factor-section";
+import { apiPath } from "~/src/lib/paths";
 
 /**
  * Shown to members of an organization that requires two-factor. It sits
@@ -12,7 +15,7 @@ import { TwoFactorSection } from "./two-factor-section";
 export function TwoFactorGate() {
   async function leave() {
     await authClient.signOut();
-    window.location.assign("/auth/sign-in");
+    window.location.assign(apiPath("/auth/sign-in"));
   }
 
   return (
@@ -31,7 +34,7 @@ export function TwoFactorGate() {
 
       <div className="flex gap-2">
         <Button asChild>
-          <a href="/dashboard">Continue to Zentro</a>
+          <Link href="/dashboard">Continue to Zentro</Link>
         </Button>
         <Button variant="outline" onClick={() => void leave()}>
           Sign out
