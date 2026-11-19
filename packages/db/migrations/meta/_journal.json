@@ -407,6 +407,181 @@
       "when": 1796500000000,
       "tag": "0057_platform",
       "breakpoints": true
+    },
+    {
+      "idx": 58,
+      "version": "7",
+      "when": 1796600000000,
+      "tag": "0058_payroll_approver",
+      "breakpoints": true
+    },
+    {
+      "idx": 59,
+      "version": "7",
+      "when": 1796700000000,
+      "tag": "0059_file_source_and_bonus_editor",
+      "breakpoints": true
+    },
+    {
+      "idx": 60,
+      "version": "7",
+      "when": 1796800000000,
+      "tag": "0060_pay_run_currency",
+      "breakpoints": true
+    },
+    {
+      "idx": 61,
+      "version": "7",
+      "when": 1796900000000,
+      "tag": "0061_auth_indexes",
+      "breakpoints": true
+    },
+    {
+      "idx": 62,
+      "version": "7",
+      "when": 1797000000000,
+      "tag": "0062_all_day_utc_dates",
+      "breakpoints": true
+    },
+    {
+      "idx": 63,
+      "version": "7",
+      "when": 1797100000000,
+      "tag": "0063_doc_versions",
+      "breakpoints": true
+    },
+    {
+      "idx": 64,
+      "version": "7",
+      "when": 1797200000000,
+      "tag": "0064_template_points",
+      "breakpoints": true
+    },
+    {
+      "idx": 65,
+      "version": "7",
+      "when": 1797300000000,
+      "tag": "0065_whiteboard_trash",
+      "breakpoints": true
+    },
+    {
+      "idx": 66,
+      "version": "7",
+      "when": 1797400000000,
+      "tag": "0066_ticket_assignment",
+      "breakpoints": true
+    },
+    {
+      "idx": 67,
+      "version": "7",
+      "when": 1797500000000,
+      "tag": "0067_annual_leave_allowance",
+      "breakpoints": true
+    },
+    {
+      "idx": 68,
+      "version": "7",
+      "when": 1797600000000,
+      "tag": "0068_compensation_history",
+      "breakpoints": true
+    },
+    {
+      "idx": 69,
+      "version": "7",
+      "when": 1797700000000,
+      "tag": "0069_calendar_repeat",
+      "breakpoints": true
+    },
+    {
+      "idx": 70,
+      "version": "7",
+      "when": 1797800000000,
+      "tag": "0070_off_cycle_runs",
+      "breakpoints": true
+    },
+    {
+      "idx": 71,
+      "version": "7",
+      "when": 1797900000000,
+      "tag": "0071_calendar_time_zone",
+      "breakpoints": true
+    },
+    {
+      "idx": 72,
+      "version": "7",
+      "when": 1798000000000,
+      "tag": "0072_member_unique",
+      "breakpoints": true
+    },
+    {
+      "idx": 73,
+      "version": "7",
+      "when": 1798100000000,
+      "tag": "0073_doc_comment_replies",
+      "breakpoints": true
+    },
+    {
+      "idx": 74,
+      "version": "7",
+      "when": 1798200000000,
+      "tag": "0074_leave_carry_over",
+      "breakpoints": true
+    },
+    {
+      "idx": 75,
+      "version": "7",
+      "when": 1798300000000,
+      "tag": "0075_file_folders",
+      "breakpoints": true
+    },
+    {
+      "idx": 76,
+      "version": "7",
+      "when": 1798400000000,
+      "tag": "0076_calendar_skipped",
+      "breakpoints": true
+    },
+    {
+      "idx": 77,
+      "version": "7",
+      "when": 1798500000000,
+      "tag": "0077_ticket_assignment_mode",
+      "breakpoints": true
+    },
+    {
+      "idx": 78,
+      "version": "7",
+      "when": 1798600000000,
+      "tag": "0078_doc_share",
+      "breakpoints": true
+    },
+    {
+      "idx": 79,
+      "version": "7",
+      "when": 1798700000000,
+      "tag": "0079_leave_accrual",
+      "breakpoints": true
+    },
+    {
+      "idx": 80,
+      "version": "7",
+      "when": 1798900000000,
+      "tag": "0080_mail_attachments",
+      "breakpoints": true
+    },
+    {
+      "idx": 81,
+      "version": "7",
+      "when": 1798910000000,
+      "tag": "0081_key_result_check_ins",
+      "breakpoints": true
+    },
+    {
+      "idx": 82,
+      "version": "7",
+      "when": 1798920000000,
+      "tag": "0082_kb_article_revisions",
+      "breakpoints": true
     }
   ]
 }

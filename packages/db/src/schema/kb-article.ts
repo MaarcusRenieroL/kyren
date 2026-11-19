@@ -48,3 +48,30 @@ export const kbArticles = pgTable(
     ),
   ],
 );
+
+/**
+ * An earlier version of an article, kept whenever an edit changes it: the
+ * content as it was, who wrote that version and when.
+ */
+export const kbArticleRevisions = pgTable(
+  "kbArticleRevision",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    articleId: uuid("articleId")
+      .notNull()
+      .references(() => kbArticles.id, { onDelete: "cascade" }),
+    title: text("title").notNull(),
+    body: text("body").notNull(),
+    status: text("status").notNull(),
+    audience: text("audience").notNull(),
+    editedByMemberId: uuid("editedByMemberId").references(() => members.id, {
+      onDelete: "set null",
+    }),
+    /** When this version was written (the article's updatedAt back then). */
+    editedAt: timestamp("editedAt").notNull(),
+    createdAt: timestamp("createdAt").notNull().defaultNow(),
+  },
+  (table) => [
+    index("kbArticleRevision_article_idx").on(table.articleId, table.createdAt),
+  ],
+);

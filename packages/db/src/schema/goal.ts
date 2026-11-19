@@ -72,3 +72,28 @@ export const keyResultTasks = pgTable(
   },
   (table) => [primaryKey({ columns: [table.keyResultId, table.taskId] })],
 );
+
+/**
+ * A dated progress report on a key result: the number at the time, how
+ * confident its owner was, and why.
+ */
+export const keyResultCheckIns = pgTable(
+  "keyResultCheckIn",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    keyResultId: uuid("keyResultId")
+      .notNull()
+      .references(() => keyResults.id, { onDelete: "cascade" }),
+    memberId: uuid("memberId").references(() => members.id, {
+      onDelete: "set null",
+    }),
+    value: doublePrecision("value").notNull(),
+    /** "on_track", "at_risk" or "off_track". */
+    confidence: text("confidence").notNull(),
+    note: text("note"),
+    createdAt: timestamp("createdAt").notNull().defaultNow(),
+  },
+  (table) => [
+    index("keyResultCheckIn_result_idx").on(table.keyResultId, table.createdAt),
+  ],
+);

@@ -1,5 +1,7 @@
+import { sql } from "drizzle-orm";
 import {
   type AnyPgColumn,
+  check,
   date,
   index,
   numeric,
@@ -40,11 +42,29 @@ export const employees = pgTable(
     status: text("status").notNull().default("active"),
     startDate: date("startDate", { mode: "string" }),
     endDate: date("endDate", { mode: "string" }),
+    /** Annual leave days per calendar year; null means no limit is kept. */
+    annualLeaveDays: numeric("annualLeaveDays", {
+      precision: 5,
+      scale: 1,
+      mode: "number",
+    }),
+    /** Most unused days that move on to the next year; null or 0 means none. */
+    /** "upfront": the year's allowance on 1 January; "monthly": a twelfth a month. */
+    annualLeaveAccrual: text("annualLeaveAccrual").notNull().default("upfront"),
+    annualLeaveCarryOverDays: numeric("annualLeaveCarryOverDays", {
+      precision: 5,
+      scale: 1,
+      mode: "number",
+    }),
 
     createdAt: timestamp("createdAt").notNull().defaultNow(),
     updatedAt: timestamp("updatedAt").notNull().defaultNow(),
   },
   (table) => [
+    check(
+      "employee_annual_leave_accrual_check",
+      sql`${table.annualLeaveAccrual} in ('upfront', 'monthly')`,
+    ),
     index("employee_organization_idx").on(table.organizationId),
     uniqueIndex("employee_member_unique").on(
       table.organizationId,

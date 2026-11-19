@@ -1,6 +1,7 @@
 import {
   boolean,
   index,
+  integer,
   pgTable,
   text,
   timestamp,
@@ -8,6 +9,7 @@ import {
 } from "drizzle-orm/pg-core";
 
 import { members, organizations } from "./auth";
+import { files } from "./file";
 
 /**
  * A message between people in an organization. A row with no `sentAt` is the
@@ -71,3 +73,22 @@ export const mailRecipients = pgTable(
 );
 
 export type MailMessage = typeof mailMessages.$inferSelect;
+
+/** Files attached to a message, in the order they were added. */
+export const mailAttachments = pgTable(
+  "mailAttachment",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    messageId: uuid("messageId")
+      .notNull()
+      .references(() => mailMessages.id, { onDelete: "cascade" }),
+    fileId: uuid("fileId")
+      .notNull()
+      .references(() => files.id, { onDelete: "cascade" }),
+    position: integer("position").notNull().default(0),
+  },
+  (table) => [
+    index("mail_attachment_message_idx").on(table.messageId),
+    index("mail_attachment_file_idx").on(table.fileId),
+  ],
+);

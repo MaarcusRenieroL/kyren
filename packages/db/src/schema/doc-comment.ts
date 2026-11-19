@@ -1,4 +1,11 @@
-import { index, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
+import {
+  type AnyPgColumn,
+  index,
+  pgTable,
+  text,
+  timestamp,
+  uuid,
+} from "drizzle-orm/pg-core";
 
 import { members, organizations } from "./auth";
 import { docs } from "./doc";
@@ -20,6 +27,11 @@ export const docComments = pgTable(
       onDelete: "set null",
     }),
 
+    /** The thread's first comment, for a reply; replies never nest deeper. */
+    parentId: uuid("parentId").references((): AnyPgColumn => docComments.id, {
+      onDelete: "cascade",
+    }),
+
     body: text("body").notNull(),
 
     resolvedAt: timestamp("resolvedAt"),
@@ -34,6 +46,7 @@ export const docComments = pgTable(
     ),
     index("doc_comment_author_idx").on(table.authorMemberId),
     index("doc_comment_resolved_idx").on(table.resolvedAt),
+    index("doc_comment_parent_idx").on(table.parentId),
   ],
 );
 

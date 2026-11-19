@@ -1,5 +1,6 @@
 import {
   boolean,
+  check,
   index,
   integer,
   pgTable,
@@ -153,6 +154,34 @@ export const ticketInbound = pgTable(
     uniqueIndex("ticket_inbound_message_unique").on(
       table.organizationId,
       table.messageId,
+    ),
+  ],
+);
+
+/**
+ * Who new tickets from the public desk (email and forms) go to: the next
+ * person in `memberIds` after `lastMemberId`, skipping anyone who is away.
+ */
+export const ticketAssignmentRules = pgTable(
+  "ticketAssignmentRule",
+  {
+    organizationId: uuid("organizationId")
+      .primaryKey()
+      .references(() => organizations.id, { onDelete: "cascade" }),
+    enabled: boolean("enabled").notNull().default(false),
+    memberIds: uuid("memberIds")
+      .array()
+      .notNull()
+      .default(sql`'{}'::uuid[]`),
+    lastMemberId: uuid("lastMemberId"),
+    /** "round_robin" takes turns; "least_open" picks whoever has fewest open tickets. */
+    mode: text("mode").notNull().default("round_robin"),
+    updatedAt: timestamp("updatedAt").notNull().defaultNow(),
+  },
+  (table) => [
+    check(
+      "ticketAssignmentRule_mode_check",
+      sql`${table.mode} in ('round_robin', 'least_open')`,
     ),
   ],
 );

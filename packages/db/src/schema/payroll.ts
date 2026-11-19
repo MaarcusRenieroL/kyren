@@ -38,6 +38,35 @@ export const compensations = pgTable(
   ],
 );
 
+/** Every salary an employee has had, newest last; `compensation` holds the current one. */
+export const compensationChanges = pgTable(
+  "compensationChange",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+
+    organizationId: uuid("organizationId")
+      .notNull()
+      .references(() => organizations.id, { onDelete: "cascade" }),
+    employeeId: uuid("employeeId")
+      .notNull()
+      .references(() => employees.id, { onDelete: "cascade" }),
+
+    annualSalary: integer("annualSalary").notNull(),
+    currency: text("currency").notNull(),
+    changedByMemberId: uuid("changedByMemberId").references(() => members.id, {
+      onDelete: "set null",
+    }),
+
+    createdAt: timestamp("createdAt").notNull().defaultNow(),
+  },
+  (table) => [
+    index("compensation_change_employee_idx").on(
+      table.employeeId,
+      table.createdAt,
+    ),
+  ],
+);
+
 /** One pay period. Moves draft → approved → paid and is then frozen. */
 export const payRuns = pgTable(
   "payRun",
@@ -56,21 +85,35 @@ export const payRuns = pgTable(
     periodEnd: date("periodEnd", { mode: "string" }).notNull(),
     /** Share of gross held back as tax and contributions, in basis points. */
     deductionRateBps: integer("deductionRateBps").notNull().default(2000),
+    /** A run pays one currency; each currency gets its own run per period. */
+    currency: text("currency").notNull(),
 
     status: text("status").notNull().default("draft"),
+    /** "regular" pays salaries for a period; "off_cycle" pays chosen people extra. */
+    kind: text("kind").notNull().default("regular"),
     approvedAt: timestamp("approvedAt"),
+    /** Who approved it; never the person who created the run. */
+    approvedByMemberId: uuid("approvedByMemberId").references(
+      () => members.id,
+      { onDelete: "set null" },
+    ),
     paidAt: timestamp("paidAt"),
 
     createdAt: timestamp("createdAt").notNull().defaultNow(),
   },
   (table) => [
     index("pay_run_organization_idx").on(table.organizationId),
-    // One run per period, so a double click or retry cannot pay twice.
-    uniqueIndex("pay_run_period_unique").on(
-      table.organizationId,
-      table.periodStart,
-      table.periodEnd,
-    ),
+    // One regular run per period, so a double click or retry cannot pay
+    // salaries twice. Off-cycle runs (corrections, one-off payments) may share
+    // a period with it.
+    uniqueIndex("pay_run_period_unique")
+      .on(
+        table.organizationId,
+        table.periodStart,
+        table.periodEnd,
+        table.currency,
+      )
+      .where(sql`${table.kind} = 'regular'`),
     check(
       "pay_run_rate_check",
       sql`${table.deductionRateBps} between 0 and 10000`,
@@ -102,6 +145,11 @@ export const payslips = pgTable(
     currency: text("currency").notNull().default("USD"),
     base: integer("base").notNull(),
     bonus: integer("bonus").notNull().default(0),
+    /** Who last set the bonus; they may not also approve the run. */
+    bonusSetByMemberId: uuid("bonusSetByMemberId").references(
+      () => members.id,
+      { onDelete: "set null" },
+    ),
     deductions: integer("deductions").notNull(),
     net: integer("net").notNull(),
   },

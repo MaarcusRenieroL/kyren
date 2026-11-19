@@ -37,6 +37,12 @@ export const docs = pgTable(
       onDelete: "set null",
     }),
 
+    /** A secret for the read-only public link; null when not shared. */
+    shareToken: text("shareToken"),
+    sharedAt: timestamp("sharedAt"),
+    sharedByMemberId: uuid("sharedByMemberId").references(() => members.id, {
+      onDelete: "set null",
+    }),
     archivedAt: timestamp("archivedAt"),
     deletedAt: timestamp("deletedAt"),
 
@@ -44,6 +50,7 @@ export const docs = pgTable(
     updatedAt: timestamp("updatedAt").notNull().defaultNow(),
   },
   (table) => [
+    uniqueIndex("doc_share_token_idx").on(table.shareToken),
     index("doc_organization_deleted_at_idx").on(
       table.organizationId,
       table.deletedAt,

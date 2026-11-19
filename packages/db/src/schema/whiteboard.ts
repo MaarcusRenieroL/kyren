@@ -25,6 +25,8 @@ export const whiteboards = pgTable(
     title: text("title").notNull(),
     elements: jsonb("elements").notNull().default([]),
 
+    /** Set when the board is moved to the trash; it can be restored. */
+    deletedAt: timestamp("deletedAt"),
     createdAt: timestamp("createdAt").notNull().defaultNow(),
     updatedAt: timestamp("updatedAt").notNull().defaultNow(),
   },

@@ -1,6 +1,8 @@
 import {
   bigint,
   boolean,
+  index,
+  uniqueIndex,
   integer,
   jsonb,
   pgTable,
@@ -23,23 +25,27 @@ export const users = pgTable("user", {
 });
 
 // Session table for Better Auth
-export const sessions = pgTable("session", {
-  id: uuid("id").defaultRandom().primaryKey(),
-  expiresAt: timestamp("expiresAt").notNull(),
-  token: text("token").notNull().unique(),
-  createdAt: timestamp("createdAt").notNull().defaultNow(),
-  updatedAt: timestamp("updatedAt").notNull().defaultNow(),
-  ipAddress: text("ipAddress"),
-  userAgent: text("userAgent"),
-  userId: uuid("userId")
-    .notNull()
-    .references(() => users.id, { onDelete: "cascade" }),
-  role: text("role"),
-  activeOrganizationId: uuid("activeOrganizationId").references(
-    () => organizations.id,
-    { onDelete: "set null" },
-  ),
-});
+export const sessions = pgTable(
+  "session",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    expiresAt: timestamp("expiresAt").notNull(),
+    token: text("token").notNull().unique(),
+    createdAt: timestamp("createdAt").notNull().defaultNow(),
+    updatedAt: timestamp("updatedAt").notNull().defaultNow(),
+    ipAddress: text("ipAddress"),
+    userAgent: text("userAgent"),
+    userId: uuid("userId")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    role: text("role"),
+    activeOrganizationId: uuid("activeOrganizationId").references(
+      () => organizations.id,
+      { onDelete: "set null" },
+    ),
+  },
+  (table) => [index("session_user_idx").on(table.userId)],
+);
 
 export const organizations = pgTable("organization", {
   id: uuid("id").defaultRandom().primaryKey(),
@@ -72,51 +78,73 @@ export const organizations = pgTable("organization", {
   updatedAt: timestamp("updatedAt").notNull().defaultNow(),
 });
 
-export const members = pgTable("member", {
-  id: uuid("id").defaultRandom().primaryKey(),
-  organizationId: uuid("organizationId")
-    .notNull()
-    .references(() => organizations.id, { onDelete: "cascade" }),
-  userId: uuid("userId")
-    .notNull()
-    .references(() => users.id, { onDelete: "cascade" }),
-  role: text("role").notNull().default("member"),
-  createdAt: timestamp("createdAt").notNull().defaultNow(),
-});
+export const members = pgTable(
+  "member",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    organizationId: uuid("organizationId")
+      .notNull()
+      .references(() => organizations.id, { onDelete: "cascade" }),
+    userId: uuid("userId")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    role: text("role").notNull().default("member"),
+    createdAt: timestamp("createdAt").notNull().defaultNow(),
+  },
+  (table) => [
+    // One membership per person per organization; requests look it up here.
+    uniqueIndex("member_org_user_unique").on(
+      table.organizationId,
+      table.userId,
+    ),
+    index("member_user_idx").on(table.userId),
+  ],
+);
 
-export const invitations = pgTable("invitation", {
-  id: uuid("id").defaultRandom().primaryKey(),
-  organizationId: uuid("organizationId")
-    .notNull()
-    .references(() => organizations.id, { onDelete: "cascade" }),
-  email: text("email").notNull(),
-  role: text("role").notNull(),
-  status: text("status").notNull().default("pending"),
-  expiresAt: timestamp("expiresAt"),
-  createdAt: timestamp("createdAt").notNull().defaultNow(),
-  inviterId: uuid("inviterId")
-    .notNull()
-    .references(() => users.id, { onDelete: "cascade" }),
-});
+export const invitations = pgTable(
+  "invitation",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    organizationId: uuid("organizationId")
+      .notNull()
+      .references(() => organizations.id, { onDelete: "cascade" }),
+    email: text("email").notNull(),
+    role: text("role").notNull(),
+    status: text("status").notNull().default("pending"),
+    expiresAt: timestamp("expiresAt"),
+    createdAt: timestamp("createdAt").notNull().defaultNow(),
+    inviterId: uuid("inviterId")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+  },
+  (table) => [
+    index("invitation_org_idx").on(table.organizationId),
+    index("invitation_email_idx").on(table.email),
+  ],
+);
 
 // Account table for Better Auth (OAuth providers)
-export const accounts = pgTable("account", {
-  id: uuid("id").defaultRandom().primaryKey(),
-  accountId: text("accountId").notNull(),
-  providerId: text("providerId").notNull(),
-  userId: uuid("userId")
-    .notNull()
-    .references(() => users.id, { onDelete: "cascade" }),
-  accessToken: text("accessToken"),
-  refreshToken: text("refreshToken"),
-  idToken: text("idToken"),
-  accessTokenExpiresAt: timestamp("accessTokenExpiresAt"),
-  refreshTokenExpiresAt: timestamp("refreshTokenExpiresAt"),
-  scope: text("scope"),
-  password: text("password"),
-  createdAt: timestamp("createdAt").notNull().defaultNow(),
-  updatedAt: timestamp("updatedAt").notNull().defaultNow(),
-});
+export const accounts = pgTable(
+  "account",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    accountId: text("accountId").notNull(),
+    providerId: text("providerId").notNull(),
+    userId: uuid("userId")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    accessToken: text("accessToken"),
+    refreshToken: text("refreshToken"),
+    idToken: text("idToken"),
+    accessTokenExpiresAt: timestamp("accessTokenExpiresAt"),
+    refreshTokenExpiresAt: timestamp("refreshTokenExpiresAt"),
+    scope: text("scope"),
+    password: text("password"),
+    createdAt: timestamp("createdAt").notNull().defaultNow(),
+    updatedAt: timestamp("updatedAt").notNull().defaultNow(),
+  },
+  (table) => [index("account_user_idx").on(table.userId)],
+);
 
 // Verification table for Better Auth
 export const verifications = pgTable("verification", {

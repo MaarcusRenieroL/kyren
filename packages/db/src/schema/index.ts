@@ -5,6 +5,7 @@ export * from "./task-activity";
 export * from "./task-comment";
 export * from "./doc";
 export * from "./doc-comment";
+export * from "./doc-version";
 export * from "./team";
 export * from "./organization-module";
 export * from "./permissions";
