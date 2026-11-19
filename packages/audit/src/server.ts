@@ -42,18 +42,38 @@ function shorten(value: string | null | undefined, max: number) {
 }
 
 /**
- * Reads the client address and user agent from the request headers. The
- * address is the first `x-forwarded-for` entry, so it is only trustworthy
- * behind a proxy that overwrites that header.
+ * The headers a client's address is read from, in order. Only a header the
+ * proxy in front of Zentro sets itself (and overwrites) can be trusted: on
+ * Vercel that is the platform's own pair; behind your own proxy, set
+ * `CLIENT_IP_HEADERS=x-real-ip` and have the proxy write `X-Real-IP`.
  */
+export function clientIpHeaders() {
+  const configured = process.env.CLIENT_IP_HEADERS?.split(",")
+    .map((name) => name.trim().toLowerCase())
+    .filter(Boolean);
+
+  return configured?.length
+    ? configured
+    : ["x-vercel-forwarded-for", "x-forwarded-for", "x-real-ip"];
+}
+
+/** The client's address from the trusted headers (a list's first entry). */
+export function clientIpFrom(headers: Headers | undefined | null) {
+  for (const name of clientIpHeaders()) {
+    const value = headers?.get(name)?.split(",")[0]?.trim();
+
+    if (value) return value;
+  }
+
+  return null;
+}
+
 export function requestContextFromHeaders(
   headers: Headers | undefined | null,
   requestId?: string,
 ): AuditRequestContext {
-  const forwarded = headers?.get("x-forwarded-for")?.split(",")[0]?.trim();
-
   return {
-    ip: forwarded || headers?.get("x-real-ip") || null,
+    ip: clientIpFrom(headers),
     userAgent: shorten(headers?.get("user-agent"), maxUserAgentLength),
     requestId: requestId ?? null,
   };

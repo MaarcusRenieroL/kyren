@@ -20,9 +20,13 @@ FROM base AS deps
 COPY pnpm-lock.yaml pnpm-workspace.yaml package.json ./
 COPY apps/web/package.json apps/web/package.json
 COPY packages/api/package.json packages/api/package.json
+COPY packages/audit/package.json packages/audit/package.json
 COPY packages/auth/package.json packages/auth/package.json
 COPY packages/db/package.json packages/db/package.json
 COPY packages/eslint-config/package.json packages/eslint-config/package.json
+COPY packages/modules/package.json packages/modules/package.json
+COPY packages/permissions/package.json packages/permissions/package.json
+COPY packages/test-utils/package.json packages/test-utils/package.json
 COPY packages/typescript-config/package.json packages/typescript-config/package.json
 COPY packages/ui/package.json packages/ui/package.json
 COPY packages/utils/package.json packages/utils/package.json
@@ -57,7 +61,10 @@ ENV NODE_ENV=production \
     NEXT_TELEMETRY_DISABLED=1 \
     HOSTNAME=0.0.0.0
 WORKDIR /repo
-RUN addgroup -S app && adduser -S app -G app
+RUN addgroup -S app && adduser -S app -G app \
+    && mkdir -p /data/uploads && chown -R app:app /data
+# Uploaded files live on a volume mounted here (FILE_STORAGE_DIR).
+ENV FILE_STORAGE_DIR=/data/uploads
 COPY --from=build --chown=app:app /repo/apps/web/.next/standalone ./
 COPY --from=build --chown=app:app /repo/apps/web/.next/static ./apps/web/.next/static
 COPY --from=build --chown=app:app /repo/apps/web/public ./apps/web/public

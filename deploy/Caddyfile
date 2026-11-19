@@ -1,0 +1,12 @@
+# HTTPS for Zentro; Caddy gets and renews the certificate for {$DOMAIN}.
+{$DOMAIN} {
+	encode zstd gzip
+
+	reverse_proxy web:3000 {
+		# The client's real address, from the connection itself. Address
+		# headers a client sent are dropped, so they can't be spoofed.
+		header_up X-Real-IP {remote_host}
+		header_up -X-Forwarded-For
+		header_up -X-Vercel-Forwarded-For
+	}
+}

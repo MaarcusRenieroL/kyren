@@ -1,0 +1,114 @@
+# Zentro on one VM: Postgres, migrations, the app, a cron runner and Caddy
+# for HTTPS. From the repo root:
+#   docker compose -f deploy/docker-compose.prod.yml --env-file deploy/.env --profile db up -d --build
+# Leave out `--profile db` and set DATABASE_URL to use an outside database
+# (for example Neon). See deploy/README.md.
+
+name: zentro-prod
+
+x-app-env: &app-env
+  DATABASE_URL: ${DATABASE_URL:-postgres://zentro:${POSTGRES_PASSWORD:-}@db:5432/zentro}
+  BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET:?set BETTER_AUTH_SECRET (32+ characters)}
+  BETTER_AUTH_URL: https://${DOMAIN:?set DOMAIN}
+  NEXT_PUBLIC_BASE_URL: https://${DOMAIN}
+  RESEND_API_KEY: ${RESEND_API_KEY:?set RESEND_API_KEY}
+  EMAIL_FROM: ${EMAIL_FROM:-}
+  CRON_SECRET: ${CRON_SECRET:?set CRON_SECRET}
+  FIELD_ENCRYPTION_KEY: ${FIELD_ENCRYPTION_KEY:?set FIELD_ENCRYPTION_KEY}
+  ORGANIZATIONS_PER_PERSON: ${ORGANIZATIONS_PER_PERSON:-10}
+  ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+  ERROR_WEBHOOK_URL: ${ERROR_WEBHOOK_URL:-}
+  # Files go on the uploads volume unless FILE_STORAGE=s3 and S3_* are set.
+  FILE_STORAGE: ${FILE_STORAGE:-local}
+  FILE_STORAGE_DIR: /data/uploads
+  S3_BUCKET: ${S3_BUCKET:-}
+  S3_REGION: ${S3_REGION:-}
+  S3_ENDPOINT: ${S3_ENDPOINT:-}
+  S3_ACCESS_KEY_ID: ${S3_ACCESS_KEY_ID:-}
+  S3_SECRET_ACCESS_KEY: ${S3_SECRET_ACCESS_KEY:-}
+  # Caddy writes X-Real-IP from the real connection and drops any address
+  # headers a client sent, so only that one is trusted.
+  CLIENT_IP_HEADERS: x-real-ip
+
+services:
+  db:
+    image: postgres:17-alpine
+    profiles: [db]
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: zentro
+      POSTGRES_USER: zentro
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U zentro -d zentro"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  migrate:
+    build:
+      context: ..
+      target: migrator
+    environment:
+      DATABASE_URL: ${DATABASE_URL:-postgres://zentro:${POSTGRES_PASSWORD:-}@db:5432/zentro}
+    restart: "no"
+    depends_on:
+      # Waits for the bundled database when it runs; ignored with an outside one.
+      db:
+        condition: service_healthy
+        required: false
+
+  web:
+    build:
+      context: ..
+      args:
+        NEXT_PUBLIC_BASE_URL: https://${DOMAIN}
+    environment:
+      <<: *app-env
+      PORT: "3000"
+    volumes:
+      - uploads:/data/uploads
+    restart: unless-stopped
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:3000/api/health >/dev/null || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+  # Background work every minute (scheduled messages, reminders, recurring
+  # tasks, queued emails, webhooks); the heavy sweeps once a day at 03:00 UTC.
+  cron:
+    build:
+      context: ./cron
+    restart: unless-stopped
+    environment:
+      CRON_SECRET: ${CRON_SECRET}
+      CRON_URL: http://web:3000/api/cron/chat
+    depends_on:
+      - web
+
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      DOMAIN: ${DOMAIN}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - web
+
+volumes:
+  pgdata:
+  uploads:
+  caddy_data:
+  caddy_config:
