@@ -158,6 +158,49 @@ async function skipDay(
   }
 }
 
+/** The calendar day before `day` (both YYYY-MM-DD). */
+function dayBefore(day: string) {
+  const date = new Date(`${day}T00:00:00Z`);
+
+  date.setUTCDate(date.getUTCDate() - 1);
+
+  return date.toISOString().slice(0, 10);
+}
+
+/**
+ * Stops a series before `day`, so that day and the ones after leave it. Only
+ * if the series still reached that day: two splits at the same moment can't
+ * both cut it (the second finds it already ended).
+ */
+async function endSeriesBefore(
+  tx: Pick<OrganizationContext["db"], "update">,
+  id: string,
+  day: string,
+) {
+  const [row] = await tx
+    .update(calendarEvents)
+    .set({ repeatUntil: dayBefore(day), updatedAt: new Date() })
+    .where(
+      and(
+        eq(calendarEvents.id, id),
+        or(
+          isNull(calendarEvents.repeatUntil),
+          sql`${calendarEvents.repeatUntil} >= ${day}::date`,
+        ),
+      ),
+    )
+    .returning({ skipped: calendarEvents.skipped });
+
+  if (!row) {
+    throw new TRPCError({
+      code: "CONFLICT",
+      message: "That event has already been changed.",
+    });
+  }
+
+  return row;
+}
+
 async function manageable(ctx: OrganizationContext, id: string) {
   const memberId = await currentMemberId(ctx);
   const [event] = await ctx.db
@@ -431,6 +474,108 @@ export const calendarRouter = router({
       });
 
       return { id };
+    }),
+
+  /**
+   * Changes an occurrence and every one after it: the series stops the day
+   * before, and a new series with the new details carries on from there.
+   * From the first occurrence it is the same as changing the whole series.
+   */
+  splitSeries: procedure(
+    "calendar.view",
+    ["calendar.event_updated", "calendar.event_created"],
+    ["calendar.manage_own", "calendar.manage_any"],
+  )
+    .input(z.object({ id: uuid, startsAt: z.coerce.date(), data: eventInput }))
+    .mutation(async ({ ctx, input }) => {
+      const event = await manageable(ctx, input.id);
+      const day = assertOccurrence(event, input.startsAt);
+      const data = { ...input.data, timeZone: undefined };
+
+      assertUntil(data, event.timeZone);
+
+      if (day === occurrenceDay(event, event.startsAt)) {
+        await ctx.db.transaction(async (tx) => {
+          await tx
+            .update(calendarEvents)
+            .set({ ...data, updatedAt: new Date() })
+            .where(eq(calendarEvents.id, event.id));
+          await ctx.audit.record(tx, {
+            action: "calendar.event_updated",
+            target: { id: event.id, label: input.data.title },
+          });
+        });
+
+        return { id: event.id };
+      }
+
+      const id = await ctx.db.transaction(async (tx) => {
+        const ended = await endSeriesBefore(tx, event.id, day);
+        const [row] = await tx
+          .insert(calendarEvents)
+          .values({
+            ...data,
+            timeZone: event.timeZone,
+            // Days already taken out of the series stay out.
+            skipped: ended.skipped.filter((skipped) => skipped >= day),
+            organizationId: ctx.activeOrganization.id,
+            createdByMemberId: event.createdByMemberId,
+          })
+          .returning({ id: calendarEvents.id });
+
+        await ctx.audit.record(tx, {
+          action: "calendar.event_updated",
+          target: { id: event.id, label: event.title },
+          metadata: { endsBefore: day, continuedBy: row!.id },
+        });
+        await ctx.audit.record(tx, {
+          action: "calendar.event_created",
+          target: { id: row!.id, label: input.data.title },
+        });
+
+        return row!.id;
+      });
+
+      return { id };
+    }),
+
+  /**
+   * Deletes an occurrence and every one after it. From the first occurrence
+   * that is the whole series.
+   */
+  endSeries: procedure(
+    "calendar.view",
+    ["calendar.event_updated", "calendar.event_deleted"],
+    ["calendar.manage_own", "calendar.manage_any"],
+  )
+    .input(z.object({ id: uuid, startsAt: z.coerce.date() }))
+    .mutation(async ({ ctx, input }) => {
+      const event = await manageable(ctx, input.id);
+      const day = assertOccurrence(event, input.startsAt);
+      const first = day === occurrenceDay(event, event.startsAt);
+
+      await ctx.db.transaction(async (tx) => {
+        if (first) {
+          await tx
+            .delete(calendarEvents)
+            .where(eq(calendarEvents.id, event.id));
+          await ctx.audit.record(tx, {
+            action: "calendar.event_deleted",
+            target: { id: event.id, label: event.title },
+          });
+
+          return;
+        }
+
+        await endSeriesBefore(tx, event.id, day);
+        await ctx.audit.record(tx, {
+          action: "calendar.event_updated",
+          target: { id: event.id, label: event.title },
+          metadata: { endsBefore: day },
+        });
+      });
+
+      return { id: event.id };
     }),
 
   remove: procedure(

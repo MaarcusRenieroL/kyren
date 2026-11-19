@@ -67,6 +67,8 @@ export type EventDraft = {
   occurrence?: Occurrence;
   /** Saving makes this one occurrence an event of its own. */
   detachFrom?: Occurrence;
+  /** Saving changes this occurrence and every one after it. */
+  splitFrom?: Occurrence;
 };
 
 /** One occurrence of a series: the series and that occurrence's own dates. */
@@ -88,6 +90,9 @@ type Props = {
   /** Changes only the opened occurrence of a series. */
   onEditOne?: (occurrence: Occurrence) => void;
   onDeleteOne?: (occurrence: Occurrence) => Promise<void>;
+  /** Changes the opened occurrence and the ones after it. */
+  onEditFollowing?: (occurrence: Occurrence) => void;
+  onDeleteFollowing?: (occurrence: Occurrence) => Promise<void>;
 };
 
 export function EventDialog({
@@ -99,13 +104,21 @@ export function EventDialog({
   onDelete,
   onEditOne,
   onDeleteOne,
+  onEditFollowing,
+  onDeleteFollowing,
 }: Props) {
   return (
     <Dialog open={draft !== null} onOpenChange={(open) => !open && onClose()}>
       <DialogContent>
         {draft ? (
           <EventForm
-            key={draft.id ?? draft.detachFrom?.startsAt ?? "new"}
+            key={
+              draft.id ??
+              draft.detachFrom?.startsAt ??
+              (draft.splitFrom
+                ? `following-${draft.splitFrom.startsAt}`
+                : "new")
+            }
             draft={draft}
             readOnly={readOnly}
             createdBy={createdBy}
@@ -114,6 +127,8 @@ export function EventDialog({
             onDelete={onDelete}
             onEditOne={onEditOne}
             onDeleteOne={onDeleteOne}
+            onEditFollowing={onEditFollowing}
+            onDeleteFollowing={onDeleteFollowing}
           />
         ) : null}
       </DialogContent>
@@ -130,6 +145,8 @@ function EventForm({
   onDelete,
   onEditOne,
   onDeleteOne,
+  onEditFollowing,
+  onDeleteFollowing,
 }: Omit<Props, "draft"> & { draft: EventDraft }) {
   const [title, setTitle] = useState(draft.title);
   const [description, setDescription] = useState(draft.description ?? "");
@@ -188,6 +205,7 @@ function EventForm({
         repeat: repeat || null,
         repeatUntil: repeat && until ? until : null,
         detachFrom: draft.detachFrom,
+        splitFrom: draft.splitFrom,
       });
     } catch (err) {
       setError(
@@ -205,9 +223,11 @@ function EventForm({
             ? "Event"
             : draft.detachFrom
               ? "Edit this event only"
-              : draft.id
-                ? "Edit event"
-                : "New event"}
+              : draft.splitFrom
+                ? "Edit this and following events"
+                : draft.id
+                  ? "Edit event"
+                  : "New event"}
         </DialogTitle>
         <DialogDescription>
           {createdBy
@@ -332,7 +352,8 @@ function EventForm({
       {draft.occurrence && !readOnly ? (
         <div className="flex flex-col gap-2 rounded-md border border-line p-3 text-sm">
           <p className="text-ink-2">
-            This event repeats. Saving here changes every event in the series.
+            This event repeats. Saving here changes every event in the series;
+            the buttons below change only part of it.
           </p>
           <div className="flex flex-wrap gap-2">
             {onEditOne ? (
@@ -365,6 +386,38 @@ function EventForm({
                 }}
               >
                 Delete only this event
+              </Button>
+            ) : null}
+            {onEditFollowing ? (
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                disabled={busy}
+                onClick={() => onEditFollowing(draft.occurrence!)}
+              >
+                Edit this and following
+              </Button>
+            ) : null}
+            {onDeleteFollowing ? (
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                disabled={busy}
+                onClick={async () => {
+                  setBusy(true);
+                  try {
+                    await onDeleteFollowing(draft.occurrence!);
+                  } catch (err) {
+                    setError(
+                      err instanceof Error ? err.message : "Could not delete.",
+                    );
+                    setBusy(false);
+                  }
+                }}
+              >
+                Delete this and following
               </Button>
             ) : null}
           </div>

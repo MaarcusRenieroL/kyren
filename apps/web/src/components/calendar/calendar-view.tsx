@@ -274,7 +274,13 @@ export function CalendarView() {
     };
 
     try {
-      if (value.detachFrom) {
+      if (value.splitFrom) {
+        await trpc.calendar.splitSeries.mutate({
+          id: value.splitFrom.seriesId,
+          startsAt: value.splitFrom.startsAt,
+          data,
+        });
+      } else if (value.detachFrom) {
         await trpc.calendar.detachOccurrence.mutate({
           id: value.detachFrom.seriesId,
           startsAt: value.detachFrom.startsAt,
@@ -293,7 +299,9 @@ export function CalendarView() {
 
     setDraft(null);
     toast.success(
-      value.id || value.detachFrom ? "Event updated" : "Event added",
+      value.id || value.detachFrom || value.splitFrom
+        ? "Event updated"
+        : "Event added",
     );
     await load();
   }
@@ -312,6 +320,36 @@ export function CalendarView() {
       occurrence: undefined,
       detachFrom: occurrence,
     });
+  }
+
+  /** Reopens the editor on this occurrence; saving changes it and the rest. */
+  function editFollowing(occurrence: Occurrence) {
+    if (!draft) return;
+
+    setDraft({
+      ...draft,
+      id: undefined,
+      startsAt: occurrence.shownStartsAt,
+      endsAt: occurrence.shownEndsAt,
+      occurrence: undefined,
+      splitFrom: occurrence,
+    });
+  }
+
+  async function deleteFollowing(occurrence: Occurrence) {
+    if (
+      !window.confirm("Delete this event and every one after it in the series?")
+    ) {
+      return;
+    }
+
+    await trpc.calendar.endSeries.mutate({
+      id: occurrence.seriesId,
+      startsAt: occurrence.startsAt,
+    });
+    setDraft(null);
+    toast.success("Events deleted");
+    await load();
   }
 
   async function deleteOne(occurrence: Occurrence) {
@@ -496,6 +534,8 @@ export function CalendarView() {
         onSave={save}
         onEditOne={editOne}
         onDeleteOne={deleteOne}
+        onEditFollowing={editFollowing}
+        onDeleteFollowing={deleteFollowing}
         onDelete={async (id) => {
           try {
             await remove(id);

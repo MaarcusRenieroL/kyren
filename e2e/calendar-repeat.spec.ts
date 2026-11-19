@@ -97,3 +97,65 @@ test("one event in a series can be deleted or changed on its own @calendar", asy
     [null, 0],
   ]);
 });
+
+test("an event and the ones after it can be changed or deleted together @calendar", async ({
+  page,
+}) => {
+  const orgName = uniqueName("Repeat following org");
+
+  await registerWithOrganization(page, { label: "repeat-following", orgName });
+  await page.goto("/calendar");
+
+  const title = uniqueName("Planning");
+  const renamed = uniqueName("Planning v2");
+
+  await page.getByRole("button", { name: "New event" }).first().click();
+
+  const dialog = page.getByRole("dialog");
+
+  await dialog.getByLabel("Title").fill(title);
+  await dialog.getByLabel("Repeats").selectOption("weekly");
+  await dialog.getByRole("button", { name: "Save" }).click();
+  await expect(dialog).toBeHidden();
+
+  // Next month holds four or five; change the second and the rest. Each
+  // title ends in its own unique suffix, so neither matches the other.
+  await page.getByRole("button", { name: "Next" }).click();
+
+  const main = page.getByRole("main");
+  const count = (text: string) => () => main.getByText(text).count();
+
+  await expect.poll(count(title)).toBeGreaterThanOrEqual(4);
+  const total = await count(title)();
+
+  await main.getByText(title).nth(1).click();
+  await dialog.getByRole("button", { name: "Edit this and following" }).click();
+  await expect(
+    dialog.getByRole("heading", { name: "Edit this and following events" }),
+  ).toBeVisible();
+  await dialog.getByLabel("Title").fill(renamed);
+  await dialog.getByRole("button", { name: "Save" }).click();
+  await expect(dialog).toBeHidden();
+
+  await expect.poll(count(title)).toBe(1);
+  await expect.poll(count(renamed)).toBe(total - 1);
+
+  // Delete from the renamed series' second event on.
+  page.once("dialog", (prompt) => void prompt.accept());
+  await main.getByText(renamed).nth(1).click();
+  await dialog
+    .getByRole("button", { name: "Delete this and following" })
+    .click();
+  await expect(dialog).toBeHidden();
+  await expect.poll(count(renamed)).toBe(1);
+
+  const rows = await query<{ title: string; until: string | null }>(
+    `select e.title, e."repeatUntil"::text as until
+       from "calendarEvent" e join organization o on o.id = e."organizationId"
+      where o.name = $1 order by e."createdAt"`,
+    [orgName],
+  );
+
+  expect(rows).toHaveLength(2);
+  expect(rows.every((row) => row.until !== null)).toBe(true);
+});
