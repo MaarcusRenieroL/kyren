@@ -79,7 +79,30 @@ psql "$DATABASE_URL" -c 'select "organizationId","userId",count(*) from member g
 
 Merge any rows it prints, then start as above.
 
-## 5. Backups (encrypted, off this machine)
+## 5. Email that arrives
+
+Sign-up, verification, password reset, two-factor codes and invitations all
+go through Resend. Without these records, mail lands in spam or is refused.
+
+1. In Resend, add your domain (or a subdomain such as `mail.example.com`) and
+   copy the DNS records it shows into your DNS provider:
+   - **SPF** — a `TXT` record allowing Resend to send for the domain.
+   - **DKIM** — the `TXT`/`CNAME` records Resend generates (signing key).
+   - **DMARC** — a `TXT` record at `_dmarc.your-domain`, starting with
+     `v=DMARC1; p=none; rua=mailto:dmarc@your-domain` and moving to
+     `p=quarantine` once reports look clean.
+2. Wait until Resend shows the domain as verified, then set `EMAIL_FROM` to an
+   address on it, e.g. `Zentro <no-reply@mail.example.com>`.
+3. **Bounces and spam complaints:** in Resend → Webhooks, add
+   `https://$DOMAIN/api/email/events` for the `email.bounced` and
+   `email.complained` events and put its signing secret in
+   `RESEND_WEBHOOK_SECRET`. Addresses that bounce hard or complain are then
+   never emailed again, which keeps your sending reputation (and Resend's
+   limits) intact.
+4. Invitations are capped at 100 per organization per hour and 3 per address
+   per day, so no one can use Zentro to flood an inbox.
+
+## 6. Backups (encrypted, off this machine)
 
 The `backup` service dumps the database and the uploaded files every night
 (02:30 UTC), encrypts them with [age](https://age-encryption.org) and copies
@@ -133,7 +156,7 @@ into a brand-new Postgres 17 container; every table's row count matched, in
 under a minute end to end. Repeat the drill on a fresh VM after launch and
 whenever the data grows tenfold, and write the time down here.
 
-## 6. Monitoring and alerts
+## 7. Monitoring and alerts
 
 Set `ALERT_WEBHOOK_URL` in `deploy/.env` (a Slack or Discord incoming webhook,
 or any URL that accepts `{"text": "..."}`). Then:
@@ -151,7 +174,7 @@ or any URL that accepts `{"text": "..."}`). Then:
   checker you control (a second machine with `curl` in cron, or a monitoring
   service) at `https://$DOMAIN/api/health`, which answers only ok or not.
 
-## 7. Updates and rollback
+## 8. Updates and rollback
 
 ```bash
 deploy/update.sh      # backup first, pull, build a tagged image, migrate, restart

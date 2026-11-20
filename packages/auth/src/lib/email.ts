@@ -4,9 +4,42 @@ import { authEnv } from "./env";
 import { Invitation, Organization } from "better-auth/plugins";
 import { User } from "better-auth";
 
+import { db } from "@zentro/db";
+import { inArray } from "@zentro/db/drizzle";
+import { emailSuppressions } from "@zentro/db/schema";
+
 import { escapeHtml } from "./html";
 
 const resend = new Resend(authEnv.RESEND_API_KEY);
+
+type Message = Parameters<typeof resend.emails.send>[0];
+
+/**
+ * Sends through Resend, except to addresses that bounced or reported spam
+ * (see the email events webhook): mailing them again harms deliverability.
+ */
+async function send(message: Message) {
+  const recipients = (
+    Array.isArray(message.to) ? message.to : [message.to]
+  ).map((address) => address.toLowerCase());
+  const blocked = await db
+    .select({ email: emailSuppressions.email })
+    .from(emailSuppressions)
+    .where(inArray(emailSuppressions.email, recipients));
+
+  if (blocked.length === recipients.length) {
+    console.warn(
+      JSON.stringify({ level: "warn", scope: "email", skipped: "suppressed" }),
+    );
+    return;
+  }
+
+  const allowed = recipients.filter(
+    (address) => !blocked.some((row) => row.email === address),
+  );
+
+  await resend.emails.send({ ...message, to: allowed } as Message);
+}
 
 function getAppUrl() {
   return (process.env.BETTER_AUTH_URL ?? "http://localhost:3000").replace(
@@ -16,7 +49,7 @@ function getAppUrl() {
 }
 
 export async function sendVerificationEmail(email: string, otp: string) {
-  await resend.emails.send({
+  await send({
     from: authEnv.EMAIL_FROM,
     to: email,
     subject: "Verify your email",
@@ -56,7 +89,7 @@ export async function sendVerificationEmail(email: string, otp: string) {
 }
 
 export async function sendForgotPasswordEmail(email: string, resetUrl: string) {
-  await resend.emails.send({
+  await send({
     from: authEnv.EMAIL_FROM,
     to: email,
     subject: "Reset your password",
@@ -142,7 +175,7 @@ export async function sendOrgInviteEmail(
     ? invitation.role.charAt(0).toUpperCase() + invitation.role.slice(1)
     : "Member";
 
-  await resend.emails.send({
+  await send({
     from: authEnv.EMAIL_FROM,
     to: invitation.email,
     subject: `You're invited to join ${organizationName} on Zentro`,
@@ -211,7 +244,7 @@ export async function sendNewSignInEmail(
   email: string,
   details: { browser: string; ip: string | null; when: Date },
 ) {
-  await resend.emails.send({
+  await send({
     from: authEnv.EMAIL_FROM,
     to: email,
     subject: "New sign-in to your account",
@@ -286,7 +319,7 @@ export async function sendMeetingEmail(mail: {
           url,
         });
 
-  await resend.emails.send({
+  await send({
     from: authEnv.EMAIL_FROM,
     to: mail.to,
     subject: `${headline}: ${mail.title.slice(0, 120)}`,
@@ -333,7 +366,7 @@ export async function sendChatMentionEmail(mail: {
   excerpt: string;
   path: string;
 }) {
-  await resend.emails.send({
+  await send({
     from: authEnv.EMAIL_FROM,
     to: mail.to,
     subject: `${mail.author} mentioned you in ${mail.conversation}`.slice(
@@ -366,7 +399,7 @@ export async function sendTicketReplyEmail(mail: {
   path: string;
   autoSubmitted?: "auto-replied" | "auto-generated";
 }) {
-  await resend.emails.send({
+  await send({
     from: authEnv.EMAIL_FROM,
     to: mail.to,
     subject: mail.subject.slice(0, 200),

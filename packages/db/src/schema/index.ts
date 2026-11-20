@@ -39,3 +39,4 @@ export * from "./meeting";
 export * from "./running-timer";
 export * from "./goal";
 export * from "./ticket-reply";
+export * from "./email-suppression";
