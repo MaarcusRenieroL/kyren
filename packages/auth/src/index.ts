@@ -284,7 +284,8 @@ export const auth = betterAuth({
       "/sign-in/email": { window: 60, max: 10 },
       "/two-factor/verify-totp": { window: 60, max: 20 },
       "/two-factor/verify-backup-code": { window: 60, max: 20 },
-      "/sign-up/email": { window: 60, max: 5 },
+      // Room for an office joining from one network, not for bulk sign-ups.
+      "/sign-up/email": { window: 3600, max: 20 },
       "/request-password-reset": { window: 60, max: 3 },
       "/email-otp/send-verification-otp": { window: 60, max: 3 },
       "/email-otp/verify-email": { window: 60, max: 5 },
