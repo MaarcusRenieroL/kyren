@@ -7,6 +7,7 @@ import { maintenanceResponse } from "~/src/lib/maintenance";
 import { BodyTooLargeError, readLimited } from "~/src/lib/read-limited";
 import { verifiedMimeType } from "~/src/lib/file-type";
 import { newStorageKey, storage } from "~/src/lib/storage";
+import { scanUpload } from "~/src/lib/virus-scan";
 
 export const runtime = "nodejs";
 
@@ -124,6 +125,32 @@ export async function POST(request: Request) {
     const mimeType = verifiedMimeType(bytes, file.type);
     const key = newStorageKey(ctx.activeOrganization!.id, file.name);
     const { width, height } = imageSize(bytes, mimeType);
+    const scan = await scanUpload(bytes).catch((error: unknown) => {
+      console.error("Virus scan failed", error);
+
+      return "unavailable" as const;
+    });
+
+    if (scan === "unavailable") {
+      return Response.json(
+        {
+          error:
+            "Uploads are paused because the virus scanner is not answering. Try again in a minute.",
+        },
+        { status: 503 },
+      );
+    }
+
+    if (scan && !scan.clean) {
+      console.warn(
+        `Upload refused: ${scan.signature} in "${file.name}" for organization ${ctx.activeOrganization!.id}`,
+      );
+
+      return Response.json(
+        { error: "This file contains malware, so it was not uploaded." },
+        { status: 422 },
+      );
+    }
 
     await storage().put(key, bytes, mimeType);
 

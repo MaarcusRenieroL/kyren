@@ -30,6 +30,9 @@ x-app-env: &app-env
   S3_ENDPOINT: ${S3_ENDPOINT:-}
   S3_ACCESS_KEY_ID: ${S3_ACCESS_KEY_ID:-}
   S3_SECRET_ACCESS_KEY: ${S3_SECRET_ACCESS_KEY:-}
+  # Virus scanning of uploads: start with `--profile clamav` and set
+  # CLAMAV_ADDRESS=clamav:3310 (deploy/README.md, Virus scanning).
+  CLAMAV_ADDRESS: ${CLAMAV_ADDRESS:-}
   # Caddy writes X-Real-IP from the real connection and drops any address
   # headers a client sent, so only that one is trusted.
   CLIENT_IP_HEADERS: x-real-ip
@@ -130,6 +133,15 @@ services:
         condition: service_healthy
         required: false
 
+  clamav:
+    # Optional, self-hosted virus scanner for uploads; updates its own
+    # signatures every few hours. Needs about 1.5 GB of memory.
+    image: clamav/clamav-debian:1.4
+    profiles: [clamav]
+    restart: unless-stopped
+    volumes:
+      - clamav:/var/lib/clamav
+
   caddy:
     image: caddy:2-alpine
     restart: unless-stopped
@@ -150,3 +162,4 @@ volumes:
   uploads:
   caddy_data:
   caddy_config:
+  clamav:

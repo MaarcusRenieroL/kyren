@@ -239,6 +239,22 @@ zentro-staging` with its own env file) but its Caddy would fight production
 for ports 80 and 443, so it needs a shared Caddy in front; the separate VM
 is simpler.
 
+## 11. Virus scanning (optional)
+
+Uploads are already limited to 25 MB, checked against their claimed type,
+stored under random names and served as downloads with `nosniff`, so a
+file cannot run in someone's browser. Scanning adds a check for known
+malware before anything is stored, using ClamAV on this same VM (nothing
+leaves the machine). It needs about 1.5 GB of extra memory.
+
+1. In `deploy/.env`, set `CLAMAV_ADDRESS=clamav:3310`.
+2. Add `--profile clamav` to the `up` command. The first start downloads
+   the signatures, which takes a few minutes; it then updates them itself.
+
+Once it is on, an infected upload is refused with a clear message, and if
+the scanner is down uploads pause (with a "try again in a minute" message)
+rather than letting unscanned files in. Refusals are logged by `web`.
+
 ## What runs
 
 | Service   | Role                                                                        |
@@ -246,7 +262,9 @@ is simpler.
 | `db`      | Postgres 17, data in the `pgdata` volume (only with `--profile db`)         |
 | `migrate` | Applies database migrations, then exits                                     |
 | `web`     | The Next.js app on port 3000 inside Docker; uploads in the `uploads` volume |
-| `cron`    | Calls the background-work endpoint every minute; heavy sweeps at 03:00 UTC  |
+| `cron`    | Background work every minute, heavy sweeps at 03:00 UTC, health alerts      |
+| `backup`  | Encrypted daily backup of the database and uploads to an outside remote     |
+| `clamav`  | Virus scanner for uploads (only with `--profile clamav`)                    |
 | `caddy`   | HTTPS on 80/443, certificates from Let's Encrypt                            |
 
 Caddy sets `X-Real-IP` from the real connection and drops any address headers
