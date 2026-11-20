@@ -7,6 +7,8 @@ import { createAuditContext } from "../src/server/audit";
 import { World, type TestOrg, type TestUser } from "./helpers";
 
 const world = new World();
+// Unique per run: invitations to one address are capped per day.
+const newPerson = `new.person.${crypto.randomUUID()}@example.test`;
 
 afterAll(() => world.cleanup());
 
@@ -437,7 +439,7 @@ describe("events are recorded for every mutation", () => {
     expect(await events(org, "module.enabled")).toHaveLength(1);
 
     const invitation = await owner.invitation.invite({
-      email: "new.person@example.test",
+      email: newPerson,
       role: "member",
     });
 
@@ -451,7 +453,7 @@ describe("events are recorded for every mutation", () => {
     ]) {
       expect((await events(org, action))[0], action).toMatchObject({
         targetId: invitation.id,
-        targetLabel: "new.person@example.test",
+        targetLabel: newPerson,
         auditOnly: true,
       });
     }

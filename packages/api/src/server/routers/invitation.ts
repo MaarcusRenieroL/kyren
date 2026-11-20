@@ -7,6 +7,7 @@ import { z } from "zod";
 import { assertHoldsAll } from "../access";
 import { callAuth } from "../auth-calls";
 import { organizationLimits } from "../platform-policy";
+import { enforceRateLimit } from "../rate-limit";
 import { permissionProcedure, router, type OrganizationContext } from "../trpc";
 
 const invitationIdSchema = z.object({ invitationId: z.string().uuid() });
@@ -25,6 +26,24 @@ async function assertMayGrantRole(ctx: OrganizationContext, roleKey: string) {
     .limit(1);
 
   await assertHoldsAll(ctx.permissions, role?.permissions ?? []);
+}
+
+const HOUR = 60 * 60 * 1000;
+
+/**
+ * Invitations send email, so they are capped: per organization (a hijacked
+ * admin can't spam the world) and per address across every organization (no
+ * one's inbox can be flooded with invites).
+ */
+async function limitInvitationEmail(ctx: OrganizationContext, email: string) {
+  await enforceRateLimit(ctx.db, `invite:org:${ctx.activeOrganization.id}`, {
+    max: 100,
+    windowMs: HOUR,
+  });
+  await enforceRateLimit(ctx.db, `invite:to:${email.toLowerCase()}`, {
+    max: 3,
+    windowMs: 24 * HOUR,
+  });
 }
 
 export const invitationRouter = router({
@@ -58,6 +77,7 @@ export const invitationRouter = router({
       const { db, user, activeOrganization } = ctx;
 
       await assertMayGrantRole(ctx, input.role);
+      await limitInvitationEmail(ctx, input.email);
 
       // A seat ceiling set by a platform operator counts members and open invitations.
       const { members: seats } = await organizationLimits(
@@ -141,6 +161,8 @@ export const invitationRouter = router({
             "This invitation was already answered or canceled. Send a new one instead.",
         });
       }
+
+      await limitInvitationEmail(ctx, invitation.email);
 
       // Resending hands out the role again, so the same rule as inviting.
       await assertMayGrantRole(ctx, invitation.role);

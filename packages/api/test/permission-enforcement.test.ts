@@ -17,6 +17,8 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { World, type TestOrg, type TestUser } from "./helpers";
 
 const world = new World();
+// Unique per run: invitations to one address are capped per day.
+const newPerson = `new.person.${crypto.randomUUID()}@example.test`;
 
 afterAll(() => world.cleanup());
 
@@ -1464,11 +1466,11 @@ describe("Better Auth endpoints cannot be called directly", () => {
     const leaving = await world.userIn(org, "member");
 
     const invitation = await admin.invitation.invite({
-      email: "new.person@example.test",
+      email: newPerson,
       role: "member",
     });
 
-    expect(invitation.email).toBe("new.person@example.test");
+    expect(invitation.email).toBe(newPerson);
     await expect(
       admin.invitation.resend({ invitationId: invitation.id }),
     ).resolves.toBeDefined();
