@@ -8,6 +8,8 @@ name: zentro-prod
 
 x-app-env: &app-env
   DATABASE_URL: ${DATABASE_URL:-postgres://zentro:${POSTGRES_PASSWORD:-}@db:5432/zentro}
+  # Database connections the app keeps open (deploy/README.md, Capacity).
+  DATABASE_POOL_MAX: ${DATABASE_POOL_MAX:-20}
   BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET:?set BETTER_AUTH_SECRET (32+ characters)}
   BETTER_AUTH_URL: https://${DOMAIN:?set DOMAIN}
   NEXT_PUBLIC_BASE_URL: https://${DOMAIN}

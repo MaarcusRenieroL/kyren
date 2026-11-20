@@ -186,6 +186,32 @@ Each release's image is tagged with its git commit, so the previous one is
 still on the VM to roll back to. Migrations only ever add; a rollback of the
 app alone is safe unless a release notes otherwise.
 
+## 9. Capacity and load testing
+
+`deploy/loadtest/zentro.js` is a k6 script: each virtual user signs in once,
+opens a page, then polls notifications and chat every 3 seconds, the way an
+open browser tab does. Run it from any machine with Docker:
+
+```bash
+docker run --rm -i -e BASE_URL=https://your.domain -e USERS=a@x.com,b@x.com -e PASSWORD='...' -e VUS=100 grafana/k6:0.54.0 run - < deploy/loadtest/zentro.js
+```
+
+Use test accounts, never real people's. Measured on 2026-11-20, one Node
+process on an Apple M-series laptop with Postgres on the same machine:
+
+| Open tabs | Requests/s | Failures | Pages p95 | Polls p95 |
+| --------- | ---------- | -------- | --------- | --------- |
+| 50        | ~45        | 0%       | 0.1 s     | 0.1 s     |
+| 300       | ~136       | 0%       | 0.46 s    | 1.26 s    |
+
+So one web container is comfortable up to roughly 150 people with Zentro open
+at once; at 300 it still works but feels slow. Raising `DATABASE_POOL_MAX`
+from 10 to 20 changed nothing at 300, so the limit is the single Node
+process, not the database. Past that, the simplest step is a VM with faster
+cores; running several `web` containers behind Caddy also works in principle
+(Caddy's `dynamic a web 3000` upstreams) but has not been tested here. Keep `DATABASE_POOL_MAX` times the number of web
+containers under Postgres's `max_connections` (100 by default).
+
 ## What runs
 
 | Service   | Role                                                                        |
