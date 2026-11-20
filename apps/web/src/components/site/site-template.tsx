@@ -5697,36 +5697,6 @@ export function SiteTemplate({ v }: { v: any }) {
                           ))}
                         </div>
                       </div>
-                      <div
-                        style={{
-                          display: "flex",
-                          gap: "14px",
-                          alignItems: "flex-start",
-                          padding: "16px 18px",
-                          border: "1px dashed var(--amber)",
-                          borderRadius: "14px",
-                          fontSize: "14px",
-                          lineHeight: "1.5",
-                        }}
-                      >
-                        <span
-                          style={{
-                            fontFamily:
-                              "var(--font-geist-mono), ui-monospace, monospace",
-                            fontSize: "11px",
-                            letterSpacing: ".06em",
-                            color: "var(--amber)",
-                            whiteSpace: "nowrap",
-                            paddingTop: "2px",
-                          }}
-                        >
-                          PLACEHOLDER TEXT
-                        </span>
-                        <span style={{ color: "var(--ink2)" }}>
-                          The text below is lorem ipsum. It is not Zentro’s
-                          policy and has no legal effect.
-                        </span>
-                      </div>
                     </div>
                   </div>
                 </section>

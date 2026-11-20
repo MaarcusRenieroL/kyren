@@ -15,6 +15,8 @@ const pages = [
   "/privacy",
   "/terms",
   "/cookies",
+  "/dpa",
+  "/subprocessors",
 ];
 
 export default function sitemap(): MetadataRoute.Sitemap {

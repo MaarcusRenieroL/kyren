@@ -22,7 +22,6 @@ import {
   LD,
   LEGAL,
   LM,
-  LOREM,
   MATRIX,
   MD,
   MODBY,
@@ -55,7 +54,7 @@ export type SitePageName =
 type Props = {
   page: SitePageName;
   module?: "tasks" | "docs";
-  doc?: "privacy" | "terms" | "cookies";
+  doc?: "privacy" | "terms" | "cookies" | "dpa" | "subprocessors";
 };
 
 type Mode = "dark" | "light" | "system";
@@ -297,6 +296,8 @@ export function SitePage(props: Props) {
                 privacy: "/privacy",
                 terms: "/terms",
                 cookies: "/cookies",
+                dpa: "/dpa",
+                subprocessors: "/subprocessors",
               } as Record<string, string>
             )[extra?.legalO ?? "privacy"]!
           : k === "module"
@@ -968,7 +969,7 @@ export function SitePage(props: Props) {
       st: seg2(doc === k),
       go: go("legal", { legalO: k }),
     }));
-    const toc = L.secs.map((t: any, i: any) => ({
+    const toc = L.secs.map(({ t }, i: any) => ({
       t,
       n: String(i + 1).padStart(2, "0"),
       go: () => setS({ toc: i, tocOpen: false }),
@@ -991,13 +992,10 @@ export function SitePage(props: Props) {
         textAlign: "left",
       },
     }));
-    const secs = L.secs.map((t: any, i: any) => ({
+    const secs = L.secs.map(({ t, paras }, i: any) => ({
       t,
       n: String(i + 1).padStart(2, "0"),
-      paras: (i % 3 === 1
-        ? [LOREM[i % 3]]
-        : [LOREM[i % 3], LOREM[(i + 1) % 3]]
-      ).map((x: any) => x),
+      paras,
     }));
 
     // about / contact
@@ -1232,6 +1230,8 @@ export function SitePage(props: Props) {
         ["privacy", "Privacy"],
         ["terms", "Terms"],
         ["cookies", "Cookies"],
+        ["dpa", "DPA"],
+        ["subprocessors", "Subprocessors"],
       ].map(([k, t]: any) => ({ t, go: legalGo(k) })),
       footLive: MODS.filter((x: any) => x[3]).map((x: any) => ({
         t: x[0],
