@@ -127,3 +127,41 @@ test("a trashed article leaves the help centre and comes back on restore @ticket
   await expect(help.getByText(title)).toBeVisible();
   await visitor.close();
 });
+
+test("a saved reply is written once and inserted into a ticket reply with the customer's name @tickets", async ({
+  page,
+}) => {
+  await registerWithOrganization(page, {
+    label: "saved-reply",
+    orgName: uniqueName("Saved reply org"),
+  });
+
+  await page.goto("/tickets");
+  await page.getByText("Saved replies", { exact: true }).click();
+  await page.getByLabel("Saved reply title").fill("Refund sent");
+  await page
+    .getByLabel("Saved reply text")
+    .fill("Hi {customer}, your refund for {ticket} is sent.");
+  await page.getByRole("button", { name: "Add saved reply" }).click();
+  await expect(
+    page.getByRole("list", { name: "Saved replies" }).getByText("Refund sent"),
+  ).toBeVisible();
+
+  const subject = uniqueName("Double charge");
+
+  await page.getByRole("button", { name: "New ticket" }).first().click();
+
+  const dialog = page.getByRole("dialog");
+
+  await dialog.getByLabel("Subject").fill(subject);
+  await dialog.getByLabel("Requester", { exact: true }).fill("Rin");
+  await dialog.getByRole("button", { name: "Create ticket" }).click();
+  await expect(page).toHaveURL(/\/tickets\/[0-9a-f-]{36}/);
+
+  await page
+    .getByLabel("Insert a saved reply")
+    .selectOption({ label: "Refund sent" });
+  await expect(page.getByLabel("Reply", { exact: true })).toHaveValue(
+    `Hi Rin, your refund for ${subject} is sent.`,
+  );
+});

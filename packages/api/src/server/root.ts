@@ -21,6 +21,7 @@ import { ipAccessRouter } from "./routers/ip-access";
 import { retentionRouter } from "./routers/retention";
 import { privacyRouter } from "./routers/privacy";
 import { recurrenceRouter } from "./routers/recurrence";
+import { cannedReplyRouter } from "./routers/canned-reply";
 import { kbRouter } from "./routers/kb";
 import { ticketsRouter } from "./routers/tickets";
 import { activityRouter } from "./routers/activity";
@@ -68,6 +69,7 @@ export const appRouter = router({
   taskView: taskViewRouter,
   timesheet: timesheetRouter,
   tickets: ticketsRouter,
+  cannedReply: cannedReplyRouter,
   kb: kbRouter,
   recurrence: recurrenceRouter,
   privacy: privacyRouter,

@@ -589,6 +589,13 @@
       "when": 1798930000000,
       "tag": "0083_kb_article_trash",
       "breakpoints": true
+    },
+    {
+      "idx": 84,
+      "version": "7",
+      "when": 1798940000000,
+      "tag": "0084_canned_replies",
+      "breakpoints": true
     }
   ]
 }

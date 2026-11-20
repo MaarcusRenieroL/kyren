@@ -32,6 +32,7 @@ import {
 } from "./labels";
 import { copyText } from "~/src/lib/clipboard";
 import { apiPath } from "~/src/lib/paths";
+import { SavedReplyPicker } from "./saved-replies";
 
 type Ticket = inferRouterOutputs<AppRouter>["tickets"]["get"];
 type People = inferRouterOutputs<AppRouter>["tickets"]["assignees"];
@@ -318,6 +319,17 @@ export function TicketDetail({ id }: { id: string }) {
                   </button>
                 ))}
               </div>
+              {kind === "reply" ? (
+                <SavedReplyPicker
+                  customer={ticket.requesterName}
+                  ticket={ticket.subject}
+                  onInsert={(text) =>
+                    setBody((current) =>
+                      current ? `${current}\n\n${text}` : text,
+                    )
+                  }
+                />
+              ) : null}
               {kind === "reply" ? (
                 <SuggestedArticles
                   subject={ticket.subject}

@@ -13,7 +13,7 @@ Highest value for the effort first. Each item is committed on its own.
 
 1. [x] **Authenticator-app two-factor (TOTP)** — already built (setup with QR code, backup codes, sign-in step); a stale
        "coming" note on the Security page was removed.
-2. [ ] **Tickets: canned replies** — saved answers an agent inserts with one click; per-org, with variables. (0.5 day)
+2. [x] **Tickets: canned replies** — saved answers an agent inserts with one click; per-org, with variables. (0.5 day)
 3. [ ] **Tickets: satisfaction rating** — the customer rates a resolved ticket from the portal; score per agent. (0.5 day)
 4. [ ] **Projects: milestones** — dated milestones on a project, shown on the Gantt, with tasks linked. (1 day)
 5. [ ] **Projects: status updates** — weekly on-track / at-risk / off-track update with a note, history. (0.5 day)

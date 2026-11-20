@@ -13,6 +13,7 @@ import { SlaBadge } from "./sla-badge";
 import { SlaTargets } from "./sla-targets";
 import { IntakeForms } from "./intake-forms";
 import { KnowledgeBase } from "./knowledge-base";
+import { SavedRepliesPanel } from "./saved-replies";
 import { SupportInbox } from "./support-inbox";
 import { TicketAssignment } from "./ticket-assignment";
 import { PageHeader } from "@zentro/ui/components/page-header";
@@ -95,6 +96,7 @@ export function TicketQueue({ canCreate }: { canCreate: boolean }) {
       {canManageSla ? <SlaTargets /> : null}
       {canManageInbox ? <SupportInbox /> : null}
       {canManageInbox ? <TicketAssignment /> : null}
+      {canManageInbox ? <SavedRepliesPanel /> : null}
       {canManageArticles ? <KnowledgeBase /> : null}
       {canManageForms ? <IntakeForms /> : null}
 
