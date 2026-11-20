@@ -133,7 +133,25 @@ into a brand-new Postgres 17 container; every table's row count matched, in
 under a minute end to end. Repeat the drill on a fresh VM after launch and
 whenever the data grows tenfold, and write the time down here.
 
-## 6. Updates and rollback
+## 6. Monitoring and alerts
+
+Set `ALERT_WEBHOOK_URL` in `deploy/.env` (a Slack or Discord incoming webhook,
+or any URL that accepts `{"text": "..."}`). Then:
+
+- **Server errors** are posted to `ERROR_WEBHOOK_URL` as they happen (it can be
+  the same URL).
+- **The `cron` service watches the app every minute** and posts once when
+  something breaks and once when it recovers:
+  - background work failing 3 times in a row;
+  - the private health check (`/api/health/deep`): the database down, jobs
+    stuck for 15 minutes, or jobs that gave up after every retry;
+  - the data disk above `DISK_ALERT_PERCENT` (85 by default).
+- **Backups** post when a nightly run fails.
+- **From outside:** the VM cannot report itself being down. Point any uptime
+  checker you control (a second machine with `curl` in cron, or a monitoring
+  service) at `https://$DOMAIN/api/health`, which answers only ok or not.
+
+## 7. Updates and rollback
 
 ```bash
 deploy/update.sh      # backup first, pull, build a tagged image, migrate, restart

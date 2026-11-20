@@ -12,6 +12,8 @@ x-app-env: &app-env
   BETTER_AUTH_URL: https://${DOMAIN:?set DOMAIN}
   NEXT_PUBLIC_BASE_URL: https://${DOMAIN}
   RESEND_API_KEY: ${RESEND_API_KEY:?set RESEND_API_KEY}
+  # Bounces and spam complaints from Resend (deploy/README.md, Email).
+  RESEND_WEBHOOK_SECRET: ${RESEND_WEBHOOK_SECRET:-}
   EMAIL_FROM: ${EMAIL_FROM:-}
   CRON_SECRET: ${CRON_SECRET:?set CRON_SECRET}
   FIELD_ENCRYPTION_KEY: ${FIELD_ENCRYPTION_KEY:?set FIELD_ENCRYPTION_KEY}
@@ -92,6 +94,12 @@ services:
     environment:
       CRON_SECRET: ${CRON_SECRET}
       CRON_URL: http://web:3000/api/cron/chat
+      # Also watches the app and the disk, and alerts here (see cron/run.sh).
+      HEALTH_URL: http://web:3000/api/health/deep
+      ALERT_WEBHOOK_URL: ${ALERT_WEBHOOK_URL:-}
+      DISK_ALERT_PERCENT: ${DISK_ALERT_PERCENT:-85}
+    volumes:
+      - uploads:/data/uploads:ro
     depends_on:
       - web
 
