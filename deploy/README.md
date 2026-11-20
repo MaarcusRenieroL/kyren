@@ -212,6 +212,33 @@ cores; running several `web` containers behind Caddy also works in principle
 (Caddy's `dynamic a web 3000` upstreams) but has not been tested here. Keep `DATABASE_POOL_MAX` times the number of web
 containers under Postgres's `max_connections` (100 by default).
 
+## 10. Staging
+
+Try every release on a copy before production. The cheapest safe copy is a
+second, small VM (1 vCPU, 2 GB) set up exactly as above, with its own domain
+(for example `staging.your.domain`) and its own `deploy/.env`: new secrets, a
+new `FIELD_ENCRYPTION_KEY`, its own database, and `RESEND_API_KEY` pointing
+at a test sender. Never point staging at the production database or bucket.
+
+A release then goes:
+
+1. On staging: `deploy/update.sh`. CI has already run lint, types and tests
+   on the commit (`.github/workflows/ci.yml`).
+2. Click through sign-in and the modules you changed; watch
+   `docker compose logs -f web migrate` for errors.
+3. On production: `deploy/update.sh` (it backs up first). If it goes wrong,
+   `deploy/rollback.sh` (section 8).
+
+To test a migration against real-shaped data, restore last night's
+production backup into staging (section 6) before updating it. That copy
+holds real people's data, so give staging the same care as production and
+wipe it afterwards.
+
+Running staging on the production VM is possible (`docker compose -p
+zentro-staging` with its own env file) but its Caddy would fight production
+for ports 80 and 443, so it needs a shared Caddy in front; the separate VM
+is simpler.
+
 ## What runs
 
 | Service   | Role                                                                        |
