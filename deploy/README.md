@@ -79,30 +79,71 @@ psql "$DATABASE_URL" -c 'select "organizationId","userId",count(*) from member g
 
 Merge any rows it prints, then start as above.
 
-## 5. Updates
+## 5. Backups (encrypted, off this machine)
+
+The `backup` service dumps the database and the uploaded files every night
+(02:30 UTC), encrypts them with [age](https://age-encryption.org) and copies
+them to any storage rclone supports (an S3-compatible bucket, Backblaze B2, an
+SFTP box…). It keeps 14 days and posts to `ALERT_WEBHOOK_URL` if a run fails.
+
+Set up once:
 
 ```bash
-git pull
-docker compose -f deploy/docker-compose.prod.yml --env-file deploy/.env --profile db up -d --build
+# 1. A key pair. The public key goes in deploy/.env; the private key does NOT
+#    stay on the VM (see "Keys" below).
+docker run --rm alpine:3.21 sh -c "apk add -q age && age-keygen"
 ```
 
-Migrations run again on every start; ones already applied are skipped.
+Add to `deploy/.env`:
 
-## 6. Backups
+| Variable                                                       | What to put                                          |
+| -------------------------------------------------------------- | ---------------------------------------------------- |
+| `BACKUP_AGE_RECIPIENT`                                         | The `age1…` public key printed above                 |
+| `BACKUP_REMOTE`                                                | `remote:your-bucket/zentro`                          |
+| `RCLONE_CONFIG_REMOTE_TYPE`                                    | `s3` (or `b2`, `sftp`, …)                            |
+| `RCLONE_CONFIG_REMOTE_PROVIDER`                                | e.g. `Backblaze`, `Wasabi`, `Other`                  |
+| `RCLONE_CONFIG_REMOTE_ENDPOINT`                                | the provider's S3 endpoint                           |
+| `RCLONE_CONFIG_REMOTE_ACCESS_KEY_ID` / `..._SECRET_ACCESS_KEY` | an access key that can write that bucket             |
+| `ALERT_WEBHOOK_URL`                                            | _Optional._ Slack/Discord-style webhook for failures |
 
-The bundled database and the uploaded files are Docker volumes
-(`zentro-prod_pgdata`, `zentro-prod_uploads`). A nightly backup, for example
-from cron on the VM:
+Check it works: `docker compose -f deploy/docker-compose.prod.yml --env-file deploy/.env run --rm backup backup.sh once`
+
+### Keys — keep these somewhere other than the VM
+
+- **The age private key.** Without it no backup can be read.
+- **`FIELD_ENCRYPTION_KEY`.** Without it, encrypted fields (leave reasons, bank
+  details) in every backup are unreadable forever.
+
+Keep both in a password manager _and_ a second place (an offline copy). A
+lost VM must not take the keys with it.
+
+### Restoring
 
 ```bash
-docker compose -f deploy/docker-compose.prod.yml --env-file deploy/.env exec -T db \
-  pg_dump -U zentro -Fc zentro > /var/backups/zentro-$(date +%F).dump
-docker run --rm -v zentro-prod_uploads:/data -v /var/backups:/out alpine \
-  tar czf /out/zentro-uploads-$(date +%F).tgz -C /data .
+# List backups, then restore one (or "latest") into the running database.
+docker compose -f deploy/docker-compose.prod.yml --env-file deploy/.env run --rm backup restore.sh list
+docker compose -f deploy/docker-compose.prod.yml --env-file deploy/.env run --rm \
+  -v /path/to/age.key:/run/age.key:ro -e BACKUP_AGE_IDENTITY=/run/age.key \
+  backup restore.sh latest
 ```
 
-Copy those files off the VM. Restore the database with
-`pg_restore -U zentro -d zentro --clean <file>`.
+**Drill result (2026-11-20):** the demo dataset (3 organizations, 9 users, 59
+tasks, 35 chat messages, 81 migrations) was backed up, encrypted, and restored
+into a brand-new Postgres 17 container; every table's row count matched, in
+under a minute end to end. Repeat the drill on a fresh VM after launch and
+whenever the data grows tenfold, and write the time down here.
+
+## 6. Updates and rollback
+
+```bash
+deploy/update.sh      # backup first, pull, build a tagged image, migrate, restart
+deploy/rollback.sh    # back to the previous image (the database stays)
+deploy/rollback.sh --restore   # also restore the pre-update backup (loses later writes)
+```
+
+Each release's image is tagged with its git commit, so the previous one is
+still on the VM to roll back to. Migrations only ever add; a rollback of the
+app alone is safe unless a release notes otherwise.
 
 ## What runs
 

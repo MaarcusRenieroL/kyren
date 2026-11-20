@@ -54,3 +54,7 @@ test-results/
 .neon
 .uploads/
 .claude/current-module
+
+# Which release runs on the VM (written by deploy/update.sh)
+deploy/.version
+deploy/.previous-version
