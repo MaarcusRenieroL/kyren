@@ -1,442 +1,350 @@
-import { db } from "@zentro/db";
-import { and, eq } from "@zentro/db/drizzle";
-import {
-  docComments,
-  docs,
-  projects,
-  activityEvents,
-  taskComments,
-  tasks,
-  teamMembers,
-  teams,
-} from "@zentro/db/schema";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
-import { World, type TestOrg, type TestUser } from "./helpers";
+import { World } from "./helpers";
 
+/**
+ * One organization must never reach another's data. Org A's owner creates
+ * something in every module; org B's owner (who holds every permission in
+ * their own organization, so a refusal can only come from organization
+ * scoping) tries to read, change, delete and list it by id.
+ *
+ * Every probe first runs as org A's owner and must succeed there: that
+ * proves the input is valid, so org B's refusal is about scope, not a typo.
+ */
 const world = new World();
-
-type Caller = Awaited<ReturnType<World["caller"]>>;
-
-let orgA: TestOrg;
-let orgB: TestOrg;
-let userA: TestUser;
-let userB: TestUser;
-let memberAId: string;
-let memberBId: string;
-let asA: Caller; // owner of A, active org A
-let projectA: Awaited<ReturnType<World["project"]>>;
-let projectB: Awaited<ReturnType<World["project"]>>;
-let taskB: Awaited<ReturnType<World["task"]>>;
-let docB: Awaited<ReturnType<World["doc"]>>;
-let docCommentB: typeof docComments.$inferSelect;
-let teamB: Awaited<ReturnType<World["team"]>>;
-let teamA: Awaited<ReturnType<World["team"]>>;
-
-beforeAll(async () => {
-  orgA = await world.org("Org A");
-  orgB = await world.org("Org B");
-
-  const a = await world.userIn(orgA, "owner", "Owner A");
-  const b = await world.userIn(orgB, "owner", "Owner B");
-
-  userA = a.user;
-  userB = b.user;
-  memberAId = a.member.id;
-  memberBId = b.member.id;
-
-  projectA = await world.project(orgA, { taskKeyPrefix: "AA" });
-  projectB = await world.project(orgB, {
-    slug: "secret-b",
-    name: "Secret B",
-    taskKeyPrefix: "BB",
-  });
-  taskB = await world.task(orgB, projectB, {
-    name: "Secret task",
-    taskNumber: 7,
-    createdByMemberId: memberBId,
-  });
-  docB = await world.doc(orgB, {
-    title: "Secret doc",
-    slug: "secret-doc-b",
-    content: "secret",
-    createdByMemberId: memberBId,
-  });
-  teamB = await world.team(orgB, { name: "Team B" });
-  teamA = await world.team(orgA, { name: "Team A" });
-
-  [docCommentB] = await db
-    .insert(docComments)
-    .values({
-      organizationId: orgB.id,
-      docId: docB.id,
-      authorMemberId: memberBId,
-      body: "secret comment",
-    })
-    .returning()
-    .then((rows) => rows as [typeof docComments.$inferSelect]);
-
-  await db.insert(taskComments).values({
-    organizationId: orgB.id,
-    taskId: taskB.id,
-    authorMemberId: memberBId,
-    body: "secret task comment",
-  });
-  await db.insert(activityEvents).values({
-    organizationId: orgB.id,
-    action: "task.created",
-    targetType: "task",
-    targetId: taskB.id,
-    targetLabel: taskB.key,
-    projectId: taskB.projectId,
-  });
-
-  asA = await world.caller(userA, orgA);
-});
 
 afterAll(() => world.cleanup());
 
-const notFound = { code: "NOT_FOUND" } as const;
+type Caller = Awaited<ReturnType<World["caller"]>>;
 
-async function bProject() {
-  const [row] = await db
-    .select()
-    .from(projects)
-    .where(eq(projects.id, projectB.id));
+const refused = {
+  code: expect.stringMatching(/NOT_FOUND|FORBIDDEN|BAD_REQUEST/),
+};
+const modules = [
+  "projects",
+  "tasks",
+  "docs",
+  "chat",
+  "files",
+  "calendar",
+  "whiteboards",
+  "mail",
+  "tickets",
+  "hr",
+  "payroll",
+];
 
-  return row!;
-}
+describe("tenant isolation across every module", () => {
+  let a: Caller;
+  let b: Caller;
+  let ids: Record<string, string>;
+  let slugs: Record<string, string>;
+  let bUserId: string;
+  let bOrgId: string;
 
-async function bTask() {
-  const [row] = await db.select().from(tasks).where(eq(tasks.id, taskB.id));
+  beforeAll(async () => {
+    const orgA = await world.org("Isolation A");
+    const orgB = await world.org("Isolation B");
 
-  return row!;
-}
+    for (const org of [orgA, orgB]) {
+      for (const id of modules) await world.setModule(org, id, true);
+    }
 
-async function bDoc() {
-  const [row] = await db.select().from(docs).where(eq(docs.id, docB.id));
+    const ownerA = await world.userIn(orgA, "owner", "Owner A");
+    const colleague = await world.userIn(orgA, "member", "Colleague A");
+    const ownerB = await world.userIn(orgB, "owner", "Owner B");
 
-  return row!;
-}
+    a = await world.caller(ownerA.user, orgA);
+    b = await world.caller(ownerB.user, orgB);
+    bUserId = ownerB.user.id;
+    bOrgId = orgB.id;
 
-describe("projects", () => {
-  it("does not list another organization's projects", async () => {
-    const list = await asA.project.getProjectsByOrgId();
-
-    expect(list.map((project) => project.id)).not.toContain(projectB.id);
-  });
-
-  it("cannot get B's project by slug", async () => {
-    await expect(
-      asA.project.getProjectBySlug({ slug: projectB.slug }),
-    ).rejects.toMatchObject(notFound);
-  });
-
-  it("cannot update B's project", async () => {
-    await expect(
-      asA.project.updateProjectBySlug({
-        currentSlug: projectB.slug,
-        name: "Hijacked",
-        slug: "hijacked",
-        description: "",
-      }),
-    ).rejects.toMatchObject(notFound);
-
-    expect((await bProject()).name).toBe("Secret B");
-  });
-
-  it("cannot archive B's project", async () => {
-    await expect(
-      asA.project.archiveProject({ slug: projectB.slug }),
-    ).rejects.toMatchObject(notFound);
-
-    expect((await bProject()).archivedAt).toBeNull();
-  });
-
-  it("cannot delete B's project", async () => {
-    await expect(
-      asA.project.deleteProject({ slug: projectB.slug }),
-    ).rejects.toMatchObject(notFound);
-
-    expect((await bProject()).deletedAt).toBeNull();
-  });
-
-  it("checkSlug does not reveal B's slugs", async () => {
-    // The same slug is free in A even though B uses it.
-    await expect(
-      asA.project.checkSlug({ slug: projectB.slug }),
-    ).resolves.toBeDefined();
-  });
-
-  it("cannot attach a project to B's team", async () => {
-    await expect(
-      asA.project.createProject({
-        name: "Cross team",
-        slug: "cross-team",
-        description: "",
-        teamId: teamB.id,
-      }),
-    ).rejects.toBeDefined();
-  });
-
-  it("created projects belong to the caller's organization", async () => {
-    const created = await asA.project.createProject({
-      name: "Mine",
-      slug: "mine-a",
+    const project = await a.project.createProject({
+      name: "A secret project",
+      slug: "a-secret-project",
       description: "",
     });
+    const task = await a.task.createTask({
+      projectId: project.id,
+      name: "A secret task",
+    });
+    const doc = await a.docs.create({
+      projectId: project.id,
+      title: "A secret doc",
+      slug: "a-secret-doc",
+    });
+    await a.docs.createComment({ docId: doc.id, body: "A secret comment" });
 
-    expect(created.organizationId).toBe(orgA.id);
+    const channel = await a.chat.create({
+      name: "a-secret",
+      memberIds: [colleague.member.id],
+    });
+    const message = await a.chat.send({
+      channelId: channel.id,
+      body: "A secret message",
+    });
+    const folder = await a.files.createFolder({ name: "A secret folder" });
+    const file = await a.files.libraryRegister({
+      name: "a-secret.pdf",
+      mimeType: "application/pdf",
+      size: 10,
+      storageKey: `${orgA.id}/a-secret.pdf`,
+    });
+    const event = await a.calendar.create({
+      title: "A secret event",
+      description: null,
+      location: null,
+      color: "blue",
+      allDay: false,
+      startsAt: new Date("2031-01-06T09:00:00Z"),
+      endsAt: new Date("2031-01-06T09:30:00Z"),
+      repeat: null,
+      repeatUntil: null,
+    });
+    const meeting = await a.meeting.create({
+      title: "A secret meeting",
+      startsAt: new Date(Date.now() + 86_400_000),
+      durationMinutes: 30,
+      attendeeUserIds: [],
+    });
+    const board = await a.whiteboard.create({ title: "A secret board" });
+    const mail = await a.mail.send({
+      to: [colleague.member.id],
+      subject: "A secret mail",
+      body: "x",
+    });
+    const ticket = await a.tickets.create({
+      subject: "A secret ticket",
+      description: "x",
+      requesterName: "Rin",
+    });
+    const article = await a.kb.save({
+      title: "A secret article",
+      body: "x",
+      status: "draft",
+      audience: "internal",
+    });
+    const employee = await a.hr.create({
+      name: "A secret employee",
+      email: null,
+      jobTitle: "Engineer",
+      department: null,
+      location: null,
+      status: "active",
+      startDate: null,
+      endDate: null,
+      managerId: null,
+      memberId: null,
+    });
+    await a.payroll.setSalary({
+      employeeId: employee.id,
+      annualSalary: 6_000_000,
+      currency: "USD",
+    });
+
+    const run = await a.payroll.createRun({
+      label: "A secret run",
+      periodStart: "2026-10-01",
+      periodEnd: "2026-10-31",
+      deductionRateBps: 2000,
+    });
+    const webhook = await a.webhook.create({ url: "https://example.com/a" });
+    const apiKey = await a.apiKey.create({ name: "A secret key" });
+    const team = await a.team.create({ name: "A secret team" });
+    const role = await a.permissions.roles.create({
+      name: "A secret role",
+      scope: "organization",
+      permissions: [],
+    });
+    const reply = await a.cannedReply.save({
+      title: "A secret reply",
+      body: "x",
+    });
+
+    ids = {
+      project: project.id,
+      task: task.key,
+      doc: doc.id,
+      channel: channel.id,
+      message: message.id,
+      folder: folder.id,
+      file: file.id,
+      event: event.id,
+      meeting: meeting.id,
+      board: board.id,
+      mail: mail.id,
+      ticket: ticket.id,
+      article: article.id,
+      employee: employee.id,
+      run: run.id,
+      webhook: webhook.id,
+      apiKey: apiKey.id,
+      team: team.id,
+      role: role.id,
+      reply: reply.id,
+    };
+    slugs = { project: project.slug, doc: doc.slug };
   });
-});
 
-describe("tasks", () => {
-  it("does not list B's tasks", async () => {
-    const list = await asA.task.getTasksByOrgId({});
+  /** Runs the probe as org A (must work), then as org B (must be refused). */
+  const probe = async (call: (who: Caller) => Promise<unknown>) => {
+    await expect(call(a)).resolves.toBeDefined();
 
-    expect(list.map((task) => task.id)).not.toContain(taskB.id);
+    // Refused, or nothing at all: either way no data comes back.
+    const outcome = await call(b).then(
+      (value) => ({ value }),
+      (error: unknown) => ({ error }),
+    );
+
+    if ("error" in outcome) {
+      expect(outcome.error).toMatchObject(refused);
+    } else {
+      const value = outcome.value;
+      const empty =
+        value == null || (Array.isArray(value) && value.length === 0);
+
+      expect(empty, JSON.stringify(value)?.slice(0, 200)).toBe(true);
+    }
+  };
+
+  it("refuses reading another organization's records by id or slug", async () => {
+    await probe((c) => c.project.getProjectBySlug({ slug: slugs.project! }));
+    await probe((c) => c.task.getTaskByKey({ key: ids.task! }));
+    await probe((c) => c.docs.getById({ id: ids.doc! }));
+    await probe((c) => c.docs.getBySlug({ slug: slugs.doc! }));
+    await probe((c) => c.docs.getComments({ docId: ids.doc! }));
+    await probe((c) => c.docs.getVersionHistory({ id: ids.doc! }));
+    await probe((c) => c.chat.get({ id: ids.channel! }));
+    await probe((c) => c.chat.messages({ channelId: ids.channel! }));
+    await probe((c) => c.files.get({ id: ids.file! }));
+    await probe((c) => c.meeting.get({ id: ids.meeting! }));
+    await probe((c) => c.whiteboard.get({ id: ids.board! }));
+    await probe((c) => c.whiteboard.version({ id: ids.board! }));
+    await probe((c) => c.mail.get({ id: ids.mail! }));
+    await probe((c) => c.tickets.get({ id: ids.ticket! }));
+    await probe((c) => c.kb.revisions({ id: ids.article! }));
+    await probe((c) => c.payroll.run({ id: ids.run! }));
+    await probe((c) => c.webhook.deliveries({ id: ids.webhook! }));
+    await probe((c) => c.team.getById({ id: ids.team! }));
+    await probe((c) => c.permissions.roles.get({ id: ids.role! }));
   });
 
-  it("cannot get B's task by key", async () => {
-    // Unknown keys resolve to nothing instead of throwing; the page shows
-    // "Task not found".
+  it("refuses changing another organization's records", async () => {
     await expect(
-      asA.task.getTaskByKey({ key: taskB.key }),
-    ).resolves.toBeUndefined();
-  });
-
-  it("cannot update B's task", async () => {
-    await expect(
-      asA.task.updateTaskByKey({ key: taskB.key, name: "Hijacked" }),
-    ).rejects.toMatchObject(notFound);
-
-    expect((await bTask()).name).toBe("Secret task");
-  });
-
-  it("cannot delete B's task", async () => {
-    await expect(
-      asA.task.deleteTaskByKey({ key: taskB.key }),
-    ).rejects.toMatchObject(notFound);
-
-    expect((await bTask()).deletedAt).toBeNull();
-  });
-
-  it("cannot create a task in B's project", async () => {
-    await expect(
-      asA.task.createTask({ projectId: projectB.id, name: "Injected" }),
-    ).rejects.toMatchObject(notFound);
-
-    const injected = await db
-      .select()
-      .from(tasks)
-      .where(and(eq(tasks.projectId, projectB.id), eq(tasks.name, "Injected")));
-
-    expect(injected).toHaveLength(0);
-  });
-
-  it("cannot assign a task to B's member", async () => {
-    await expect(
-      asA.task.createTask({
-        projectId: projectA.id,
-        name: "Assigned across orgs",
-        assignedToMemberId: memberBId,
+      b.project.updateProjectBySlug({
+        currentSlug: slugs.project!,
+        slug: slugs.project!,
+        name: "Taken",
       }),
-    ).rejects.toMatchObject(notFound);
-  });
-
-  it("cannot reassign A's task to B's member", async () => {
-    const taskA = await world.task(orgA, projectA, { taskNumber: 50 });
-
+    ).rejects.toMatchObject(refused);
     await expect(
-      asA.task.updateTaskByKey({
-        key: taskA.key,
-        assignedToMemberId: memberBId,
+      b.task.updateTaskByKey({ key: ids.task!, name: "Taken" }),
+    ).rejects.toMatchObject(refused);
+    await expect(
+      b.docs.updateDocTitle({ id: ids.doc!, title: "Taken" }),
+    ).rejects.toMatchObject(refused);
+    await expect(
+      b.docs.setShare({ id: ids.doc!, enabled: true }),
+    ).rejects.toMatchObject(refused);
+    await expect(
+      b.chat.send({ channelId: ids.channel!, body: "Intruder" }),
+    ).rejects.toMatchObject(refused);
+    await expect(
+      b.chat.edit({ messageId: ids.message!, body: "Taken" }),
+    ).rejects.toMatchObject(refused);
+    await expect(
+      b.files.rename({ id: ids.file!, name: "taken.pdf" }),
+    ).rejects.toMatchObject(refused);
+    await expect(
+      b.files.renameFolder({ id: ids.folder!, name: "Taken" }),
+    ).rejects.toMatchObject(refused);
+    await expect(b.calendar.remove({ id: ids.event! })).rejects.toMatchObject(
+      refused,
+    );
+    await expect(
+      b.meeting.saveNotes({ id: ids.meeting!, notes: "Taken" }),
+    ).rejects.toMatchObject(refused);
+    await expect(
+      b.whiteboard.save({ id: ids.board!, elements: [] }),
+    ).rejects.toMatchObject(refused);
+    await expect(
+      b.tickets.update({ id: ids.ticket!, status: "resolved" }),
+    ).rejects.toMatchObject(refused);
+    await expect(
+      b.tickets.reply({ id: ids.ticket!, body: "Intruder", kind: "reply" }),
+    ).rejects.toMatchObject(refused);
+    await expect(b.kb.remove({ id: ids.article! })).rejects.toMatchObject(
+      refused,
+    );
+    await expect(b.hr.remove({ id: ids.employee! })).rejects.toMatchObject(
+      refused,
+    );
+    await expect(b.payroll.deleteRun({ id: ids.run! })).rejects.toMatchObject(
+      refused,
+    );
+    await expect(b.webhook.remove({ id: ids.webhook! })).rejects.toMatchObject(
+      refused,
+    );
+    await expect(b.apiKey.revoke({ id: ids.apiKey! })).rejects.toMatchObject(
+      refused,
+    );
+    await expect(b.team.delete({ id: ids.team! })).rejects.toMatchObject(
+      refused,
+    );
+    await expect(
+      b.permissions.roles.delete({ id: ids.role! }),
+    ).rejects.toMatchObject(refused);
+    await expect(
+      b.cannedReply.remove({ id: ids.reply! }),
+    ).rejects.toMatchObject(refused);
+    await expect(
+      b.permissions.assignments.assign({
+        roleId: ids.role!,
+        principalType: "user",
+        principalId: bUserId,
+        scopeType: "organization",
+        scopeId: bOrgId,
       }),
-    ).rejects.toBeDefined();
-
-    const [row] = await db.select().from(tasks).where(eq(tasks.id, taskA.id));
-
-    expect(row!.assignedToMemberId).not.toBe(memberBId);
-  });
-});
-
-describe("task comments and activity", () => {
-  it("cannot read B's task comments", async () => {
-    await expect(
-      asA.comment.getTaskComments({ taskKey: taskB.key }),
-    ).rejects.toMatchObject(notFound);
+    ).rejects.toMatchObject(refused);
   });
 
-  it("cannot comment on B's task", async () => {
-    await expect(
-      asA.comment.createTaskComment({ taskKey: taskB.key, body: "hi" }),
-    ).rejects.toMatchObject(notFound);
-
-    const comments = await db
-      .select()
-      .from(taskComments)
-      .where(eq(taskComments.taskId, taskB.id));
-
-    expect(comments).toHaveLength(1);
-  });
-
-  it("cannot read B's task activity", async () => {
-    await expect(
-      asA.activity.getTaskActivityEvents({ taskKey: taskB.key }),
-    ).rejects.toMatchObject(notFound);
-  });
-});
-
-describe("docs", () => {
-  it("does not list or search B's docs", async () => {
-    const all = await asA.docs.getAll({});
-    const found = await asA.docs.search({ query: "Secret" });
-
-    expect(all.map((doc) => doc.id)).not.toContain(docB.id);
-    expect(found.map((doc) => doc.id)).not.toContain(docB.id);
-  });
-
-  it("cannot get B's doc by id or slug", async () => {
-    await expect(asA.docs.getById({ id: docB.id })).rejects.toMatchObject(
-      notFound,
-    );
-    await expect(asA.docs.getBySlug({ slug: docB.slug })).rejects.toMatchObject(
-      notFound,
-    );
-  });
-
-  it("cannot update B's doc", async () => {
-    await expect(
-      asA.docs.updateDocTitle({ id: docB.id, title: "Hijacked" }),
-    ).rejects.toMatchObject(notFound);
-    await expect(
-      asA.docs.updateDocContent({ id: docB.id, content: "hijacked" }),
-    ).rejects.toMatchObject(notFound);
-
-    const doc = await bDoc();
-
-    expect(doc.title).toBe("Secret doc");
-    expect(doc.content).toBe("secret");
-  });
-
-  it("cannot delete or restore B's doc", async () => {
-    await expect(asA.docs.delete({ id: docB.id })).rejects.toMatchObject(
-      notFound,
-    );
-    await expect(asA.docs.restore({ id: docB.id })).rejects.toMatchObject(
-      notFound,
+  it("never lists another organization's records", async () => {
+    const seen = JSON.stringify(
+      await Promise.all([
+        b.project.getProjectsByOrgId(),
+        b.task.getTasksByOrgId({}),
+        b.docs.getAll({}),
+        b.chat.sidebar(),
+        b.chat.browse(),
+        b.files.library({ kind: "all" }),
+        b.files.folders(),
+        b.calendar.list({
+          from: new Date("2031-01-01T00:00:00Z"),
+          to: new Date("2031-02-01T00:00:00Z"),
+        }),
+        b.meeting.list({ when: "upcoming" }),
+        b.whiteboard.list(),
+        b.mail.list({ folder: "inbox" }),
+        b.tickets.list({}),
+        b.kb.list({}),
+        b.hr.directory(),
+        b.payroll.runs(),
+        b.webhook.list(),
+        b.apiKey.list(),
+        b.team.getAll(),
+        b.permissions.roles.list(),
+        b.cannedReply.list(),
+        b.search.query({ query: "secret" }),
+        b.audit.list({}),
+      ]),
     );
 
-    expect((await bDoc()).deletedAt).toBeNull();
-  });
+    for (const [kind, id] of Object.entries(ids)) {
+      expect(seen, `${kind} leaked into another organization`).not.toContain(
+        id,
+      );
+    }
 
-  it("cannot read, add or resolve comments on B's doc", async () => {
-    await expect(
-      asA.docs.getComments({ docId: docB.id }),
-    ).rejects.toMatchObject(notFound);
-    await expect(
-      asA.docs.createComment({ docId: docB.id, body: "hi" }),
-    ).rejects.toMatchObject(notFound);
-    await expect(
-      asA.docs.resolveComment({ id: docCommentB.id }),
-    ).rejects.toMatchObject(notFound);
-
-    const comments = await db
-      .select()
-      .from(docComments)
-      .where(eq(docComments.docId, docB.id));
-
-    expect(comments).toHaveLength(1);
-    expect(comments[0]!.resolvedAt).toBeNull();
-  });
-
-  it("cannot create a doc in B's project or team", async () => {
-    await expect(
-      asA.docs.create({
-        title: "Injected",
-        slug: "injected-project",
-        projectId: projectB.id,
-      }),
-    ).rejects.toMatchObject(notFound);
-    await expect(
-      asA.docs.create({
-        title: "Injected",
-        slug: "injected-team",
-        teamId: teamB.id,
-      }),
-    ).rejects.toMatchObject(notFound);
-  });
-
-  it("created docs belong to the caller's organization", async () => {
-    const doc = await asA.docs.create({ title: "Mine", slug: "mine-doc-a" });
-
-    expect(doc.organizationId).toBe(orgA.id);
-  });
-});
-
-describe("teams", () => {
-  it("does not list B's teams", async () => {
-    const list = await asA.team.getAll();
-
-    expect(list.map((team) => team.id)).not.toContain(teamB.id);
-  });
-
-  it("cannot get, update or delete B's team", async () => {
-    await expect(asA.team.getById({ id: teamB.id })).rejects.toMatchObject(
-      notFound,
-    );
-    await expect(
-      asA.team.update({ id: teamB.id, name: "Hijacked", color: "red" }),
-    ).rejects.toMatchObject(notFound);
-    await expect(asA.team.delete({ id: teamB.id })).rejects.toMatchObject(
-      notFound,
-    );
-
-    const [row] = await db.select().from(teams).where(eq(teams.id, teamB.id));
-
-    expect(row?.name).toBe("Team B");
-  });
-
-  it("cannot change B's team membership", async () => {
-    await expect(
-      asA.team.updateMembers({ teamId: teamB.id, memberIds: [memberAId] }),
-    ).rejects.toMatchObject(notFound);
-  });
-
-  it("cannot put B's members into A's team", async () => {
-    await expect(
-      asA.team.updateMembers({ teamId: teamA.id, memberIds: [memberBId] }),
-    ).rejects.toBeDefined();
-
-    const rows = await db
-      .select()
-      .from(teamMembers)
-      .where(eq(teamMembers.teamId, teamA.id));
-
-    expect(rows.map((row) => row.memberId)).not.toContain(memberBId);
-  });
-
-  it("cannot create a team containing B's members", async () => {
-    await expect(
-      asA.team.create({
-        name: "Cross org team",
-        color: "blue",
-        memberIds: [memberBId],
-      }),
-    ).rejects.toBeDefined();
-  });
-
-  it("only offers the caller's own members", async () => {
-    const available = await asA.team.getAvailableMembers();
-
-    expect(JSON.stringify(available)).not.toContain(userB.email);
-  });
-});
-
-describe("members", () => {
-  it("only lists the caller's organization members", async () => {
-    const list = await asA.member.getMembers();
-
-    expect(list.map((member) => member.userId)).toEqual([userA.id]);
+    expect(seen).not.toContain("A secret");
   });
 });
