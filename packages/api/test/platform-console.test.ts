@@ -149,7 +149,10 @@ describe("flags, limits and seats", () => {
     const member = await world.caller(owner.user, org);
 
     await expect(
-      member.invitation.invite({ email: "extra@example.com", role: "member" }),
+      member.invitation.invite({
+        email: `extra.${crypto.randomUUID()}@example.com`,
+        role: "member",
+      }),
     ).rejects.toMatchObject({
       code: "FORBIDDEN",
       message: expect.stringMatching(/allows 1 members/i),

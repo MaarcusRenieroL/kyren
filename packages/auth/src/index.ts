@@ -332,6 +332,17 @@ export const auth = betterAuth({
         // Every organization starts with its system roles in place.
         afterCreateOrganization: async ({ organization }) => {
           await ensureSystemRoles(db, organization.id);
+          // Payroll handles salaries and bank details: a new organization
+          // turns it on deliberately (Settings → Modules), it isn't on by
+          // default. Organizations created before keep their setting.
+          await db
+            .insert(schema.organizationModules)
+            .values({
+              organizationId: organization.id,
+              moduleId: "payroll",
+              enabled: false,
+            })
+            .onConflictDoNothing();
         },
         // Whatever access a member had in the organization goes with them.
         afterRemoveMember: async ({ member, organization }) => {

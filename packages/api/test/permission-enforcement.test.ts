@@ -137,7 +137,10 @@ describe("default roles reproduce today's behavior", () => {
     ).rejects.toMatchObject(forbidden);
     await expect(member.invitation.list()).rejects.toMatchObject(forbidden);
     await expect(
-      member.invitation.invite({ email: "x@example.test", role: "member" }),
+      member.invitation.invite({
+        email: `x.${crypto.randomUUID()}@example.test`,
+        role: "member",
+      }),
     ).rejects.toMatchObject(forbidden);
     await expect(
       member.organization.update({ name: "Hijacked" }),

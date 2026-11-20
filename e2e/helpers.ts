@@ -264,3 +264,11 @@ export async function trpcQuery<T = unknown>(
 
   return body[0]!.result.data.json;
 }
+
+/**
+ * Turns a module on for the signed-in owner's organization. Payroll starts
+ * off in a new organization, so its tests switch it on like an owner would.
+ */
+export async function enableModule(page: Page, moduleId: string) {
+  await trpcMutation(page, "modules.setEnabled", { moduleId, enabled: true });
+}

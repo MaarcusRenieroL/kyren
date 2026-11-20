@@ -1,6 +1,11 @@
 import { expect, test } from "./fixtures";
 
-import { registerWithOrganization, trpcMutation, uniqueName } from "./helpers";
+import {
+  registerWithOrganization,
+  trpcMutation,
+  uniqueName,
+  enableModule,
+} from "./helpers";
 import { expectNoSeriousA11yIssues, orgWithMember } from "./people-helpers";
 
 test("the overview shows totals, a setup checklist and recent actions @admin", async ({
@@ -134,11 +139,15 @@ test("the module can be switched off and on, and the sidebar follows @admin", as
   ).toBeVisible();
 
   await page.goto(modules);
-  for (const name of ["Administration", "HR", "Payroll", "Tickets"]) {
+  for (const name of ["Administration", "HR", "Tickets"]) {
     await expect(
       page.getByRole("switch", { name: `${name} module` }),
     ).toBeChecked();
   }
+  // Payroll (salaries, bank details) starts off; an owner turns it on.
+  await expect(
+    page.getByRole("switch", { name: "Payroll module" }),
+  ).not.toBeChecked();
 
   await page.getByRole("switch", { name: "Administration module" }).click();
   await expect(
@@ -164,6 +173,7 @@ test("HR and Payroll turn off independently and keep their data @admin", async (
     label: "adminhr",
     orgName: uniqueName("Admin hr"),
   });
+  await enableModule(page, "payroll");
 
   const name = uniqueName("Kept Person");
 

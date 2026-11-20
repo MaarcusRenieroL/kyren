@@ -11,6 +11,7 @@ import {
   signIn,
   trpcMutation,
   uniqueName,
+  enableModule,
 } from "./helpers";
 import {
   acceptNextConfirm,
@@ -101,6 +102,7 @@ test("a new organization has no runs or salaries, and a run needs a salary first
     label: "payempty",
     orgName: uniqueName("Payroll empty"),
   });
+  await enableModule(page, "payroll");
 
   await page.goto("/payroll");
   await expect(page.getByRole("heading", { name: "Payroll" })).toBeVisible();
@@ -133,6 +135,8 @@ test("salaries, a draft run, bonuses, approval and payment follow the pay arithm
   const orgName = uniqueName("Payroll cycle");
 
   await registerWithOrganization(page, { label: "paycycle", orgName });
+
+  await enableModule(page, "payroll");
 
   const ana = uniqueName("Ana");
   const ben = uniqueName("Ben");
@@ -241,6 +245,7 @@ test("a draft run can be deleted after a confirm, and a bad salary is refused @p
     label: "paydel",
     orgName: uniqueName("Payroll delete"),
   });
+  await enableModule(page, "payroll");
 
   const ana = uniqueName("Ana");
 
@@ -269,6 +274,7 @@ test("members see only their own payslip, and only after approval @payroll", asy
   browser,
 }) => {
   const team = await orgWithMember(browser, page, "payown");
+  await enableModule(page, "payroll");
 
   const memberEmployee = await hire(page, team.memberName, null);
   const ana = uniqueName("Ana");
@@ -361,6 +367,7 @@ test("payroll pages pass accessibility checks and fit a phone @payroll", async (
     label: "paya11y",
     orgName: uniqueName("Payroll a11y"),
   });
+  await enableModule(page, "payroll");
 
   const ana = uniqueName("Ana");
 
@@ -392,6 +399,7 @@ test("a salary change keeps the old figure in the history @payroll", async ({
     label: "payhistory",
     orgName: uniqueName("Payroll history"),
   });
+  await enableModule(page, "payroll");
 
   const ana = uniqueName("Ana");
 
@@ -414,6 +422,7 @@ test("an off-cycle run pays chosen people beside the regular run @payroll", asyn
     label: "payoffcycle",
     orgName: uniqueName("Payroll off-cycle"),
   });
+  await enableModule(page, "payroll");
 
   const ana = uniqueName("Ana");
 
