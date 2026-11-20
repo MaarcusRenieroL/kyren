@@ -11,7 +11,8 @@ Highest value for the effort first. Each item is committed on its own.
 
 ### Phase 1 — quick wins that users notice at once
 
-1. [ ] **Authenticator-app two-factor (TOTP)** — the security page says "coming"; add QR setup, backup codes. (1 day)
+1. [x] **Authenticator-app two-factor (TOTP)** — already built (setup with QR code, backup codes, sign-in step); a stale
+       "coming" note on the Security page was removed.
 2. [ ] **Tickets: canned replies** — saved answers an agent inserts with one click; per-org, with variables. (0.5 day)
 3. [ ] **Tickets: satisfaction rating** — the customer rates a resolved ticket from the portal; score per agent. (0.5 day)
 4. [ ] **Projects: milestones** — dated milestones on a project, shown on the Gantt, with tasks linked. (1 day)

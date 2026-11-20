@@ -581,23 +581,6 @@ export function SecuritySection() {
         </SettingsTile>
       </form>
 
-      <SettingsTile>
-        <SettingsRow
-          label="Two-factor authentication"
-          description="An extra step when you sign in."
-        >
-          <p className="flex items-center gap-2 text-sm">
-            <span className="rounded-full border border-dashed border-ink-3 px-2.5 py-px font-mono text-[11px] text-ink-2">
-              Coming
-            </span>
-            <span className="text-ink-2">
-              Authenticator-app codes are on the way. Your password is the only
-              factor for now.
-            </span>
-          </p>
-        </SettingsRow>
-      </SettingsTile>
-
       <section className="flex flex-col gap-2" aria-labelledby="sessions-title">
         <div className="flex items-center gap-3">
           <h3 id="sessions-title" className="text-sm font-semibold">
