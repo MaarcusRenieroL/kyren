@@ -397,7 +397,9 @@ export const moduleRegistry: readonly ModuleManifest[] = [
   },
   {
     id: "mail",
-    name: "Mail",
+    // Internal to the organization, so not called "Mail" until it can reach
+    // outside addresses.
+    name: "Messages",
     description: "Private messages between people in your organization.",
     icon: "Inbox",
     basePath: "/mail",
@@ -413,7 +415,7 @@ export const moduleRegistry: readonly ModuleManifest[] = [
         order: 20,
         items: [
           {
-            label: "Mail",
+            label: "Messages",
             href: "/mail",
             permission: "mail.view",
             icon: "Inbox",

@@ -7,7 +7,7 @@ const labels: Record<string, string> = {
   inbox: "Notifications",
   files: "Files",
   calendar: "Calendar",
-  mail: "Mail",
+  mail: "Messages",
   tickets: "Tickets",
   hr: "HR",
   payroll: "Payroll",
