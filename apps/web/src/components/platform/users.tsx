@@ -135,6 +135,32 @@ export function PlatformUsers() {
               >
                 Send password reset
               </Button>
+              {user.twoFactorEnabled ? (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  disabled={busy}
+                  onClick={() => {
+                    if (
+                      !window.confirm(
+                        `Turn off two-factor for ${user.email}? Only do this after confirming who they are; they will be signed out everywhere.`,
+                      )
+                    ) {
+                      return;
+                    }
+
+                    void act(
+                      () =>
+                        trpc.platform.users.resetTwoFactor.mutate({
+                          userId: user.id,
+                        }),
+                      "Two-factor turned off",
+                    );
+                  }}
+                >
+                  Reset two-factor
+                </Button>
+              ) : null}
             </div>
           </li>
         ))}

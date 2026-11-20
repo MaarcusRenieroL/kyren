@@ -1,7 +1,13 @@
 import { TRPCError } from "@trpc/server";
 import { auth } from "@zentro/auth";
 import { eq, ilike, or } from "@zentro/db/drizzle";
-import { members, organizations, sessions, users } from "@zentro/db/schema";
+import {
+  members,
+  organizations,
+  sessions,
+  twoFactors,
+  users,
+} from "@zentro/db/schema";
 import type { db as Database } from "@zentro/db";
 import { z } from "zod";
 
@@ -92,6 +98,40 @@ export const platformUsersRouter = router({
       });
 
       return { ended: ended.length };
+    }),
+
+  /**
+   * For someone who lost both their authenticator and their backup codes:
+   * turns two-factor off, deletes the old secret and codes, and ends every
+   * session, so they sign in again with their password and set it up anew.
+   */
+  resetTwoFactor: platformProcedure
+    .input(userInput)
+    .mutation(async ({ ctx, input }) => {
+      const user = await findUser(ctx.db, input.userId);
+
+      const ended = await ctx.db.transaction(async (tx) => {
+        await tx
+          .update(users)
+          .set({ twoFactorEnabled: false, updatedAt: new Date() })
+          .where(eq(users.id, user.id));
+        await tx.delete(twoFactors).where(eq(twoFactors.userId, user.id));
+
+        return tx
+          .delete(sessions)
+          .where(eq(sessions.userId, user.id))
+          .returning({ id: sessions.id });
+      });
+
+      await recordPlatformAudit(ctx, {
+        action: "user.two_factor_reset",
+        targetType: "user",
+        targetId: user.id,
+        label: user.email,
+        detail: { sessions: ended.length },
+      });
+
+      return { reset: true };
     }),
 
   /** Emails the user a password reset link; the operator never sees or sets a password. */

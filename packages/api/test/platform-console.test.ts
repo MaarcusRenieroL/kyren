@@ -11,6 +11,7 @@ import {
   platformIpAllowlist,
   platformSettings,
   sessions,
+  twoFactors,
   users,
 } from "@zentro/db/schema";
 
@@ -398,6 +399,71 @@ describe("user lookup, forced sign-out and password reset", () => {
     await expect(
       platform.users.lookup({ query: member.user.email }),
     ).resolves.toMatchObject([{ sessions: 0 }]);
+  });
+});
+
+describe("two-factor recovery", () => {
+  it("lets an operator reset someone who lost their authenticator and backup codes", async () => {
+    const org = await world.org("Lost phone Co");
+    const person = await world.userIn(org, "member", "Lost Phone");
+    const platform = world.sessionCaller(await operator()).platform;
+
+    await db
+      .update(users)
+      .set({ twoFactorEnabled: true })
+      .where(eq(users.id, person.user.id));
+    await db.insert(twoFactors).values({
+      userId: person.user.id,
+      secret: "old-secret",
+      backupCodes: "old-codes",
+    });
+    await db.insert(sessions).values({
+      token: `t2-${person.user.id}`,
+      userId: person.user.id,
+      expiresAt: new Date(Date.now() + 60_000),
+    });
+
+    await platform.users.resetTwoFactor({ userId: person.user.id });
+
+    const [after] = await db
+      .select({ on: users.twoFactorEnabled })
+      .from(users)
+      .where(eq(users.id, person.user.id));
+
+    expect(after?.on).toBe(false);
+    expect(
+      await db
+        .select()
+        .from(twoFactors)
+        .where(eq(twoFactors.userId, person.user.id)),
+    ).toEqual([]);
+    expect(
+      await db
+        .select()
+        .from(sessions)
+        .where(eq(sessions.userId, person.user.id)),
+    ).toEqual([]);
+    expect(
+      (
+        await db
+          .select({ action: platformAuditEvents.action })
+          .from(platformAuditEvents)
+          .where(eq(platformAuditEvents.targetId, person.user.id))
+      ).map((row) => row.action),
+    ).toContain("user.two_factor_reset");
+  });
+
+  it("is only for platform operators", async () => {
+    const org = await world.org("Not an operator Co");
+    const owner = await world.userIn(org, "owner", "Org Owner");
+    const victim = await world.userIn(org, "member", "Victim");
+    const caller = await world.caller(owner.user, org);
+
+    await expect(
+      caller.platform.users.resetTwoFactor({ userId: victim.user.id }),
+    ).rejects.toMatchObject({
+      code: expect.stringMatching(/FORBIDDEN|UNAUTHORIZED|NOT_FOUND/),
+    });
   });
 });
 
