@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { cn } from "@zentro/ui/lib/utils";
+import { cn } from "@kyren/ui/lib/utils";
 import {
   useBaseRole,
   usePermissionMap,

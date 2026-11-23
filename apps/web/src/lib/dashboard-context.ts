@@ -2,26 +2,26 @@ import { cache } from "react";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 
-import { auth } from "@zentro/auth";
+import { auth } from "@kyren/auth";
 import {
   loadEnabledModules,
   loadPermissionSnapshot,
   workspaceAccessBlock,
-} from "@zentro/api/server";
-import { db } from "@zentro/db";
-import { and, eq, isNull } from "@zentro/db/drizzle";
+} from "@kyren/api/server";
+import { db } from "@kyren/db";
+import { and, eq, isNull } from "@kyren/db/drizzle";
 import {
   organizations as organizationsTable,
   projects,
-} from "@zentro/db/schema";
-import type { ModuleId } from "@zentro/modules";
+} from "@kyren/db/schema";
+import type { ModuleId } from "@kyren/modules";
 import {
   can as engineCan,
   getCatalogKeys,
   reachablePermissions,
   type PermissionSnapshot,
   type ResourceContext,
-} from "@zentro/permissions";
+} from "@kyren/permissions";
 
 import { paths } from "~/src/lib/paths";
 

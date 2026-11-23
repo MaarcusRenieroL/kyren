@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import type { inferRouterOutputs } from "@trpc/server";
-import type { AppRouter } from "@zentro/api/server";
+import type { AppRouter } from "@kyren/api/server";
 import type { Draft } from "../composer";
 import type { LocalState, MessageView } from "../message-item";
 

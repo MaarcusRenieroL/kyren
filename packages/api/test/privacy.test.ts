@@ -1,7 +1,7 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
-import { db } from "@zentro/db";
-import { eq } from "@zentro/db/drizzle";
+import { db } from "@kyren/db";
+import { eq } from "@kyren/db/drizzle";
 import {
   accounts,
   employees,
@@ -10,7 +10,7 @@ import {
   taskComments,
   tasks,
   users,
-} from "@zentro/db/schema";
+} from "@kyren/db/schema";
 
 import { World } from "./helpers";
 

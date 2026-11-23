@@ -3,8 +3,8 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 const runChatJobs = vi.fn();
 const maintenanceState = vi.fn();
 
-vi.mock("@zentro/api/server", () => ({ runChatJobs, maintenanceState }));
-vi.mock("@zentro/db", () => ({ db: {} }));
+vi.mock("@kyren/api/server", () => ({ runChatJobs, maintenanceState }));
+vi.mock("@kyren/db", () => ({ db: {} }));
 
 const { GET } = await import("../src/app/api/cron/chat/route");
 

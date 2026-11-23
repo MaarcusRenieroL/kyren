@@ -1,8 +1,8 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
-import { db } from "@zentro/db";
-import { eq } from "@zentro/db/drizzle";
-import { chatChannels, chatMessages, tickets } from "@zentro/db/schema";
+import { db } from "@kyren/db";
+import { eq } from "@kyren/db/drizzle";
+import { chatChannels, chatMessages, tickets } from "@kyren/db/schema";
 
 import { applyRetention } from "../src/server/retention";
 import { eraseMember } from "../src/server/privacy";

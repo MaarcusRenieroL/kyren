@@ -1,6 +1,6 @@
 import { TRPCError } from "@trpc/server";
-import { and, asc, desc, eq, sql } from "@zentro/db/drizzle";
-import { payRuns, payslips } from "@zentro/db/schema";
+import { and, asc, desc, eq, sql } from "@kyren/db/drizzle";
+import { payRuns, payslips } from "@kyren/db/schema";
 import { z } from "zod";
 
 import { currentMemberId } from "../../chat";

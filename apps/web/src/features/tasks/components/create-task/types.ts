@@ -1,8 +1,8 @@
 import {
   createTaskSchema,
   type CreateTaskFormValues,
-} from "@zentro/api/types/zod-schema";
-import { cn } from "@zentro/ui/lib/utils";
+} from "@kyren/api/types/zod-schema";
+import { cn } from "@kyren/ui/lib/utils";
 import { getDateInputValue as localDateInputValue } from "../task-detail/task-detail-utils";
 
 export type ProjectOption = {

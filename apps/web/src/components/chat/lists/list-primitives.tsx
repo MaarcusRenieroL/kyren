@@ -1,10 +1,10 @@
 "use client";
 
-import { Button } from "@zentro/ui/shadcn/button";
+import { Button } from "@kyren/ui/shadcn/button";
 import Link from "next/link";
 import type { ReactNode } from "react";
-import { cn } from "@zentro/ui/lib/utils";
-import { Skeleton } from "@zentro/ui/shadcn/skeleton";
+import { cn } from "@kyren/ui/lib/utils";
+import { Skeleton } from "@kyren/ui/shadcn/skeleton";
 
 export const where = (channelName: string | null, channelId: string) =>
   channelName ? `/chat/${channelName}` : `/chat/dm/${channelId}`;

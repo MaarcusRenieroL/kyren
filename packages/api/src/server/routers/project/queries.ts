@@ -8,7 +8,7 @@ import {
   inArray,
   isNull,
   sql,
-} from "@zentro/db/drizzle";
+} from "@kyren/db/drizzle";
 import {
   docs,
   members,
@@ -17,7 +17,7 @@ import {
   tasks,
   teams,
   users,
-} from "@zentro/db/schema";
+} from "@kyren/db/schema";
 
 import { getProjectBySlugSchema } from "../../../types/zod-schema";
 import { loadProjectBySlug, projectBySlug } from "../../resources";

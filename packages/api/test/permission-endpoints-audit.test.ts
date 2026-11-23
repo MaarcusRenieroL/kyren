@@ -2,10 +2,10 @@ import {
   auth,
   disabledOrganizationPaths,
   ensureSystemRoles,
-} from "@zentro/auth";
-import { db } from "@zentro/db";
-import { eq } from "@zentro/db/drizzle";
-import { activityEvents, members, roles } from "@zentro/db/schema";
+} from "@kyren/auth";
+import { db } from "@kyren/db";
+import { eq } from "@kyren/db/drizzle";
+import { activityEvents, members, roles } from "@kyren/db/schema";
 import { afterAll, describe, expect, it } from "vitest";
 
 import { World } from "./helpers";

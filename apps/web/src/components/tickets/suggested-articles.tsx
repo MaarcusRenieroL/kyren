@@ -1,9 +1,9 @@
 "use client";
 
-import { Button } from "@zentro/ui/shadcn/button";
+import { Button } from "@kyren/ui/shadcn/button";
 import { useEffect, useState } from "react";
 
-import { useTrpcClient } from "@zentro/api/react";
+import { useTrpcClient } from "@kyren/api/react";
 
 type Suggestion = {
   id: string;

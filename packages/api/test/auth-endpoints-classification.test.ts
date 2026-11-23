@@ -1,7 +1,7 @@
-import { auth, disabledOrganizationPaths } from "@zentro/auth";
-import { db } from "@zentro/db";
-import { eq } from "@zentro/db/drizzle";
-import { members, sessions } from "@zentro/db/schema";
+import { auth, disabledOrganizationPaths } from "@kyren/auth";
+import { db } from "@kyren/db";
+import { eq } from "@kyren/db/drizzle";
+import { members, sessions } from "@kyren/db/schema";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 import { callAuth as call } from "./helpers/auth-call";

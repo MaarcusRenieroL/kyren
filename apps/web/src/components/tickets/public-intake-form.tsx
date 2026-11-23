@@ -1,11 +1,11 @@
 "use client";
 
-import { Label } from "@zentro/ui/shadcn/label";
-import { Textarea } from "@zentro/ui/shadcn/textarea";
-import { Input } from "@zentro/ui/shadcn/input";
-import { Button } from "@zentro/ui/shadcn/button";
+import { Label } from "@kyren/ui/shadcn/label";
+import { Textarea } from "@kyren/ui/shadcn/textarea";
+import { Input } from "@kyren/ui/shadcn/input";
+import { Button } from "@kyren/ui/shadcn/button";
 import { useEffect, useState, type FormEvent } from "react";
-import { NativeSelect } from "@zentro/ui/shadcn/native-select";
+import { NativeSelect } from "@kyren/ui/shadcn/native-select";
 import { apiPath } from "~/src/lib/paths";
 
 type Field = {

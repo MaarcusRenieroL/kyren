@@ -2,8 +2,8 @@
 
 import { useState } from "react";
 
-import { useTrpcClient } from "@zentro/api/react";
-import { Button } from "@zentro/ui/shadcn/button";
+import { useTrpcClient } from "@kyren/api/react";
+import { Button } from "@kyren/ui/shadcn/button";
 import {
   Dialog,
   DialogContent,
@@ -11,11 +11,11 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@zentro/ui/shadcn/dialog";
-import { Input } from "@zentro/ui/shadcn/input";
-import { Label } from "@zentro/ui/shadcn/label";
-import { Textarea } from "@zentro/ui/shadcn/textarea";
-import { NativeSelect } from "@zentro/ui/shadcn/native-select";
+} from "@kyren/ui/shadcn/dialog";
+import { Input } from "@kyren/ui/shadcn/input";
+import { Label } from "@kyren/ui/shadcn/label";
+import { Textarea } from "@kyren/ui/shadcn/textarea";
+import { NativeSelect } from "@kyren/ui/shadcn/native-select";
 
 import { messageOf, priorityLabels } from "./labels";
 

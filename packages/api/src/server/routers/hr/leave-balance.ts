@@ -1,6 +1,6 @@
-import { and, eq, gte, inArray, lte, sql } from "@zentro/db/drizzle";
-import { leaveRequests } from "@zentro/db/schema";
-import { decryptField } from "@zentro/utils/field-crypto";
+import { and, eq, gte, inArray, lte, sql } from "@kyren/db/drizzle";
+import { leaveRequests } from "@kyren/db/schema";
+import { decryptField } from "@kyren/utils/field-crypto";
 
 import { type OrganizationContext } from "../../trpc";
 

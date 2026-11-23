@@ -1,8 +1,8 @@
 "use client";
 
-import { Button } from "@zentro/ui/shadcn/button";
-import { Label } from "@zentro/ui/shadcn/label";
-import { Input } from "@zentro/ui/shadcn/input";
+import { Button } from "@kyren/ui/shadcn/button";
+import { Label } from "@kyren/ui/shadcn/label";
+import { Input } from "@kyren/ui/shadcn/input";
 import { FC, useState } from "react";
 import { PlusIcon, WorkflowIcon } from "lucide-react";
 import {
@@ -11,7 +11,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@zentro/ui/shadcn/dialog";
+} from "@kyren/ui/shadcn/dialog";
 
 import { AutomationActionForm } from "./automation-action-form";
 import { AutomationTriggerForm } from "./automation-trigger-form";

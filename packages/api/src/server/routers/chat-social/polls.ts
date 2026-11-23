@@ -1,5 +1,5 @@
 import { TRPCError } from "@trpc/server";
-import { and, asc, eq, inArray, isNull, sql } from "@zentro/db/drizzle";
+import { and, asc, eq, inArray, isNull, sql } from "@kyren/db/drizzle";
 import {
   chatEmojis,
   chatLinkPreviews,
@@ -7,7 +7,7 @@ import {
   chatPolls,
   chatPollVotes,
   files,
-} from "@zentro/db/schema";
+} from "@kyren/db/schema";
 import { z } from "zod";
 import { postChatMessage } from "../../chat-post";
 import { externalUrls, fetchPreview } from "../../chat-unfurl";

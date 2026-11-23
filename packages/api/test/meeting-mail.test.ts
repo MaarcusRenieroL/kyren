@@ -1,6 +1,6 @@
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 
-import { db } from "@zentro/db";
+import { db } from "@kyren/db";
 
 import { setMeetingMailer, type MeetingMail } from "../src/server/meeting-mail";
 import { sendDueMeetingReminders } from "../src/server/meeting-reminders";

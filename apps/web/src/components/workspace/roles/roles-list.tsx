@@ -4,10 +4,10 @@ import { FC, useCallback, useEffect, useState } from "react";
 import { PlusIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 
-import { useTrpcClient } from "@zentro/api/react";
-import { Button } from "@zentro/ui/shadcn/button";
-import { Skeleton } from "@zentro/ui/shadcn/skeleton";
-import { toastError, toastSuccess } from "@zentro/ui/index";
+import { useTrpcClient } from "@kyren/api/react";
+import { Button } from "@kyren/ui/shadcn/button";
+import { Skeleton } from "@kyren/ui/shadcn/skeleton";
+import { toastError, toastSuccess } from "@kyren/ui/index";
 
 import { usePermission } from "~/src/components/permissions/permission-provider";
 import { useFrameAction } from "~/src/components/workspace/settings/frames";

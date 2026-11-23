@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { cn } from "@zentro/ui/lib/utils";
+import { cn } from "@kyren/ui/lib/utils";
 import type { DashboardActivityItem } from "~/src/lib/dashboard-data";
 import { paths } from "~/src/lib/paths";
 

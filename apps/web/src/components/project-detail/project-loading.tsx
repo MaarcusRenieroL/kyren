@@ -1,4 +1,4 @@
-import { Skeleton } from "@zentro/ui/components/shadcn/skeleton";
+import { Skeleton } from "@kyren/ui/components/shadcn/skeleton";
 
 export function ProjectPageLoading() {
   return (

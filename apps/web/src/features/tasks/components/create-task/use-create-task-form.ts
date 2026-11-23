@@ -3,9 +3,9 @@
 import { useEffect, useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useTrpcClient } from "@zentro/api/react";
-import type { CreateTaskFormValues } from "@zentro/api/types/zod-schema";
-import { toastError, toastSuccess } from "@zentro/ui/index";
+import { useTrpcClient } from "@kyren/api/react";
+import type { CreateTaskFormValues } from "@kyren/api/types/zod-schema";
+import { toastError, toastSuccess } from "@kyren/ui/index";
 import { useCurrentUserId } from "~/src/components/permissions/permission-provider";
 
 import {

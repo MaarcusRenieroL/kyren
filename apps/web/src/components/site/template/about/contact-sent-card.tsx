@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-import { Button } from "@zentro/ui/shadcn/button";
+import { Button } from "@kyren/ui/shadcn/button";
 export function AboutContactSent({ v }: { v: any }) {
   const { ico, sentName, sentEmail, resetForm } = v;
 

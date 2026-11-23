@@ -2,7 +2,7 @@ import Link from "next/link";
 import { CircleDotIcon } from "lucide-react";
 import { type FC, type ReactNode } from "react";
 
-import { Button } from "@zentro/ui/shadcn/button";
+import { Button } from "@kyren/ui/shadcn/button";
 
 import { SystemPage } from "~/src/components/system/system-page";
 import { paths } from "~/src/lib/paths";

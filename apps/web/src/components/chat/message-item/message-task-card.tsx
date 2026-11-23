@@ -1,11 +1,11 @@
 "use client";
 
-import { Button } from "@zentro/ui/shadcn/button";
+import { Button } from "@kyren/ui/shadcn/button";
 import Link from "next/link";
 import { useState } from "react";
-import { useTrpcClient } from "@zentro/api/react";
-import { StatusGlyph } from "@zentro/ui/components/status-glyph";
-import { cn } from "@zentro/ui/lib/utils";
+import { useTrpcClient } from "@kyren/api/react";
+import { StatusGlyph } from "@kyren/ui/components/status-glyph";
+import { cn } from "@kyren/ui/lib/utils";
 import { ActorAvatar } from "~/src/components/actor-avatar";
 import { paths } from "~/src/lib/paths";
 import { statusLabels, type MessageView } from "./message-item-types";

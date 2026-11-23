@@ -1,6 +1,6 @@
-import { db } from "@zentro/db";
-import { eq } from "@zentro/db/drizzle";
-import { files, organizations } from "@zentro/db/schema";
+import { db } from "@kyren/db";
+import { eq } from "@kyren/db/drizzle";
+import { files, organizations } from "@kyren/db/schema";
 import { afterAll, describe, expect, it } from "vitest";
 
 import { purgeScheduledOrganizations } from "../src/server/platform-purge";

@@ -2,7 +2,7 @@
 
 import { paths } from "~/src/lib/paths";
 import { Suspense, useEffect, useMemo } from "react";
-import { Button } from "@zentro/ui/shadcn/button";
+import { Button } from "@kyren/ui/shadcn/button";
 import {
   AuthField,
   AuthHeading,
@@ -15,9 +15,9 @@ import {
   resetPasswordSchema,
 } from "~/src/features/auth/lib/zod-schema";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { authClient } from "@zentro/auth/client";
+import { authClient } from "@kyren/auth/client";
 import { useRouter, useSearchParams } from "next/navigation";
-import { toastError, toastSuccess } from "@zentro/ui/index";
+import { toastError, toastSuccess } from "@kyren/ui/index";
 import { getResetPasswordErrorMessage } from "~/src/features/auth/lib/helpers";
 
 function ResetPasswordForm() {

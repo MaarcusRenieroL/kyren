@@ -5,10 +5,10 @@ import { useEffect, useState } from "react";
 
 import { useParams, useRouter } from "next/navigation";
 
-import { useTrpcClient } from "@zentro/api/react";
-import { toastError, toastSuccess } from "@zentro/ui/index";
-import { ErrorState } from "@zentro/ui/components/error-state";
-import { DetailSkeleton } from "@zentro/ui/components/skeletons";
+import { useTrpcClient } from "@kyren/api/react";
+import { toastError, toastSuccess } from "@kyren/ui/index";
+import { ErrorState } from "@kyren/ui/components/error-state";
+import { DetailSkeleton } from "@kyren/ui/components/skeletons";
 
 import { NotFoundContent } from "~/src/components/system/not-found-content";
 import { TaskDetailView } from "~/src/features/tasks/components/task-detail/task-detail-view";

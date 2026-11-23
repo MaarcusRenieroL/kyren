@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { ArrowLeftIcon, PresentationIcon } from "lucide-react";
-import { Button } from "@zentro/ui/shadcn/button";
+import { Button } from "@kyren/ui/shadcn/button";
 import type { El } from "../canvas/model";
 import type { Other, SaveState } from "./editor-types";
 

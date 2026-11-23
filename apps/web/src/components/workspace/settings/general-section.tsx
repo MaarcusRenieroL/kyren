@@ -4,9 +4,9 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { FC } from "react";
 import { Controller, useForm } from "react-hook-form";
 
-import { useTrpcClient } from "@zentro/api/react";
-import { toastError, toastSuccess } from "@zentro/ui/index";
-import { Input } from "@zentro/ui/shadcn/input";
+import { useTrpcClient } from "@kyren/api/react";
+import { toastError, toastSuccess } from "@kyren/ui/index";
+import { Input } from "@kyren/ui/shadcn/input";
 
 import { trpcResult } from "~/src/lib/trpc-result";
 import {
@@ -92,14 +92,11 @@ export const GeneralSection: FC<Props> = ({ organization }) => {
           </SettingsError>
         </SettingsRow>
         <SettingsRow
-          label="URL"
+          label="Workspace identifier"
           htmlFor="organization-slug"
           description="Your workspace identifier."
         >
           <div className="flex h-(--control-h) items-center overflow-hidden rounded-md border border-hairline bg-hover font-mono text-sm">
-            <span className="flex h-full items-center border-r border-hairline px-3 text-ink-3">
-              zentro.app/
-            </span>
             <Input
               id="organization-slug"
               value={organization.slug}

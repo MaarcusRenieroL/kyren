@@ -1,6 +1,6 @@
 import type { ComponentProps, ReactElement } from "react";
 
-import { cn } from "@zentro/ui/lib/utils";
+import { cn } from "@kyren/ui/lib/utils";
 
 export function Kbd({
   className,

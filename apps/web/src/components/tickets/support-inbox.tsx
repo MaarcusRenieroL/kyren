@@ -4,12 +4,12 @@ import {
   Collapsible,
   CollapsibleTrigger,
   CollapsibleContent,
-} from "@zentro/ui/shadcn/collapsible";
+} from "@kyren/ui/shadcn/collapsible";
 import { useCallback, useEffect, useState } from "react";
 
-import { useTrpcClient } from "@zentro/api/react";
-import { toastError, toastSuccess } from "@zentro/ui/index";
-import { Button } from "@zentro/ui/shadcn/button";
+import { useTrpcClient } from "@kyren/api/react";
+import { toastError, toastSuccess } from "@kyren/ui/index";
+import { Button } from "@kyren/ui/shadcn/button";
 
 /** For people who manage the support email: the address mail providers post to. */
 export function SupportInbox() {

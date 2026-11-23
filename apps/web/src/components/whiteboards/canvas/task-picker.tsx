@@ -1,17 +1,17 @@
 "use client";
 
-import { Button } from "@zentro/ui/shadcn/button";
+import { Button } from "@kyren/ui/shadcn/button";
 import { useEffect, useMemo, useState } from "react";
 
-import { useTrpcClient } from "@zentro/api/react";
+import { useTrpcClient } from "@kyren/api/react";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from "@zentro/ui/shadcn/dialog";
-import { Input } from "@zentro/ui/shadcn/input";
+} from "@kyren/ui/shadcn/dialog";
+import { Input } from "@kyren/ui/shadcn/input";
 
 export type PickedTask = { key: string; name: string; status: string };
 

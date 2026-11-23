@@ -3,9 +3,9 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { ChevronLeftIcon, PlusIcon, Settings2Icon } from "lucide-react";
-import { useTrpcClient } from "@zentro/api/react";
-import { Button } from "@zentro/ui/shadcn/button";
-import { Skeleton } from "@zentro/ui/shadcn/skeleton";
+import { useTrpcClient } from "@kyren/api/react";
+import { Button } from "@kyren/ui/shadcn/button";
+import { Skeleton } from "@kyren/ui/shadcn/skeleton";
 import { usePermission } from "~/src/components/permissions/permission-provider";
 import { usePageCrumb } from "~/src/components/shell/breadcrumb-context";
 import { TeamActivity } from "~/src/components/workspace/activity/activity-feed";

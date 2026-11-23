@@ -1,12 +1,12 @@
 "use client";
 
-import { Label } from "@zentro/ui/shadcn/label";
-import { Checkbox } from "@zentro/ui/shadcn/checkbox";
+import { Label } from "@kyren/ui/shadcn/label";
+import { Checkbox } from "@kyren/ui/shadcn/checkbox";
 import { useState } from "react";
-import { useTrpcClient } from "@zentro/api/react";
-import { Button } from "@zentro/ui/shadcn/button";
-import { NativeSelect } from "@zentro/ui/shadcn/native-select";
-import { toastError, toastSuccess } from "@zentro/ui/index";
+import { useTrpcClient } from "@kyren/api/react";
+import { Button } from "@kyren/ui/shadcn/button";
+import { NativeSelect } from "@kyren/ui/shadcn/native-select";
+import { toastError, toastSuccess } from "@kyren/ui/index";
 import { useAsyncData } from "~/src/lib/use-async-data";
 
 /** Action items from the AI recap, ready to become tasks in a chosen project. */

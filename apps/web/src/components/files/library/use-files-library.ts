@@ -1,8 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { useTrpcClient } from "@zentro/api/react";
-import { toast, toastError } from "@zentro/ui/index";
+import { useTrpcClient } from "@kyren/api/react";
+import { toast, toastError } from "@kyren/ui/index";
 import { apiPath } from "~/src/lib/paths";
 import {
   emptyFileFilters,

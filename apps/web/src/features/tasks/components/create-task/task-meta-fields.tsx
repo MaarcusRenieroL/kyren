@@ -1,19 +1,19 @@
 "use client";
 
-import { Input } from "@zentro/ui/shadcn/input";
+import { Input } from "@kyren/ui/shadcn/input";
 import { Control, Controller } from "react-hook-form";
 import { AlertCircleIcon, CalendarIcon } from "lucide-react";
-import type { CreateTaskFormValues } from "@zentro/api/types/zod-schema";
+import type { CreateTaskFormValues } from "@kyren/api/types/zod-schema";
 import { ActorAvatar } from "~/src/components/actor-avatar";
-import { PriorityMeter, StatusGlyph } from "@zentro/ui/components/status-glyph";
+import { PriorityMeter, StatusGlyph } from "@kyren/ui/components/status-glyph";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@zentro/ui/shadcn/select";
-import { cn } from "@zentro/ui/lib/utils";
+} from "@kyren/ui/shadcn/select";
+import { cn } from "@kyren/ui/lib/utils";
 
 import { dueFromDateInput } from "../task-detail/task-detail-utils";
 import {

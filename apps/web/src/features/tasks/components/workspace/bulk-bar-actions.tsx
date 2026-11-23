@@ -1,10 +1,10 @@
 "use client";
 
-import { Label } from "@zentro/ui/shadcn/label";
-import { Input } from "@zentro/ui/shadcn/input";
-import { Button } from "@zentro/ui/shadcn/button";
+import { Label } from "@kyren/ui/shadcn/label";
+import { Input } from "@kyren/ui/shadcn/input";
+import { Button } from "@kyren/ui/shadcn/button";
 import { useState } from "react";
-import { cn } from "@zentro/ui/lib/utils";
+import { cn } from "@kyren/ui/lib/utils";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -15,12 +15,12 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogTrigger,
-} from "@zentro/ui/shadcn/alert-dialog";
+} from "@kyren/ui/shadcn/alert-dialog";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from "@zentro/ui/shadcn/popover";
+} from "@kyren/ui/shadcn/popover";
 
 import type { BulkChange, WorkspaceTask } from "~/src/features/tasks/lib/types";
 import { dueFromDateInput } from "../task-detail/task-detail-utils";

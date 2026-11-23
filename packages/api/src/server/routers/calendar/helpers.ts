@@ -9,8 +9,8 @@ import {
   isNull,
   lt,
   or,
-} from "@zentro/db/drizzle";
-import { calendarEvents, members, users } from "@zentro/db/schema";
+} from "@kyren/db/drizzle";
+import { calendarEvents, members, users } from "@kyren/db/schema";
 import { z } from "zod";
 
 import { holdsOwn } from "../../access";

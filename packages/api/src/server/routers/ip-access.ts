@@ -1,6 +1,6 @@
 import { TRPCError } from "@trpc/server";
-import { and, asc, eq } from "@zentro/db/drizzle";
-import { ipAllowlist, organizations } from "@zentro/db/schema";
+import { and, asc, eq } from "@kyren/db/drizzle";
+import { ipAllowlist, organizations } from "@kyren/db/schema";
 import { z } from "zod";
 
 import { clientIp } from "../client-ip";

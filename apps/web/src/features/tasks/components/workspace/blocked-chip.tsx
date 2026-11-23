@@ -1,4 +1,4 @@
-import { cn } from "@zentro/ui/lib/utils";
+import { cn } from "@kyren/ui/lib/utils";
 
 /** "Blocked" when open tasks block this one; the keys are in the tooltip. */
 export function BlockedChip({

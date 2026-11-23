@@ -1,6 +1,6 @@
 import { TRPCError } from "@trpc/server";
-import { and, desc, eq, ilike, isNull, or, sql } from "@zentro/db/drizzle";
-import { docs, members, projects, teams, users } from "@zentro/db/schema";
+import { and, desc, eq, ilike, isNull, or, sql } from "@kyren/db/drizzle";
+import { docs, members, projects, teams, users } from "@kyren/db/schema";
 import { z } from "zod";
 
 import {

@@ -2,9 +2,9 @@
 
 import { useEffect, useState } from "react";
 
-import { useTrpcClient } from "@zentro/api/react";
-import { EmptyState } from "@zentro/ui/components/empty-state";
-import { Skeleton } from "@zentro/ui/shadcn/skeleton";
+import { useTrpcClient } from "@kyren/api/react";
+import { EmptyState } from "@kyren/ui/components/empty-state";
+import { Skeleton } from "@kyren/ui/shadcn/skeleton";
 
 import { useCurrentUserId } from "~/src/components/permissions/permission-provider";
 import { ModuleTabs } from "~/src/components/shell/module-section-nav";

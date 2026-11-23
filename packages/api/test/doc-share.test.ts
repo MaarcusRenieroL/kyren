@@ -1,8 +1,8 @@
 import { afterAll, describe, expect, it } from "vitest";
 
-import { db } from "@zentro/db";
-import { eq } from "@zentro/db/drizzle";
-import { docs, organizations } from "@zentro/db/schema";
+import { db } from "@kyren/db";
+import { eq } from "@kyren/db/drizzle";
+import { docs, organizations } from "@kyren/db/schema";
 
 import { sharedDoc } from "../src/server/doc-share";
 import { forgetOrganizationStatus } from "../src/server/platform-policy";

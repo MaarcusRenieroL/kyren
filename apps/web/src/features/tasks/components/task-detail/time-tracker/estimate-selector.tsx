@@ -1,8 +1,8 @@
 "use client";
 
-import { Button } from "@zentro/ui/shadcn/button";
+import { Button } from "@kyren/ui/shadcn/button";
 import { HashIcon } from "lucide-react";
-import { cn } from "@zentro/ui/lib/utils";
+import { cn } from "@kyren/ui/lib/utils";
 
 type Props = {
   estimatePoints: number | null;

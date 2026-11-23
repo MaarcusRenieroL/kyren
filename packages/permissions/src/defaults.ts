@@ -1,5 +1,5 @@
 import { getCatalog } from "./catalog";
-import type { PermissionScope } from "@zentro/modules";
+import type { PermissionScope } from "@kyren/modules";
 
 export type SystemRoleKey =
   | "owner"

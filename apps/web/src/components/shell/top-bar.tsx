@@ -5,10 +5,10 @@ import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { CompassIcon, MenuIcon, SearchIcon } from "lucide-react";
 
-import { Breadcrumbs } from "@zentro/ui/components/breadcrumbs";
-import { Kbd } from "@zentro/ui/components/kbd";
-import { Button } from "@zentro/ui/shadcn/button";
-import { SidebarTrigger, useSidebar } from "@zentro/ui/shadcn/sidebar";
+import { Breadcrumbs } from "@kyren/ui/components/breadcrumbs";
+import { Kbd } from "@kyren/ui/components/kbd";
+import { Button } from "@kyren/ui/shadcn/button";
+import { SidebarTrigger, useSidebar } from "@kyren/ui/shadcn/sidebar";
 
 import { NotificationBell } from "~/src/components/notifications/notification-bell";
 import {

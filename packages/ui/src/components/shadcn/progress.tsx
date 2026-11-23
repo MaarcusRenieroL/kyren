@@ -3,7 +3,7 @@
 import * as React from "react";
 import { Progress as ProgressPrimitive } from "radix-ui";
 
-import { cn } from "@zentro/ui/lib/utils";
+import { cn } from "@kyren/ui/lib/utils";
 
 /**
  * A bar that fills; `value` is 0 to 100. It fills with the done color and a

@@ -4,10 +4,10 @@ import { useMemo } from "react";
 import { TeamRolesPanel } from "~/src/components/workspace/roles/team-roles-panel";
 import { usePermission } from "~/src/components/permissions/permission-provider";
 import { ActorAvatar } from "~/src/components/actor-avatar";
-import { cn } from "@zentro/ui";
-import { Badge } from "@zentro/ui/components/shadcn/badge";
-import { Button } from "@zentro/ui/components/shadcn/button";
-import { Checkbox } from "@zentro/ui/components/shadcn/checkbox";
+import { cn } from "@kyren/ui";
+import { Badge } from "@kyren/ui/components/shadcn/badge";
+import { Button } from "@kyren/ui/components/shadcn/button";
+import { Checkbox } from "@kyren/ui/components/shadcn/checkbox";
 import {
   Dialog,
   DialogContent,
@@ -15,10 +15,10 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@zentro/ui/components/shadcn/dialog";
-import { Input } from "@zentro/ui/components/shadcn/input";
-import { Label } from "@zentro/ui/components/shadcn/label";
-import { Textarea } from "@zentro/ui/components/shadcn/textarea";
+} from "@kyren/ui/components/shadcn/dialog";
+import { Input } from "@kyren/ui/components/shadcn/input";
+import { Label } from "@kyren/ui/components/shadcn/label";
+import { Textarea } from "@kyren/ui/components/shadcn/textarea";
 import {
   formatRole,
   sortMembers,

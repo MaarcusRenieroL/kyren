@@ -3,7 +3,7 @@
 import {
   Dialog,
   DialogContent,
-} from "@zentro/ui/shadcn/dialog";
+} from "@kyren/ui/shadcn/dialog";
 import {
   colors,
   type CalendarEventItem,

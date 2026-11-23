@@ -32,12 +32,12 @@ const nextConfig: NextConfig = {
     ];
   },
   transpilePackages: [
-    "@zentro/ui",
-    "@zentro/db",
-    "@zentro/auth",
-    "@zentro/modules",
-    "@zentro/permissions",
-    "@zentro/utils",
+    "@kyren/ui",
+    "@kyren/db",
+    "@kyren/auth",
+    "@kyren/modules",
+    "@kyren/permissions",
+    "@kyren/utils",
   ],
 };
 

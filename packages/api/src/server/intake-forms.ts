@@ -1,5 +1,5 @@
-import { and, eq, sql } from "@zentro/db/drizzle";
-import { intakeForms, tickets, type IntakeField } from "@zentro/db/schema";
+import { and, eq, sql } from "@kyren/db/drizzle";
+import { intakeForms, tickets, type IntakeField } from "@kyren/db/schema";
 
 import type { DbHandle } from "./access";
 import { ticketsOpenToPublic } from "./tickets-public";

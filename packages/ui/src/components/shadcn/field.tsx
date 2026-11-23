@@ -5,9 +5,9 @@ import {
   type ReactNode,
 } from "react";
 import { cva, type VariantProps } from "class-variance-authority";
-import { cn } from "@zentro/ui/lib/utils";
-import { Label } from "@zentro/ui/shadcn/label";
-import { Separator } from "@zentro/ui/shadcn/separator";
+import { cn } from "@kyren/ui/lib/utils";
+import { Label } from "@kyren/ui/shadcn/label";
+import { Separator } from "@kyren/ui/shadcn/separator";
 
 function FieldSet({
   className,

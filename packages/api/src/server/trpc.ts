@@ -1,11 +1,11 @@
 import { assertProtectedContext, assertPlatformContext, PLATFORM_ADMIN_ROLE } from "./trpc-procedure-guards";
 export { PLATFORM_ADMIN_ROLE };
 import { initTRPC, TRPCError } from "@trpc/server";
-import type { Decision, ResourceContext } from "@zentro/permissions";
+import type { Decision, ResourceContext } from "@kyren/permissions";
 import superjson from "superjson";
 import { ZodError } from "zod";
 
-import type { ModuleId } from "@zentro/modules";
+import type { ModuleId } from "@kyren/modules";
 
 import type { TRPCContext } from "../types";
 
@@ -104,7 +104,7 @@ const maintenanceGuard = trpc.middleware(async ({ ctx, type, path, next }) => {
         code: "SERVICE_UNAVAILABLE",
         message:
           state.message ||
-          "Zentro is in maintenance and read-only for now. Try again soon.",
+          "Kyren is in maintenance and read-only for now. Try again soon.",
       });
     }
   }

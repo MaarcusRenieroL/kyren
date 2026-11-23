@@ -7,7 +7,7 @@ import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 let dir: string;
 
 beforeAll(async () => {
-  dir = await mkdtemp(path.join(os.tmpdir(), "zentro-storage-"));
+  dir = await mkdtemp(path.join(os.tmpdir(), "kyren-storage-"));
   vi.stubEnv("FILE_STORAGE_DIR", dir);
   vi.stubEnv("FILE_STORAGE", "local");
 });

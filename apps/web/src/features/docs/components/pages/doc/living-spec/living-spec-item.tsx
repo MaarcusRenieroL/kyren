@@ -1,17 +1,17 @@
 "use client";
 
-import { Button } from "@zentro/ui/shadcn/button";
+import { Button } from "@kyren/ui/shadcn/button";
 import type { FC } from "react";
 import Link from "next/link";
 import { ExternalLinkIcon, Trash2Icon } from "lucide-react";
-import { StatusGlyph, PriorityMeter } from "@zentro/ui/components/status-glyph";
-import { cn } from "@zentro/ui/lib/utils";
+import { StatusGlyph, PriorityMeter } from "@kyren/ui/components/status-glyph";
+import { cn } from "@kyren/ui/lib/utils";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@zentro/ui/shadcn/dropdown-menu";
+} from "@kyren/ui/shadcn/dropdown-menu";
 import { ActorAvatar } from "~/src/components/actor-avatar";
 import { statusOptions, type LivingSpecTask } from "./types";
 

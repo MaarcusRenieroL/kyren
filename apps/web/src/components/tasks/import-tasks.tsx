@@ -1,18 +1,18 @@
 "use client";
 
-import { Label } from "@zentro/ui/shadcn/label";
-import { Input } from "@zentro/ui/shadcn/input";
+import { Label } from "@kyren/ui/shadcn/label";
+import { Input } from "@kyren/ui/shadcn/input";
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowLeftIcon } from "lucide-react";
 
-import { useTrpcClient } from "@zentro/api/react";
-import { EmptyState } from "@zentro/ui/components/empty-state";
-import { PageHeader } from "@zentro/ui/components/page-header";
-import { toastError, toastSuccess } from "@zentro/ui/index";
-import { Button } from "@zentro/ui/shadcn/button";
-import { NativeSelect } from "@zentro/ui/shadcn/native-select";
+import { useTrpcClient } from "@kyren/api/react";
+import { EmptyState } from "@kyren/ui/components/empty-state";
+import { PageHeader } from "@kyren/ui/components/page-header";
+import { toastError, toastSuccess } from "@kyren/ui/index";
+import { Button } from "@kyren/ui/shadcn/button";
+import { NativeSelect } from "@kyren/ui/shadcn/native-select";
 
 import { useAsyncData } from "~/src/lib/use-async-data";
 

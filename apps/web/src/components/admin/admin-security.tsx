@@ -1,11 +1,11 @@
 "use client";
 
-import { Label } from "@zentro/ui/shadcn/label";
-import { Checkbox } from "@zentro/ui/shadcn/checkbox";
+import { Label } from "@kyren/ui/shadcn/label";
+import { Checkbox } from "@kyren/ui/shadcn/checkbox";
 import { useState } from "react";
 import Link from "next/link";
-import { useTrpcClient } from "@zentro/api/react";
-import { toastError, toastSuccess } from "@zentro/ui/index";
+import { useTrpcClient } from "@kyren/api/react";
+import { toastError, toastSuccess } from "@kyren/ui/index";
 import { Shell, Loading, Stat, dateFormat, useAdminData } from "./admin-shell";
 
 export function AdminSecurity() {

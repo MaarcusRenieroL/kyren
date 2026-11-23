@@ -7,12 +7,12 @@ import {
   TableHead,
   TableBody,
   TableCell,
-} from "@zentro/ui/shadcn/table";
+} from "@kyren/ui/shadcn/table";
 import { CheckIcon, LockIcon } from "lucide-react";
 import { useMemo, type FC } from "react";
 
-import { listModules } from "@zentro/modules";
-import { Skeleton } from "@zentro/ui/shadcn/skeleton";
+import { listModules } from "@kyren/modules";
+import { Skeleton } from "@kyren/ui/shadcn/skeleton";
 
 import { roleOrder, useCatalog } from "./use-catalog";
 

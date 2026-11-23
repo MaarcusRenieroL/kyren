@@ -1,13 +1,13 @@
 "use client";
 
-import { Button } from "@zentro/ui/shadcn/button";
-import { Input } from "@zentro/ui/shadcn/input";
+import { Button } from "@kyren/ui/shadcn/button";
+import { Input } from "@kyren/ui/shadcn/input";
 import { useEffect, useState } from "react";
 import { XIcon } from "lucide-react";
 
-import { useTrpcClient } from "@zentro/api/react";
-import { cn } from "@zentro/ui/lib/utils";
-import { NativeSelect } from "@zentro/ui/shadcn/native-select";
+import { useTrpcClient } from "@kyren/api/react";
+import { cn } from "@kyren/ui/lib/utils";
+import { NativeSelect } from "@kyren/ui/shadcn/native-select";
 
 import { ActorAvatar } from "~/src/components/actor-avatar";
 

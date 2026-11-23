@@ -1,12 +1,12 @@
 "use client";
 
-import { Label } from "@zentro/ui/shadcn/label";
-import { FieldSet, FieldLegend } from "@zentro/ui/shadcn/field";
-import { Button } from "@zentro/ui/shadcn/button";
+import { Label } from "@kyren/ui/shadcn/label";
+import { FieldSet, FieldLegend } from "@kyren/ui/shadcn/field";
+import { Button } from "@kyren/ui/shadcn/button";
 import { HashIcon, LockIcon } from "lucide-react";
-import { cn } from "@zentro/ui/lib/utils";
-import { Input } from "@zentro/ui/shadcn/input";
-import { Textarea } from "@zentro/ui/shadcn/textarea";
+import { cn } from "@kyren/ui/lib/utils";
+import { Input } from "@kyren/ui/shadcn/input";
+import { Textarea } from "@kyren/ui/shadcn/textarea";
 
 import type { ChannelData } from "../channel-view";
 import { LinkPicker } from "../pickers";

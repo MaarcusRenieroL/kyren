@@ -1,6 +1,6 @@
 import { TRPCError } from "@trpc/server";
-import { and, asc, eq, inArray, isNull } from "@zentro/db/drizzle";
-import { members, projects, tasks, teams, users, workLinks } from "@zentro/db/schema";
+import { and, asc, eq, inArray, isNull } from "@kyren/db/drizzle";
+import { members, projects, tasks, teams, users, workLinks } from "@kyren/db/schema";
 
 import { getProjectBySlugSchema } from "../../../types/zod-schema";
 import { loadProjectBySlug, projectBySlug } from "../../resources";

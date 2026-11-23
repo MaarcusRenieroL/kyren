@@ -3,11 +3,11 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 
-import { useTrpcClient } from "@zentro/api/react";
-import type { AppRouter } from "@zentro/api/server";
+import { useTrpcClient } from "@kyren/api/react";
+import type { AppRouter } from "@kyren/api/server";
 import type { inferRouterOutputs } from "@trpc/server";
-import { toastError } from "@zentro/ui/index";
-import { Button } from "@zentro/ui/shadcn/button";
+import { toastError } from "@kyren/ui/index";
+import { Button } from "@kyren/ui/shadcn/button";
 import { getDateInputValue } from "../task-detail/task-detail-utils";
 
 type Outputs = inferRouterOutputs<AppRouter>["timesheet"];

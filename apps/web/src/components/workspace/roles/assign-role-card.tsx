@@ -1,21 +1,21 @@
 "use client";
 
 import { useMemo } from "react";
-import { Button } from "@zentro/ui/shadcn/button";
+import { Button } from "@kyren/ui/shadcn/button";
 import {
   Card,
   CardContent,
   CardHeader,
   CardTitle,
-} from "@zentro/ui/shadcn/card";
-import { Label } from "@zentro/ui/shadcn/label";
+} from "@kyren/ui/shadcn/card";
+import { Label } from "@kyren/ui/shadcn/label";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@zentro/ui/shadcn/select";
+} from "@kyren/ui/shadcn/select";
 
 import { scopeLabels } from "./use-catalog";
 import type { Option, RoleOption } from "./assignments-types";

@@ -1,4 +1,4 @@
-import { Button } from "@zentro/ui/shadcn/button";
+import { Button } from "@kyren/ui/shadcn/button";
 import { useRef, useState } from "react";
 import Link from "next/link";
 import { paths } from "~/src/lib/paths";
@@ -50,7 +50,7 @@ export function LandingHeader({
     >
       <a
         href="#top"
-        aria-label="Zentro home"
+        aria-label="Kyren home"
         style={{
           display: "flex",
           alignItems: "center",
@@ -68,7 +68,7 @@ export function LandingHeader({
             letterSpacing: "-0.04em",
           }}
         >
-          Zentro
+          Kyren
         </span>
       </a>
       {!m ? (

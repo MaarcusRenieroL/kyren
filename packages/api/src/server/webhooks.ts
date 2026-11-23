@@ -1,12 +1,12 @@
 import { createHmac, randomBytes } from "node:crypto";
 
-import { and, asc, eq, lte, sql } from "@zentro/db/drizzle";
-import type { db as Database } from "@zentro/db";
+import { and, asc, eq, lte, sql } from "@kyren/db/drizzle";
+import type { db as Database } from "@kyren/db";
 import {
   webhookDeliveries,
   webhookEndpoints,
   type ActivityEvent,
-} from "@zentro/db/schema";
+} from "@kyren/db/schema";
 
 import { postSafely } from "./chat-unfurl";
 
@@ -164,7 +164,7 @@ export async function deliverDueWebhooks(
     try {
       status = await send(endpoint.url, body, {
         "content-type": "application/json",
-        "user-agent": "Zentro-Webhooks/1.0",
+        "user-agent": "Kyren-Webhooks/1.0",
         "x-zentro-event": claimed.event,
         "x-zentro-delivery": claimed.id,
         "x-zentro-signature": `t=${timestamp},${signWebhook(endpoint.secret, timestamp, body)}`,

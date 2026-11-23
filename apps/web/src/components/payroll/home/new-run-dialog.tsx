@@ -1,8 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { useTrpcClient } from "@zentro/api/react";
-import { Button } from "@zentro/ui/shadcn/button";
+import { useTrpcClient } from "@kyren/api/react";
+import { Button } from "@kyren/ui/shadcn/button";
 import {
   Dialog,
   DialogContent,
@@ -10,9 +10,9 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@zentro/ui/shadcn/dialog";
-import { Input } from "@zentro/ui/shadcn/input";
-import { Label } from "@zentro/ui/shadcn/label";
+} from "@kyren/ui/shadcn/dialog";
+import { Input } from "@kyren/ui/shadcn/input";
+import { Label } from "@kyren/ui/shadcn/label";
 
 import { messageOf } from "../../tickets/labels";
 

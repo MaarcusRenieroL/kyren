@@ -144,7 +144,7 @@ export function ModulesHero({ v }: { v: any }) {
                   textDecoration: "none",
                 }}
               >
-                {v.signedIn ? "Open Zentro" : "Get started"}
+                {v.signedIn ? "Open Kyren" : "Get started"}
               </a>
               <a
                 href={hrefOf(go.roadmap)}

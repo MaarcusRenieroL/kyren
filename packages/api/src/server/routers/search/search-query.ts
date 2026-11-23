@@ -1,5 +1,5 @@
-import { and, desc, eq, ilike, isNull, or } from "@zentro/db/drizzle";
-import { chatChannels, docs, projects, tasks } from "@zentro/db/schema";
+import { and, desc, eq, ilike, isNull, or } from "@kyren/db/drizzle";
+import { chatChannels, docs, projects, tasks } from "@kyren/db/schema";
 import { z } from "zod";
 import { likePattern } from "../../like";
 import { searchScope, searchProcedure, type SearchResult } from "./scope";

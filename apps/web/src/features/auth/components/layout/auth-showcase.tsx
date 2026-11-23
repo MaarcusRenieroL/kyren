@@ -2,15 +2,15 @@
 
 import { useEffect, useState } from "react";
 
-import { cn } from "@zentro/ui/lib/utils";
-import { StatusGlyph } from "@zentro/ui/components/status-glyph";
-import { initialsOf } from "@zentro/ui/lib/tone";
+import { cn } from "@kyren/ui/lib/utils";
+import { StatusGlyph } from "@kyren/ui/components/status-glyph";
+import { initialsOf } from "@kyren/ui/lib/tone";
 
 // A decorative fragment of the product: one task and everything linked to it
 // on a Thread, beside a team pulse that keeps moving. The names are
 // illustrative; nothing here is read from an account.
 const thread = [
-  { kind: "PROJECT", key: "ZEN", title: "Zentro Web", meta: "31 open" },
+  { kind: "PROJECT", key: "ZEN", title: "Kyren Web", meta: "31 open" },
   {
     kind: "TASK",
     key: "ZEN-18",

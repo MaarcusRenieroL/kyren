@@ -1,5 +1,5 @@
-import { Input } from "@zentro/ui/shadcn/input";
-import { Label } from "@zentro/ui/shadcn/label";
+import { Input } from "@kyren/ui/shadcn/input";
+import { Label } from "@kyren/ui/shadcn/label";
 import type { FC } from "react";
 import { CalendarIcon, SearchIcon } from "lucide-react";
 import {
@@ -8,7 +8,7 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@zentro/ui/shadcn/select";
+} from "@kyren/ui/shadcn/select";
 import { allValue, chip, prefixes } from "./types";
 
 type AuditFilterBarProps = {

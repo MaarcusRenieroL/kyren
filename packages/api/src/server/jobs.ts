@@ -1,7 +1,7 @@
-import { and, asc, eq, inArray, lte } from "@zentro/db/drizzle";
-import { jobs } from "@zentro/db/schema";
+import { and, asc, eq, inArray, lte } from "@kyren/db/drizzle";
+import { jobs } from "@kyren/db/schema";
 
-import type { db as database } from "@zentro/db";
+import type { db as database } from "@kyren/db";
 
 import { reportError } from "./error-report";
 

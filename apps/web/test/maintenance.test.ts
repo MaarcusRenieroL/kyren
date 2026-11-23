@@ -2,8 +2,8 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const state = { enabled: false, message: "" };
 
-vi.mock("@zentro/api/server", () => ({ maintenanceState: async () => state }));
-vi.mock("@zentro/db", () => ({ db: {} }));
+vi.mock("@kyren/api/server", () => ({ maintenanceState: async () => state }));
+vi.mock("@kyren/db", () => ({ db: {} }));
 
 const { maintenanceResponse } = await import("../src/lib/maintenance");
 

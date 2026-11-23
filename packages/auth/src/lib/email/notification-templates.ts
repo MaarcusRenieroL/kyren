@@ -40,13 +40,13 @@ export async function sendMeetingEmail(mail: {
     mail.kind === "reminder"
       ? null
       : meetingIcs({
-          uid: `${mail.path.split("/").pop()}@zentro`,
+          uid: `${mail.path.split("/").pop()}@kyren`,
           method: mail.kind === "cancel" ? "CANCEL" : "REQUEST",
           title: mail.title,
           startsAt: mail.startsAt,
           durationMinutes: mail.durationMinutes,
           organizer: mail.organizer,
-          // "Zentro <meet@example.com>" or a bare address.
+          // "Kyren <meet@example.com>" or a bare address.
           organizerEmail:
             /<([^>]+)>/.exec(authEnv.EMAIL_FROM)?.[1] ?? authEnv.EMAIL_FROM,
           attendeeEmail: mail.to,

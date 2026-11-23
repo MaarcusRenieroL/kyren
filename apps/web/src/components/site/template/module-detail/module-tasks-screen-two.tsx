@@ -15,7 +15,7 @@ export function ModuleTasksScreenTwo({ v }: { v: any }) {
           color: "var(--ink3)",
         }}
       >
-        <span>Zentro Web</span>
+        <span>Kyren Web</span>
         <span>/</span>
         <span>Tasks</span>
         <span>/</span>

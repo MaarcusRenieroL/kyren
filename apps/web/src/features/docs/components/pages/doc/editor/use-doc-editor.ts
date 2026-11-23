@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useRef, useState, type KeyboardEvent } from "react";
 import { useRouter } from "next/navigation";
 import { useEditor, type Editor } from "@tiptap/react";
-import { useTrpcClient } from "@zentro/api/react";
-import { toastError, toastSuccess } from "@zentro/ui/index";
+import { useTrpcClient } from "@kyren/api/react";
+import { toastError, toastSuccess } from "@kyren/ui/index";
 import { paths } from "~/src/lib/paths";
 import {
   useAnyPermission,

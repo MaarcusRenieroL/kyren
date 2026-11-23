@@ -1,4 +1,4 @@
-import { chatMessages } from "@zentro/db/schema";
+import { chatMessages } from "@kyren/db/schema";
 import { z } from "zod";
 
 import { type Profile } from "../../chat";

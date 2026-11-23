@@ -1,5 +1,5 @@
-import { Input } from "@zentro/ui/shadcn/input";
-import { Button } from "@zentro/ui/shadcn/button";
+import { Input } from "@kyren/ui/shadcn/input";
+import { Button } from "@kyren/ui/shadcn/button";
 import type { Dispatch, FC, SetStateAction } from "react";
 import {
   ChevronLeftIcon,
@@ -7,7 +7,7 @@ import {
   FlameIcon,
   SearchIcon,
 } from "lucide-react";
-import { cn } from "@zentro/ui/lib/utils";
+import { cn } from "@kyren/ui/lib/utils";
 import type { TimelineScale } from "./types";
 
 type TimelineControlsProps = {

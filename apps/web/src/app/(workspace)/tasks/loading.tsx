@@ -1,4 +1,4 @@
-import { BoardSkeleton, PageSkeleton } from "@zentro/ui/components/skeletons";
+import { BoardSkeleton, PageSkeleton } from "@kyren/ui/components/skeletons";
 
 export default function Loading() {
   return (

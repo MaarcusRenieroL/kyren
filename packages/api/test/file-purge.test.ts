@@ -1,7 +1,7 @@
 import { randomUUID } from "node:crypto";
 
-import { db } from "@zentro/db";
-import { inArray } from "@zentro/db/drizzle";
+import { db } from "@kyren/db";
+import { inArray } from "@kyren/db/drizzle";
 import {
   chatAttachments,
   chatChannels,
@@ -9,7 +9,7 @@ import {
   chatMessages,
   files,
   legalHolds,
-} from "@zentro/db/schema";
+} from "@kyren/db/schema";
 import { afterAll, describe, expect, it } from "vitest";
 
 import { purgeDeletedFiles } from "../src/server/file-purge";

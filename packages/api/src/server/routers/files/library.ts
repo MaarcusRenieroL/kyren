@@ -14,7 +14,7 @@ import {
   ne,
   or,
   sql,
-} from "@zentro/db/drizzle";
+} from "@kyren/db/drizzle";
 import {
   chatAttachments,
   chatChannels,
@@ -22,7 +22,7 @@ import {
   files,
   members,
   users,
-} from "@zentro/db/schema";
+} from "@kyren/db/schema";
 import { z } from "zod";
 
 import { holdsOwn } from "../../access";

@@ -10,15 +10,15 @@ import {
   Trash2Icon,
 } from "lucide-react";
 import { paths } from "~/src/lib/paths";
-import { Button } from "@zentro/ui/shadcn/button";
+import { Button } from "@kyren/ui/shadcn/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@zentro/ui/shadcn/dropdown-menu";
-import { cn } from "@zentro/ui/lib/utils";
+} from "@kyren/ui/shadcn/dropdown-menu";
+import { cn } from "@kyren/ui/lib/utils";
 import { StarButton } from "~/src/components/favorites/star-button";
 import { getDocTitle, type DocDetail } from "../../../../lib/docs";
 import { ShareDialog } from "../share-dialog";

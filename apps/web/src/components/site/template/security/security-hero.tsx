@@ -108,7 +108,7 @@ export function SecurityHero({ v }: { v: any }) {
                 textWrap: "pretty",
               }}
             >
-              This page covers what Zentro does today: roles that
+              This page covers what Kyren does today: roles that
               apply across every module, access that carries from a
               project to its work, and an audit log of every change.
               It lists nothing that is not live.

@@ -1,12 +1,12 @@
 import { TRPCError } from "@trpc/server";
-import { and, desc, eq, sql } from "@zentro/db/drizzle";
+import { and, desc, eq, sql } from "@kyren/db/drizzle";
 import {
   members,
   projects,
   tasks,
   workLinks,
-} from "@zentro/db/schema";
-import { sanitizeRichText } from "@zentro/utils";
+} from "@kyren/db/schema";
+import { sanitizeRichText } from "@kyren/utils";
 
 import { createTaskSchema } from "../../../types/zod-schema";
 import { assertAnyPermission, permissionProcedure } from "../../trpc";

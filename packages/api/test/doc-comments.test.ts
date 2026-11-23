@@ -1,6 +1,6 @@
-import { db } from "@zentro/db";
-import { and, eq } from "@zentro/db/drizzle";
-import { activityEvents } from "@zentro/db/schema";
+import { db } from "@kyren/db";
+import { and, eq } from "@kyren/db/drizzle";
+import { activityEvents } from "@kyren/db/schema";
 import { afterAll, describe, expect, it } from "vitest";
 
 import { setupDocTest } from "./helpers/doc-setup";

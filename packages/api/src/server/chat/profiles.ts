@@ -1,5 +1,5 @@
 import { TRPCError } from "@trpc/server";
-import { and, eq, inArray, isNull, or, sql } from "@zentro/db/drizzle";
+import { and, eq, inArray, isNull, or, sql } from "@kyren/db/drizzle";
 import {
   chatChannels,
   chatMembers,
@@ -8,7 +8,7 @@ import {
   members,
   sessions,
   users,
-} from "@zentro/db/schema";
+} from "@kyren/db/schema";
 import type { OrganizationContext } from "../trpc";
 import { readableChannel } from "./access";
 export async function memberProfiles(

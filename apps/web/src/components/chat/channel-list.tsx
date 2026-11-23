@@ -10,9 +10,9 @@ import {
   SmileIcon,
 } from "lucide-react";
 
-import { cn } from "@zentro/ui/lib/utils";
-import { Button } from "@zentro/ui/shadcn/button";
-import { Skeleton } from "@zentro/ui/shadcn/skeleton";
+import { cn } from "@kyren/ui/lib/utils";
+import { Button } from "@kyren/ui/shadcn/button";
+import { Skeleton } from "@kyren/ui/shadcn/skeleton";
 
 import { StatusDialog } from "./chat-dialogs-extra";
 import { useChatSidebar, type SidebarChannel } from "./chat-store";

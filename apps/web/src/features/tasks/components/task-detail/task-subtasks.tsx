@@ -1,15 +1,15 @@
 "use client";
 
-import { Button } from "@zentro/ui/shadcn/button";
-import { Input } from "@zentro/ui/shadcn/input";
+import { Button } from "@kyren/ui/shadcn/button";
+import { Input } from "@kyren/ui/shadcn/input";
 import Link from "next/link";
 import { useState } from "react";
 import { CheckSquareIcon, PlusIcon, Loader2Icon } from "lucide-react";
 
-import { useTrpcClient } from "@zentro/api/react";
-import { StatusGlyph } from "@zentro/ui/components/status-glyph";
-import { toastError, toastSuccess } from "@zentro/ui/index";
-import { cn } from "@zentro/ui/lib/utils";
+import { useTrpcClient } from "@kyren/api/react";
+import { StatusGlyph } from "@kyren/ui/components/status-glyph";
+import { toastError, toastSuccess } from "@kyren/ui/index";
+import { cn } from "@kyren/ui/lib/utils";
 import { paths } from "~/src/lib/paths";
 import { ActorAvatar } from "~/src/components/actor-avatar";
 

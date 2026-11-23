@@ -1,13 +1,13 @@
 "use client";
 
 import { useState, type FormEvent, type FC } from "react";
-import { useTrpcClient } from "@zentro/api/react";
-import { Button } from "@zentro/ui/shadcn/button";
-import { Input } from "@zentro/ui/shadcn/input";
-import { Textarea } from "@zentro/ui/shadcn/textarea";
-import { Badge } from "@zentro/ui/shadcn/badge";
-import { TabsContent } from "@zentro/ui/shadcn/tabs";
-import { toastSuccess, toastError } from "@zentro/ui/index";
+import { useTrpcClient } from "@kyren/api/react";
+import { Button } from "@kyren/ui/shadcn/button";
+import { Input } from "@kyren/ui/shadcn/input";
+import { Textarea } from "@kyren/ui/shadcn/textarea";
+import { Badge } from "@kyren/ui/shadcn/badge";
+import { TabsContent } from "@kyren/ui/shadcn/tabs";
+import { toastSuccess, toastError } from "@kyren/ui/index";
 import type { StoryPointResult, TriageResult } from "./types";
 
 export const MicroOpsTab: FC = () => {

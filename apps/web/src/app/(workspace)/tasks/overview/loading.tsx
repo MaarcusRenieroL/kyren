@@ -1,7 +1,7 @@
 import {
   CardGridSkeleton,
   PageSkeleton,
-} from "@zentro/ui/components/skeletons";
+} from "@kyren/ui/components/skeletons";
 
 export default function Loading() {
   return (

@@ -9,13 +9,13 @@ import {
   SparklesIcon,
   VideoIcon,
 } from "lucide-react";
-import { Button } from "@zentro/ui/shadcn/button";
+import { Button } from "@kyren/ui/shadcn/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@zentro/ui/shadcn/dropdown-menu";
+} from "@kyren/ui/shadcn/dropdown-menu";
 import { Avatar } from "../message-item";
 import type { ChannelData } from "./channel-view-types";
 import { NotifyButton, PinsButton } from "./channel-header-buttons";

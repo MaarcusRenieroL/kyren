@@ -1,19 +1,19 @@
 "use client";
 
-import { Checkbox } from "@zentro/ui/shadcn/checkbox";
-import { NativeSelect } from "@zentro/ui/shadcn/native-select";
-import { FieldSet, FieldLegend } from "@zentro/ui/shadcn/field";
+import { Checkbox } from "@kyren/ui/shadcn/checkbox";
+import { NativeSelect } from "@kyren/ui/shadcn/native-select";
+import { FieldSet, FieldLegend } from "@kyren/ui/shadcn/field";
 import { useState } from "react";
-import { Button } from "@zentro/ui/shadcn/button";
+import { Button } from "@kyren/ui/shadcn/button";
 import {
   DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@zentro/ui/shadcn/dialog";
-import { Input } from "@zentro/ui/shadcn/input";
-import { Label } from "@zentro/ui/shadcn/label";
-import { Textarea } from "@zentro/ui/shadcn/textarea";
+} from "@kyren/ui/shadcn/dialog";
+import { Input } from "@kyren/ui/shadcn/input";
+import { Label } from "@kyren/ui/shadcn/label";
+import { Textarea } from "@kyren/ui/shadcn/textarea";
 import { addDays, fromInput, toInput } from "./../dates";
 import {
   colors,

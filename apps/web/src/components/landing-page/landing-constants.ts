@@ -1,4 +1,4 @@
-import { moduleRegistry } from "@zentro/modules";
+import { moduleRegistry } from "@kyren/modules";
 export const KEYS = [
   "hero",
   "s2a",

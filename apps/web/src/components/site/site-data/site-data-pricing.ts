@@ -1,6 +1,6 @@
 export const PLANS = [
-  ["[Plan A]", "For a small team trying Zentro for the first time."],
-  ["[Plan B]", "For teams that run most of their work in Zentro."],
+  ["[Plan A]", "For a small team trying Kyren for the first time."],
+  ["[Plan B]", "For teams that run most of their work in Kyren."],
   ["[Plan C]", "For companies with more people, guests and support needs."],
 ];
 
@@ -39,7 +39,7 @@ export const FAQ = [
   ],
   [
     "Can I turn modules off?",
-    "Yes. Owners turn modules on or off for the whole workspace. Zentro asks first when another module depends on the one you are turning off.",
+    "Yes. Owners turn modules on or off for the whole workspace. Kyren asks first when another module depends on the one you are turning off.",
   ],
   [
     "How are people counted?",

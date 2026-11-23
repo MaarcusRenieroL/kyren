@@ -3,10 +3,10 @@
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { FileTextIcon } from "lucide-react";
-import { useTrpcClient } from "@zentro/api/react";
-import { toastError, toastSuccess } from "@zentro/ui/index";
-import { Button } from "@zentro/ui/shadcn/button";
-import { Skeleton } from "@zentro/ui/shadcn/skeleton";
+import { useTrpcClient } from "@kyren/api/react";
+import { toastError, toastSuccess } from "@kyren/ui/index";
+import { Button } from "@kyren/ui/shadcn/button";
+import { Skeleton } from "@kyren/ui/shadcn/skeleton";
 import { useReachable } from "~/src/components/permissions/permission-provider";
 import { trpcResult } from "~/src/lib/trpc-result";
 import type { Candidate, Item, Source } from "./linked-work/types";

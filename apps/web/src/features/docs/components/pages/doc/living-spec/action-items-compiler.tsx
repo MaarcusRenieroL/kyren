@@ -1,6 +1,6 @@
 import type { FC } from "react";
 import { PlusIcon, SparklesIcon } from "lucide-react";
-import { Button } from "@zentro/ui/shadcn/button";
+import { Button } from "@kyren/ui/shadcn/button";
 
 type ActionItemsCompilerProps = {
   extractedActionItems: string[];

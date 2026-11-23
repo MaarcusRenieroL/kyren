@@ -1,6 +1,6 @@
 import { TRPCError } from "@trpc/server";
-import { buildChanges } from "@zentro/audit";
-import { and, asc, eq, inArray } from "@zentro/db/drizzle";
+import { buildChanges } from "@kyren/audit";
+import { and, asc, eq, inArray } from "@kyren/db/drizzle";
 import {
   docs,
   projects,
@@ -9,7 +9,7 @@ import {
   tasks,
   teams,
   users,
-} from "@zentro/db/schema";
+} from "@kyren/db/schema";
 import { z } from "zod";
 
 import { getProjectBySlugSchema } from "../../../types/zod-schema";

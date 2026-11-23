@@ -1,7 +1,7 @@
 import { TRPCError } from "@trpc/server";
-import { and, eq, isNull, ne } from "@zentro/db/drizzle";
-import { teams } from "@zentro/db/schema";
-import { buildChanges } from "@zentro/audit";
+import { and, eq, isNull, ne } from "@kyren/db/drizzle";
+import { teams } from "@kyren/db/schema";
+import { buildChanges } from "@kyren/audit";
 
 import {
   createTeamSchema,

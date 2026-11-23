@@ -1,5 +1,5 @@
 #!/bin/sh
-# Updates Zentro on this VM: a backup first, then a new tagged image,
+# Updates Kyren on this VM: a backup first, then a new tagged image,
 # migrations and a restart. The previous version is remembered for rollback.
 #   deploy/update.sh            (run from the repository root)
 set -eu

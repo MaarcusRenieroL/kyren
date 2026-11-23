@@ -1,9 +1,9 @@
 import { TRPCError } from "@trpc/server";
-import { and, eq, inArray, isNull } from "@zentro/db/drizzle";
-import { members, teams, teamMembers } from "@zentro/db/schema";
+import { and, eq, inArray, isNull } from "@kyren/db/drizzle";
+import { members, teams, teamMembers } from "@kyren/db/schema";
 
 export type TeamDbClient = Pick<
-  typeof import("@zentro/db").db,
+  typeof import("@kyren/db").db,
   "delete" | "insert" | "select" | "update"
 >;
 

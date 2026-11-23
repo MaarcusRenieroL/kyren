@@ -1,6 +1,6 @@
 import { TRPCError } from "@trpc/server";
-import { and, asc, eq, isNull, sql } from "@zentro/db/drizzle";
-import { customFields, customFieldValues, tasks } from "@zentro/db/schema";
+import { and, asc, eq, isNull, sql } from "@kyren/db/drizzle";
+import { customFields, customFieldValues, tasks } from "@kyren/db/schema";
 import { z } from "zod";
 
 import { taskByKey } from "../resources";

@@ -1,7 +1,7 @@
 import { TRPCError } from "@trpc/server";
-import { buildChanges } from "@zentro/audit";
-import { and, eq, isNull, sql } from "@zentro/db/drizzle";
-import { docs } from "@zentro/db/schema";
+import { buildChanges } from "@kyren/audit";
+import { and, eq, isNull, sql } from "@kyren/db/drizzle";
+import { docs } from "@kyren/db/schema";
 import { z } from "zod";
 
 import {

@@ -6,7 +6,7 @@ import {
   Redo2Icon,
   Undo2Icon,
 } from "lucide-react";
-import { Button } from "@zentro/ui/shadcn/button";
+import { Button } from "@kyren/ui/shadcn/button";
 import type { El } from "../canvas/model";
 import { Minimap } from "../canvas/minimap";
 import type { View } from "./editor-types";

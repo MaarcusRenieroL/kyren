@@ -1,7 +1,7 @@
-import { Button } from "@zentro/ui/shadcn/button";
+import { Button } from "@kyren/ui/shadcn/button";
 import Link from "next/link";
 import { XIcon } from "lucide-react";
-import { cn } from "@zentro/ui/lib/utils";
+import { cn } from "@kyren/ui/lib/utils";
 import { Glyph } from "./glyph";
 import { groups, type Item } from "./types";
 

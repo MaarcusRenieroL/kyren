@@ -1,15 +1,15 @@
 import type { FC } from "react";
-import { formatEventTime } from "@zentro/utils";
-import { getAuditEvent } from "@zentro/audit";
-import { toastSuccess } from "@zentro/ui/index";
-import { Button } from "@zentro/ui/shadcn/button";
+import { formatEventTime } from "@kyren/utils";
+import { getAuditEvent } from "@kyren/audit";
+import { toastSuccess } from "@kyren/ui/index";
+import { Button } from "@kyren/ui/shadcn/button";
 import {
   Sheet,
   SheetContent,
   SheetDescription,
   SheetHeader,
   SheetTitle,
-} from "@zentro/ui/shadcn/sheet";
+} from "@kyren/ui/shadcn/sheet";
 import { ActorAvatar } from "~/src/components/actor-avatar";
 import { sentenceFor } from "../activity-feed";
 import { copyText } from "~/src/lib/clipboard";

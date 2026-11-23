@@ -1,4 +1,4 @@
-import { auth } from "@zentro/auth";
+import { auth } from "@kyren/auth";
 
 export const baseUrl = "http://localhost:3000/api/auth";
 

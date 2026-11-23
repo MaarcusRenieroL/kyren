@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { Button } from "@zentro/ui/shadcn/button";
+import { Button } from "@kyren/ui/shadcn/button";
 import { Fragment } from "react";
 import { hrefOf } from "./common";
 
@@ -132,7 +132,7 @@ export function SiteMobileMenu({ v }: { v: any }) {
             textDecoration: "none",
           }}
         >
-          {v.signedIn ? "Open Zentro" : "Get started"}
+          {v.signedIn ? "Open Kyren" : "Get started"}
         </a>
         <a
           href="/auth/sign-in"

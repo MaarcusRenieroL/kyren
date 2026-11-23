@@ -1,6 +1,6 @@
 import { ImageResponse } from "next/og";
 
-import { brandColors } from "@zentro/ui/lib/theme-colors";
+import { brandColors } from "@kyren/ui/lib/theme-colors";
 
 export const size = { width: 180, height: 180 };
 export const contentType = "image/png";

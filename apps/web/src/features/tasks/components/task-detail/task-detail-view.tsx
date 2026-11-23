@@ -4,13 +4,13 @@ import Link from "next/link";
 import { GitBranchIcon, LinkIcon } from "lucide-react";
 import { formatGitCheckoutCommand } from "~/src/features/tasks/lib/format";
 
-import { toastError, toastSuccess } from "@zentro/ui/index";
-import { StatusGlyph } from "@zentro/ui/components/status-glyph";
-import { Button } from "@zentro/ui/shadcn/button";
+import { toastError, toastSuccess } from "@kyren/ui/index";
+import { StatusGlyph } from "@kyren/ui/components/status-glyph";
+import { Button } from "@kyren/ui/shadcn/button";
 import {
   RichTextEditor,
   RichTextPreview,
-} from "@zentro/ui/components/rich-text-editor";
+} from "@kyren/ui/components/rich-text-editor";
 
 import { StarButton } from "~/src/components/favorites/star-button";
 import { DiscussionPanel } from "~/src/components/chat/discussion-panel";

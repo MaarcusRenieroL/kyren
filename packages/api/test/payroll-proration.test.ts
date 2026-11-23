@@ -1,7 +1,7 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
-import { db } from "@zentro/db";
-import { compensations, employees } from "@zentro/db/schema";
+import { db } from "@kyren/db";
+import { compensations, employees } from "@kyren/db/schema";
 
 import { proratedBase } from "../src/server/payroll-math";
 import { World } from "./helpers";

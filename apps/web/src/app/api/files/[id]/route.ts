@@ -1,8 +1,8 @@
 import { TRPCError } from "@trpc/server";
-import { appRouter } from "@zentro/api/server";
-import { db } from "@zentro/db";
-import { eq } from "@zentro/db/drizzle";
-import { files } from "@zentro/db/schema";
+import { appRouter } from "@kyren/api/server";
+import { db } from "@kyren/db";
+import { eq } from "@kyren/db/drizzle";
+import { files } from "@kyren/db/schema";
 
 import { createRequestContext } from "~/src/lib/request-context";
 import { storage } from "~/src/lib/storage";

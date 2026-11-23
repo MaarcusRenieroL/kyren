@@ -10,7 +10,7 @@ import {
   isNull,
   or,
   sql,
-} from "@zentro/db/drizzle";
+} from "@kyren/db/drizzle";
 import {
   chatAttachments,
   chatChannels,
@@ -20,7 +20,7 @@ import {
   files,
   projects,
   tasks,
-} from "@zentro/db/schema";
+} from "@kyren/db/schema";
 import { z } from "zod";
 import { visibleDocsCondition } from "../../access";
 import {

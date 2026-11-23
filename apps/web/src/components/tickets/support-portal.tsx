@@ -1,8 +1,8 @@
 "use client";
 
-import { Button } from "@zentro/ui/shadcn/button";
-import { Label } from "@zentro/ui/shadcn/label";
-import { Textarea } from "@zentro/ui/shadcn/textarea";
+import { Button } from "@kyren/ui/shadcn/button";
+import { Label } from "@kyren/ui/shadcn/label";
+import { Textarea } from "@kyren/ui/shadcn/textarea";
 import { useCallback, useEffect, useState } from "react";
 import { apiPath } from "~/src/lib/paths";
 

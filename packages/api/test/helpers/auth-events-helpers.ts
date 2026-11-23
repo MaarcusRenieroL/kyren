@@ -1,8 +1,8 @@
 import { randomUUID } from "node:crypto";
-import { auth } from "@zentro/auth";
-import { db } from "@zentro/db";
-import { and, asc, eq, like } from "@zentro/db/drizzle";
-import { activityEvents, members, users } from "@zentro/db/schema";
+import { auth } from "@kyren/auth";
+import { db } from "@kyren/db";
+import { and, asc, eq, like } from "@kyren/db/drizzle";
+import { activityEvents, members, users } from "@kyren/db/schema";
 import { expect } from "vitest";
 
 import { type TestOrg, type World } from "./world";

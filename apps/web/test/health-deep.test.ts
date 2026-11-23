@@ -2,8 +2,8 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const execute = vi.fn();
 
-vi.mock("@zentro/db", () => ({ db: { execute } }));
-vi.mock("@zentro/db/drizzle", () => ({ sql: () => "select" }));
+vi.mock("@kyren/db", () => ({ db: { execute } }));
+vi.mock("@kyren/db/drizzle", () => ({ sql: () => "select" }));
 
 const { GET } = await import("../src/app/api/health/deep/route");
 

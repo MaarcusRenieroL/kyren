@@ -1,5 +1,5 @@
-import { and, eq, gte, isNull, lte } from "@zentro/db/drizzle";
-import { meetings } from "@zentro/db/schema";
+import { and, eq, gte, isNull, lte } from "@kyren/db/drizzle";
+import { meetings } from "@kyren/db/schema";
 
 import type { DbHandle } from "./access";
 import { mailMeeting } from "./meeting-mail";

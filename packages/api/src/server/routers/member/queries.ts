@@ -1,6 +1,6 @@
 import { TRPCError } from "@trpc/server";
-import { auth } from "@zentro/auth";
-import { and, asc, desc, eq, gte, lte } from "@zentro/db/drizzle";
+import { auth } from "@kyren/auth";
+import { and, asc, desc, eq, gte, lte } from "@kyren/db/drizzle";
 import {
   activityEvents,
   employees,
@@ -8,7 +8,7 @@ import {
   members,
   roles,
   users,
-} from "@zentro/db/schema";
+} from "@kyren/db/schema";
 import { z } from "zod";
 
 import { assertHoldsAll } from "../../access";
@@ -21,7 +21,7 @@ const memberIdSchema = z.object({ memberId: z.string().uuid() });
 
 async function loadTargetMember(
   ctx: {
-    db: typeof import("@zentro/db").db;
+    db: typeof import("@kyren/db").db;
     activeOrganization: { id: string };
   },
   memberId: string,
@@ -45,7 +45,7 @@ async function loadTargetMember(
 }
 
 async function userLabel(
-  ctx: { db: typeof import("@zentro/db").db },
+  ctx: { db: typeof import("@kyren/db").db },
   userId: string,
 ) {
   const [row] = await ctx.db

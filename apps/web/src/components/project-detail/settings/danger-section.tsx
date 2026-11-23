@@ -1,9 +1,9 @@
 "use client";
 
 import { paths } from "~/src/lib/paths";
-import { useTrpcClient } from "@zentro/api/react";
-import { Button } from "@zentro/ui/components/shadcn/button";
-import { toastError, toastSuccess } from "@zentro/ui/index";
+import { useTrpcClient } from "@kyren/api/react";
+import { Button } from "@kyren/ui/components/shadcn/button";
+import { toastError, toastSuccess } from "@kyren/ui/index";
 import { ArchiveIcon, RotateCcwIcon, Trash2Icon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { FC, useEffect, useState } from "react";

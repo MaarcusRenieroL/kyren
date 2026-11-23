@@ -2,11 +2,11 @@
 
 import { useState, type FormEvent } from "react";
 
-import { authClient } from "@zentro/auth/client";
-import { useTrpcClient } from "@zentro/api/react";
-import { toastError } from "@zentro/ui/index";
-import { Button } from "@zentro/ui/shadcn/button";
-import { Input } from "@zentro/ui/shadcn/input";
+import { authClient } from "@kyren/auth/client";
+import { useTrpcClient } from "@kyren/api/react";
+import { toastError } from "@kyren/ui/index";
+import { Button } from "@kyren/ui/shadcn/button";
+import { Input } from "@kyren/ui/shadcn/input";
 
 import { apiPath, paths } from "~/src/lib/paths";
 
@@ -29,7 +29,7 @@ export function PrivacySection() {
       const link = document.createElement("a");
 
       link.href = url;
-      link.download = "my-zentro-data.json";
+      link.download = "my-kyren-data.json";
       link.click();
       URL.revokeObjectURL(url);
     } catch (error) {

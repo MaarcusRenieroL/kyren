@@ -1,16 +1,16 @@
 "use client";
 
-import { Label } from "@zentro/ui/shadcn/label";
-import { Checkbox } from "@zentro/ui/shadcn/checkbox";
+import { Label } from "@kyren/ui/shadcn/label";
+import { Checkbox } from "@kyren/ui/shadcn/checkbox";
 import { useCallback, useEffect, useState, type FormEvent } from "react";
 
-import { useTrpcClient } from "@zentro/api/react";
-import type { AppRouter } from "@zentro/api/server";
+import { useTrpcClient } from "@kyren/api/react";
+import type { AppRouter } from "@kyren/api/server";
 import type { inferRouterInputs, inferRouterOutputs } from "@trpc/server";
-import { toastError, toastSuccess } from "@zentro/ui/index";
-import { Button } from "@zentro/ui/shadcn/button";
-import { Input } from "@zentro/ui/shadcn/input";
-import { NativeSelect } from "@zentro/ui/shadcn/native-select";
+import { toastError, toastSuccess } from "@kyren/ui/index";
+import { Button } from "@kyren/ui/shadcn/button";
+import { Input } from "@kyren/ui/shadcn/input";
+import { NativeSelect } from "@kyren/ui/shadcn/native-select";
 
 type SavedTaskView = inferRouterOutputs<AppRouter>["taskView"]["list"][number];
 export type ViewConfig = SavedTaskView["config"];

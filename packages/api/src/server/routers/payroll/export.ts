@@ -1,7 +1,7 @@
 import { TRPCError } from "@trpc/server";
-import { buildCsv } from "@zentro/audit";
-import { asc, eq } from "@zentro/db/drizzle";
-import { payslips } from "@zentro/db/schema";
+import { buildCsv } from "@kyren/audit";
+import { asc, eq } from "@kyren/db/drizzle";
+import { payslips } from "@kyren/db/schema";
 import { z } from "zod";
 
 import { minorToDecimal } from "../../payroll-math";

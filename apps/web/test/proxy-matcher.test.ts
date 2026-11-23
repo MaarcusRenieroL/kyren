@@ -3,7 +3,7 @@ import path from "node:path";
 
 import { describe, expect, it, vi } from "vitest";
 
-vi.mock("@zentro/auth", () => ({ auth: {} }));
+vi.mock("@kyren/auth", () => ({ auth: {} }));
 vi.mock("~/src/lib/paths", () => ({ paths: {} }));
 
 const { protectedPrefixes } = await import("../src/proxy");

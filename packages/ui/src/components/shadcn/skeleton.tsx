@@ -1,4 +1,4 @@
-import { cn } from "@zentro/ui/lib/utils";
+import { cn } from "@kyren/ui/lib/utils";
 
 /** A quiet placeholder. The slow shimmer is removed under reduced motion. */
 function Skeleton({ className, ...props }: React.ComponentProps<"div">) {

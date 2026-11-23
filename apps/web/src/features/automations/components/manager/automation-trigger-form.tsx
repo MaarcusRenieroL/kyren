@@ -1,8 +1,8 @@
 "use client";
 
-import { Input } from "@zentro/ui/shadcn/input";
+import { Input } from "@kyren/ui/shadcn/input";
 import { ZapIcon } from "lucide-react";
-import { NativeSelect } from "@zentro/ui/shadcn/native-select";
+import { NativeSelect } from "@kyren/ui/shadcn/native-select";
 
 import type { TriggerEvent } from "./automation-types";
 

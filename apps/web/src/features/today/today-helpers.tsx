@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { formatDueDate } from "@zentro/utils";
+import { formatDueDate } from "@kyren/utils";
 import type { DashboardWorkItem } from "~/src/lib/dashboard-data";
 
 export const dayMs = 86_400_000;

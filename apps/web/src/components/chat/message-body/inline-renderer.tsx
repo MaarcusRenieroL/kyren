@@ -2,7 +2,7 @@
 
 import type { ReactNode } from "react";
 import Link from "next/link";
-import { cn } from "@zentro/ui/lib/utils";
+import { cn } from "@kyren/ui/lib/utils";
 import { paths } from "~/src/lib/paths";
 import { builtinShortcodes } from "../custom-emoji";
 

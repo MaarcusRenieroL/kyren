@@ -2,9 +2,9 @@
 
 import type { FC } from "react";
 import { SparklesIcon } from "lucide-react";
-import { ErrorState } from "@zentro/ui/components/error-state";
-import { Skeleton } from "@zentro/ui/shadcn/skeleton";
-import { Button } from "@zentro/ui/shadcn/button";
+import { ErrorState } from "@kyren/ui/components/error-state";
+import { Skeleton } from "@kyren/ui/shadcn/skeleton";
+import { Button } from "@kyren/ui/shadcn/button";
 import { ModuleNavClaim } from "~/src/components/shell/module-section-nav";
 import { DocTable, DocTiles, DocGrouped } from "../../doc-rows";
 import { CreateDocModal } from "./create-doc-modal";

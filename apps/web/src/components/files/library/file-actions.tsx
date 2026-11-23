@@ -2,15 +2,15 @@
 
 import type { FC } from "react";
 import { DownloadIcon, PencilIcon, Trash2Icon } from "lucide-react";
-import { Button } from "@zentro/ui/shadcn/button";
-import { Input } from "@zentro/ui/shadcn/input";
+import { Button } from "@kyren/ui/shadcn/button";
+import { Input } from "@kyren/ui/shadcn/input";
 import {
   Select,
   SelectTrigger,
   SelectValue,
   SelectContent,
   SelectItem,
-} from "@zentro/ui/shadcn/select";
+} from "@kyren/ui/shadcn/select";
 import type { Folder, LibraryFile } from "./types";
 
 type FileActionsProps = {

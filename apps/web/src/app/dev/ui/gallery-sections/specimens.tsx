@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { TooltipProvider } from "@zentro/ui/shadcn/tooltip";
+import { TooltipProvider } from "@kyren/ui/shadcn/tooltip";
 import { ControlsSpecimens } from "./controls-specimens";
 import { DataSpecimens } from "./data-specimens";
 import { OverlaySpecimens } from "./overlay-specimens";

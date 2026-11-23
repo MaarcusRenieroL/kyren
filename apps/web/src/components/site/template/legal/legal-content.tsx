@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { Button } from "@zentro/ui/shadcn/button";
+import { Button } from "@kyren/ui/shadcn/button";
 import { Fragment } from "react";
 import { hrefOf } from "../common";
 
@@ -221,7 +221,7 @@ export function LegalContent({ v }: { v: any }) {
                   textDecoration: "none",
                 }}
               >
-                About Zentro
+                About Kyren
               </a>
             </div>
           </article>

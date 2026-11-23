@@ -11,7 +11,7 @@ import {
   ne,
   or,
   sql,
-} from "@zentro/db/drizzle";
+} from "@kyren/db/drizzle";
 import {
   activityEvents,
   chatChannels,
@@ -25,7 +25,7 @@ import {
   tasks,
   users,
   workLinks,
-} from "@zentro/db/schema";
+} from "@kyren/db/schema";
 import type { TRPCContext } from "../../../types";
 import { LIMIT } from "./types";
 

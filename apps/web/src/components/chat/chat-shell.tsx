@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import { useEffect, useState, type ReactNode } from "react";
 import { ChevronLeftIcon } from "lucide-react";
 
-import { cn } from "@zentro/ui/lib/utils";
+import { cn } from "@kyren/ui/lib/utils";
 
 import { ChannelList } from "./channel-list";
 import { CustomEmojiProvider } from "./custom-emoji";

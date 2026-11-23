@@ -1,6 +1,6 @@
-import { db } from "@zentro/db";
-import { eq, sql } from "@zentro/db/drizzle";
-import { activityEvents } from "@zentro/db/schema";
+import { db } from "@kyren/db";
+import { eq, sql } from "@kyren/db/drizzle";
+import { activityEvents } from "@kyren/db/schema";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 import { maxExportRows } from "../src/server/routers/audit";

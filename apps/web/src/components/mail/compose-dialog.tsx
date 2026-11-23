@@ -3,7 +3,7 @@
 import {
   Dialog,
   DialogContent,
-} from "@zentro/ui/shadcn/dialog";
+} from "@kyren/ui/shadcn/dialog";
 import type { ComposeDraft, Person, Attachment } from "./compose/types";
 import { ComposeForm } from "./compose/compose-form";
 

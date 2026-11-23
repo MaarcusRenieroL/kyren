@@ -3,8 +3,8 @@
 import type { FC } from "react";
 import Link from "next/link";
 import { ArrowRightLeftIcon } from "lucide-react";
-import { StatusGlyph } from "@zentro/ui/components/status-glyph";
-import { cn } from "@zentro/ui/lib/utils";
+import { StatusGlyph } from "@kyren/ui/components/status-glyph";
+import { cn } from "@kyren/ui/lib/utils";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -12,7 +12,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@zentro/ui/shadcn/dropdown-menu";
+} from "@kyren/ui/shadcn/dropdown-menu";
 import { ActorAvatar } from "~/src/components/actor-avatar";
 import { paths } from "~/src/lib/paths";
 import type { LiveMemberLoad, WorkloadTask } from "./types";

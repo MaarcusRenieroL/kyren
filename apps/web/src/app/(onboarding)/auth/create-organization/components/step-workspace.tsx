@@ -6,9 +6,9 @@ import {
   type Control,
   type UseFormSetValue,
 } from "react-hook-form";
-import { cn } from "@zentro/ui/lib/utils";
-import { Input } from "@zentro/ui/shadcn/input";
-import { slugify, slugifyInput } from "@zentro/utils";
+import { cn } from "@kyren/ui/lib/utils";
+import { Input } from "@kyren/ui/shadcn/input";
+import { slugify, slugifyInput } from "@kyren/utils";
 import { AuthField } from "~/src/features/auth/components/kit/auth-kit";
 import type { CreateOrganizationFormValues } from "~/src/features/auth/lib/zod-schema";
 
@@ -85,12 +85,12 @@ export function StepWorkspace({
 
           return (
             <AuthField
-              label="Workspace URL"
+              label="Workspace identifier"
               htmlFor="slug"
               error={
                 fieldState.error?.message ??
                 (taken
-                  ? `zentro.app/${workspaceSlug} is taken. Try ${workspaceSlug}-labs or ${workspaceSlug}-hq.`
+                  ? `${workspaceSlug} is taken. Try ${workspaceSlug}-labs or ${workspaceSlug}-hq.`
                   : undefined)
               }
             >
@@ -100,9 +100,6 @@ export function StepWorkspace({
                   (fieldState.invalid || taken) && "border-danger",
                 )}
               >
-                <span className="flex h-full items-center border-r border-hairline px-3 text-ink-3">
-                  zentro.app/
-                </span>
                 <Input
                   id="slug"
                   type="text"

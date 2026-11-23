@@ -1,11 +1,11 @@
-import { and, eq, inArray, isNull } from "@zentro/db/drizzle";
+import { and, eq, inArray, isNull } from "@kyren/db/drizzle";
 import {
   chatChannels,
   chatMessages,
   docs,
   files,
   projects,
-} from "@zentro/db/schema";
+} from "@kyren/db/schema";
 
 import { memberProfiles, readableChannelIds } from "../../chat";
 import { visibleDocsCondition } from "../../access";

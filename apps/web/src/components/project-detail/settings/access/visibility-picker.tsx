@@ -1,13 +1,13 @@
-import { Button } from "@zentro/ui/shadcn/button";
+import { Button } from "@kyren/ui/shadcn/button";
 import type { FC } from "react";
-import { cn } from "@zentro/ui/index";
+import { cn } from "@kyren/ui/index";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@zentro/ui/shadcn/select";
+} from "@kyren/ui/shadcn/select";
 import {
   field,
   noTeam,

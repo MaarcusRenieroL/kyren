@@ -1,10 +1,10 @@
 "use client";
 
-import { Button } from "@zentro/ui/shadcn/button";
-import { Input } from "@zentro/ui/shadcn/input";
+import { Button } from "@kyren/ui/shadcn/button";
+import { Input } from "@kyren/ui/shadcn/input";
 import { useMemo, useState } from "react";
 import { XIcon } from "lucide-react";
-import { Label } from "@zentro/ui/shadcn/label";
+import { Label } from "@kyren/ui/shadcn/label";
 import type { Person } from "./types";
 
 export function Recipients({

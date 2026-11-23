@@ -1,16 +1,16 @@
 import type { FC } from "react";
 import { Controller, type Control, type FieldErrors } from "react-hook-form";
-import { Input } from "@zentro/ui/components/shadcn/input";
-import { Label } from "@zentro/ui/components/shadcn/label";
+import { Input } from "@kyren/ui/components/shadcn/input";
+import { Label } from "@kyren/ui/components/shadcn/label";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@zentro/ui/components/shadcn/select";
-import { Textarea } from "@zentro/ui/components/shadcn/textarea";
-import { cn } from "@zentro/ui/index";
+} from "@kyren/ui/components/shadcn/select";
+import { Textarea } from "@kyren/ui/components/shadcn/textarea";
+import { cn } from "@kyren/ui/index";
 import type { ProjectGeneralSectionFormValues } from "~/src/lib/zod-schema";
 import type { ProjectData, TeamOption } from "./types";
 

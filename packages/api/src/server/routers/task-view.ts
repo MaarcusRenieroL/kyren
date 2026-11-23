@@ -1,6 +1,6 @@
 import { TRPCError } from "@trpc/server";
-import { and, asc, eq, or, sql } from "@zentro/db/drizzle";
-import { taskViews } from "@zentro/db/schema";
+import { and, asc, eq, or, sql } from "@kyren/db/drizzle";
+import { taskViews } from "@kyren/db/schema";
 import { z } from "zod";
 
 import { permissionProcedure, router } from "../trpc";

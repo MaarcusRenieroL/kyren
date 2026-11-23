@@ -1,7 +1,7 @@
 "use client";
 
-import { Textarea } from "@zentro/ui/shadcn/textarea";
-import { Button } from "@zentro/ui/shadcn/button";
+import { Textarea } from "@kyren/ui/shadcn/textarea";
+import { Button } from "@kyren/ui/shadcn/button";
 import { AlertCircleIcon, LanguagesIcon, XIcon } from "lucide-react";
 import { MessageBody } from "../message-body";
 import type {

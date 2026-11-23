@@ -1,8 +1,8 @@
 import { JSX } from "react";
 
-import { db } from "@zentro/db";
-import { desc, eq } from "@zentro/db/drizzle";
-import { invitations, users } from "@zentro/db/schema";
+import { db } from "@kyren/db";
+import { desc, eq } from "@kyren/db/drizzle";
+import { invitations, users } from "@kyren/db/schema";
 
 import { InvitationsSection } from "~/src/components/workspace/settings/invitations-section";
 import { getAuthorizedDashboardContext } from "~/src/lib/dashboard-context";

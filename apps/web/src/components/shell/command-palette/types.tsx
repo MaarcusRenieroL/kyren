@@ -1,4 +1,4 @@
-import { Kbd } from "@zentro/ui/components/kbd";
+import { Kbd } from "@kyren/ui/components/kbd";
 
 export type TaskHit = {
   key: string;

@@ -1,7 +1,7 @@
 "use client";
 
 import { ArrowDownUpIcon, SlidersHorizontalIcon } from "lucide-react";
-import { Button } from "@zentro/ui/shadcn/button";
+import { Button } from "@kyren/ui/shadcn/button";
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -10,14 +10,14 @@ import {
   DropdownMenuRadioItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@zentro/ui/shadcn/dropdown-menu";
+} from "@kyren/ui/shadcn/dropdown-menu";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@zentro/ui/shadcn/select";
+} from "@kyren/ui/shadcn/select";
 import { fileColumns, kinds, type FileSort, type Kind } from "./types";
 
 export function FileTypeFilter({

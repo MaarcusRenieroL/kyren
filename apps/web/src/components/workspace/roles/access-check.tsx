@@ -2,24 +2,24 @@
 
 import { FC, useEffect, useState } from "react";
 
-import { useTrpcClient } from "@zentro/api/react";
-import { Badge } from "@zentro/ui/shadcn/badge";
-import { Button } from "@zentro/ui/shadcn/button";
+import { useTrpcClient } from "@kyren/api/react";
+import { Badge } from "@kyren/ui/shadcn/badge";
+import { Button } from "@kyren/ui/shadcn/button";
 import {
   Card,
   CardContent,
   CardHeader,
   CardTitle,
-} from "@zentro/ui/shadcn/card";
-import { Label } from "@zentro/ui/shadcn/label";
+} from "@kyren/ui/shadcn/card";
+import { Label } from "@kyren/ui/shadcn/label";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@zentro/ui/shadcn/select";
-import { toastError } from "@zentro/ui/index";
+} from "@kyren/ui/shadcn/select";
+import { toastError } from "@kyren/ui/index";
 
 import { trpcResult } from "~/src/lib/trpc-result";
 

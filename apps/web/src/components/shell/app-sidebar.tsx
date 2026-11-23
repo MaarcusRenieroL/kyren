@@ -1,6 +1,6 @@
 "use client";
 
-import { Button } from "@zentro/ui/shadcn/button";
+import { Button } from "@kyren/ui/shadcn/button";
 import { useChatBadge } from "~/src/components/chat/chat-store";
 import { useNotifications } from "~/src/components/notifications/notifications-provider";
 import Link from "next/link";
@@ -8,11 +8,11 @@ import { usePathname } from "next/navigation";
 import { Fragment, useEffect, useRef, useState } from "react";
 import { ChevronDownIcon, XIcon } from "lucide-react";
 
-import { authClient } from "@zentro/auth/client";
-import { useTrpcClient } from "@zentro/api/react";
-import { OrgSwitcher } from "@zentro/ui/components/org-switcher";
-import { toastError } from "@zentro/ui/index";
-import { useActiveBox } from "@zentro/ui/lib/use-active-box";
+import { authClient } from "@kyren/auth/client";
+import { useTrpcClient } from "@kyren/api/react";
+import { OrgSwitcher } from "@kyren/ui/components/org-switcher";
+import { toastError } from "@kyren/ui/index";
+import { useActiveBox } from "@kyren/ui/lib/use-active-box";
 import {
   Sidebar,
   SidebarContent,
@@ -24,8 +24,8 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   useSidebar,
-} from "@zentro/ui/shadcn/sidebar";
-import { cn } from "@zentro/ui/lib/utils";
+} from "@kyren/ui/shadcn/sidebar";
+import { cn } from "@kyren/ui/lib/utils";
 
 import { getShellIcon } from "~/src/lib/module-icons";
 import { apiPath, paths } from "~/src/lib/paths";

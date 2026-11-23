@@ -1,10 +1,10 @@
 "use client";
 
-import { Button } from "@zentro/ui/shadcn/button";
+import { Button } from "@kyren/ui/shadcn/button";
 import { useMemo, useState, type FC, type ReactNode } from "react";
 import { ChevronDownIcon, ChevronRightIcon, PlusIcon } from "lucide-react";
 
-import { StatusGlyph } from "@zentro/ui/components/status-glyph";
+import { StatusGlyph } from "@kyren/ui/components/status-glyph";
 
 import { ShortcutsDialog } from "~/src/components/shortcuts-dialog";
 import type { BulkChange, WorkspaceTask } from "~/src/features/tasks/lib/types";

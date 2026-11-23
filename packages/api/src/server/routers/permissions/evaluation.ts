@@ -3,7 +3,7 @@ import {
   getCatalog,
   getPermission,
   check as engineCheck,
-} from "@zentro/permissions";
+} from "@kyren/permissions";
 import { z } from "zod";
 
 import { loadEnabledModules } from "../../modules";

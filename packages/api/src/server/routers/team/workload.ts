@@ -1,5 +1,5 @@
 import { TRPCError } from "@trpc/server";
-import { and, desc, eq, inArray, isNull, or } from "@zentro/db/drizzle";
+import { and, desc, eq, inArray, isNull, or } from "@kyren/db/drizzle";
 import {
   members,
   projects,
@@ -7,7 +7,7 @@ import {
   teamMembers,
   teams,
   users,
-} from "@zentro/db/schema";
+} from "@kyren/db/schema";
 
 import { getTeamByIdSchema } from "../../../types/zod-schema";
 import { permissionProcedure } from "../../trpc";

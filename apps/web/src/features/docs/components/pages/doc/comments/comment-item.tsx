@@ -7,8 +7,8 @@ import {
   PencilIcon,
   Trash2Icon,
 } from "lucide-react";
-import { Button } from "@zentro/ui/shadcn/button";
-import { Textarea } from "@zentro/ui/shadcn/textarea";
+import { Button } from "@kyren/ui/shadcn/button";
+import { Textarea } from "@kyren/ui/shadcn/textarea";
 import { ActorAvatar } from "~/src/components/actor-avatar";
 import { formatDocDate } from "../../../../lib/docs";
 import type { DocComment } from "./types";

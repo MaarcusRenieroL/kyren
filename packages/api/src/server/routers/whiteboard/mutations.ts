@@ -1,6 +1,6 @@
 import { TRPCError } from "@trpc/server";
-import { and, desc, eq, isNotNull, isNull } from "@zentro/db/drizzle";
-import { members, users, whiteboards } from "@zentro/db/schema";
+import { and, desc, eq, isNotNull, isNull } from "@kyren/db/drizzle";
+import { members, users, whiteboards } from "@kyren/db/schema";
 import { z } from "zod";
 import { holdsOwn } from "../../access";
 import { currentMemberId } from "../../chat";

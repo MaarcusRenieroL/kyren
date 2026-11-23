@@ -1,9 +1,9 @@
 import { randomUUID } from "node:crypto";
 
-import { auth } from "@zentro/auth";
-import { db } from "@zentro/db";
-import { eq } from "@zentro/db/drizzle";
-import { sessions, verifications } from "@zentro/db/schema";
+import { auth } from "@kyren/auth";
+import { db } from "@kyren/db";
+import { eq } from "@kyren/db/drizzle";
+import { sessions, verifications } from "@kyren/db/schema";
 import { afterAll, describe, expect, it } from "vitest";
 
 import { World } from "./helpers";

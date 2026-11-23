@@ -1,9 +1,9 @@
 import { randomBytes } from "node:crypto";
 
-import type { db as Database } from "@zentro/db";
-import { and, eq, isNull } from "@zentro/db/drizzle";
-import { docs, organizations } from "@zentro/db/schema";
-import { sanitizeDocHtml } from "@zentro/utils";
+import type { db as Database } from "@kyren/db";
+import { and, eq, isNull } from "@kyren/db/drizzle";
+import { docs, organizations } from "@kyren/db/schema";
+import { sanitizeDocHtml } from "@kyren/utils";
 
 import { loadEnabledModules } from "./modules";
 import { organizationStatus } from "./platform-policy";

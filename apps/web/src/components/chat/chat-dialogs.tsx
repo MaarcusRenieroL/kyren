@@ -1,22 +1,22 @@
 "use client";
 
-import { Label } from "@zentro/ui/shadcn/label";
-import { FieldSet, FieldLegend } from "@zentro/ui/shadcn/field";
+import { Label } from "@kyren/ui/shadcn/label";
+import { FieldSet, FieldLegend } from "@kyren/ui/shadcn/field";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { HashIcon, LockIcon } from "lucide-react";
 
-import { useTrpcClient } from "@zentro/api/react";
-import { cn } from "@zentro/ui/lib/utils";
-import { Button } from "@zentro/ui/shadcn/button";
+import { useTrpcClient } from "@kyren/api/react";
+import { cn } from "@kyren/ui/lib/utils";
+import { Button } from "@kyren/ui/shadcn/button";
 import {
   Dialog,
   DialogContent,
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@zentro/ui/shadcn/dialog";
-import { Input } from "@zentro/ui/shadcn/input";
+} from "@kyren/ui/shadcn/dialog";
+import { Input } from "@kyren/ui/shadcn/input";
 
 import { useChatSidebar } from "./chat-store";
 import { usePeople } from "./channel-view";

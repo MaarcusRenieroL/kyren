@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState, type RefObject } from "react";
-import { useTrpcClient } from "@zentro/api/react";
+import { useTrpcClient } from "@kyren/api/react";
 import { bounds, clamp, live, union, type El } from "../canvas/model";
 import { mergeIn } from "../canvas/sync";
 import { POLL_MS, PRESENCE_MS, type Other, type SaveState, type View } from "./editor-types";

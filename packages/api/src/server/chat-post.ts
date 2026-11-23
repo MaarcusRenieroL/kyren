@@ -1,11 +1,11 @@
-import { and, eq } from "@zentro/db/drizzle";
+import { and, eq } from "@kyren/db/drizzle";
 import {
   chatAttachments,
   chatChannels,
   chatMembers,
   chatMessages,
   chatThreadFollows,
-} from "@zentro/db/schema";
+} from "@kyren/db/schema";
 
 import type { DbHandle } from "./access";
 import { queueMentionEmails } from "./chat-mention-mail";

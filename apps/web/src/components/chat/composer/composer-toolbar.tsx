@@ -1,6 +1,6 @@
 "use client";
 
-import { Input } from "@zentro/ui/shadcn/input";
+import { Input } from "@kyren/ui/shadcn/input";
 import { useRef, type RefObject } from "react";
 import {
   ArrowUpIcon,
@@ -14,8 +14,8 @@ import {
   ListIcon,
   PaperclipIcon,
 } from "lucide-react";
-import { cn } from "@zentro/ui/lib/utils";
-import { Button } from "@zentro/ui/shadcn/button";
+import { cn } from "@kyren/ui/lib/utils";
+import { Button } from "@kyren/ui/shadcn/button";
 import { ComposerEmojiPopover } from "./composer-emoji-popover";
 import { ComposerSchedulePopover } from "./composer-schedule-popover";
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { cn } from "@zentro/ui/lib/utils";
+import { cn } from "@kyren/ui/lib/utils";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -11,7 +11,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogTrigger,
-} from "@zentro/ui/shadcn/alert-dialog";
+} from "@kyren/ui/shadcn/alert-dialog";
 import type { WorkspaceTask } from "~/src/features/tasks/lib/types";
 
 type Props = {

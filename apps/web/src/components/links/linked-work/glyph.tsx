@@ -1,5 +1,5 @@
 import { FileTextIcon } from "lucide-react";
-import { StatusGlyph } from "@zentro/ui/components/status-glyph";
+import { StatusGlyph } from "@kyren/ui/components/status-glyph";
 import type { Item } from "./types";
 
 export function Glyph({ item }: { item: Pick<Item, "type" | "status"> }) {

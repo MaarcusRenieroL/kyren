@@ -1,8 +1,8 @@
 import {
   createPermissionContext,
   visibleActivityCondition,
-} from "@zentro/api/server";
-import { db } from "@zentro/db";
+} from "@kyren/api/server";
+import { db } from "@kyren/db";
 import {
   and,
   asc,
@@ -13,7 +13,7 @@ import {
   isNull,
   ne,
   sql,
-} from "@zentro/db/drizzle";
+} from "@kyren/db/drizzle";
 import {
   activityEvents,
   members,
@@ -21,9 +21,9 @@ import {
   runningTimers,
   tasks,
   users,
-} from "@zentro/db/schema";
-import type { ModuleId } from "@zentro/modules";
-import { can, type PermissionSnapshot } from "@zentro/permissions";
+} from "@kyren/db/schema";
+import type { ModuleId } from "@kyren/modules";
+import { can, type PermissionSnapshot } from "@kyren/permissions";
 
 import { paths } from "~/src/lib/paths";
 import { zonedDate, zonedMidnight } from "~/src/lib/time-zone";

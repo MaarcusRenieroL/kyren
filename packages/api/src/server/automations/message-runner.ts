@@ -1,11 +1,11 @@
-import { and, desc, eq, sql } from "@zentro/db/drizzle";
+import { and, desc, eq, sql } from "@kyren/db/drizzle";
 import {
   automations,
   chatChannels,
   projects,
   tasks,
   workLinks,
-} from "@zentro/db/schema";
+} from "@kyren/db/schema";
 import { postFromAutomation } from "./post-helper";
 import type { MessageContext } from "./types";
 

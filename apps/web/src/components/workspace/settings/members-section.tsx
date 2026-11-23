@@ -5,9 +5,9 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { AlertCircleIcon, ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
 
-import { useTrpcClient } from "@zentro/api/react";
-import { Button } from "@zentro/ui/components/shadcn/button";
-import { toastError, toastSuccess } from "@zentro/ui/index";
+import { useTrpcClient } from "@kyren/api/react";
+import { Button } from "@kyren/ui/components/shadcn/button";
+import { toastError, toastSuccess } from "@kyren/ui/index";
 
 import { MemberAccessDialog } from "~/src/components/workspace/roles/member-access-dialog";
 import {

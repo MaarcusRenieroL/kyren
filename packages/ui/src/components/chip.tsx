@@ -1,8 +1,8 @@
-import { Button } from "@zentro/ui/shadcn/button";
+import { Button } from "@kyren/ui/shadcn/button";
 import type { ComponentProps, ReactElement } from "react";
 import { XIcon } from "lucide-react";
 
-import { cn } from "@zentro/ui/lib/utils";
+import { cn } from "@kyren/ui/lib/utils";
 
 type ChipProps = ComponentProps<"span"> & {
   tone?: "neutral" | "accent";

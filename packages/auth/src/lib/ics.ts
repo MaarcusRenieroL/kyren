@@ -23,7 +23,7 @@ export function meetingIcs(meeting: {
   const lines = [
     "BEGIN:VCALENDAR",
     "VERSION:2.0",
-    "PRODID:-//Zentro//Meetings//EN",
+    "PRODID:-//Kyren//Meetings//EN",
     `METHOD:${meeting.method}`,
     "BEGIN:VEVENT",
     `UID:${text(meeting.uid)}`,
@@ -33,7 +33,7 @@ export function meetingIcs(meeting: {
     `ORGANIZER;CN=${param(meeting.organizer)}:mailto:${meeting.organizerEmail}`,
     `ATTENDEE;ROLE=REQ-PARTICIPANT;RSVP=FALSE:mailto:${meeting.attendeeEmail}`,
     `SUMMARY:${text(meeting.title)}`,
-    `DESCRIPTION:${text(`Organizer: ${meeting.organizer}\nOpen in Zentro: ${meeting.url}`)}`,
+    `DESCRIPTION:${text(`Organizer: ${meeting.organizer}\nOpen in Kyren: ${meeting.url}`)}`,
     `URL:${meeting.url}`,
     // A cancellation must outrank the invite it replaces.
     `SEQUENCE:${meeting.method === "CANCEL" ? 1 : 0}`,

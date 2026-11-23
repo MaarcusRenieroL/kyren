@@ -4,10 +4,10 @@ import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import { ClockIcon, FileEditIcon } from "lucide-react";
 import type { inferRouterOutputs } from "@trpc/server";
-import type { AppRouter } from "@zentro/api/server";
-import { useTrpcClient } from "@zentro/api/react";
-import { toastError, toastSuccess } from "@zentro/ui/index";
-import { Button } from "@zentro/ui/shadcn/button";
+import type { AppRouter } from "@kyren/api/server";
+import { useTrpcClient } from "@kyren/api/react";
+import { toastError, toastSuccess } from "@kyren/ui/index";
+import { Button } from "@kyren/ui/shadcn/button";
 import { useChatSidebar } from "../chat-store";
 import {
   dayHeading,

@@ -7,16 +7,16 @@ import {
   notInArray,
   or,
   sql,
-} from "@zentro/db/drizzle";
+} from "@kyren/db/drizzle";
 import {
   chatChannels,
   chatMessages,
   legalHolds,
   retentionPolicies,
   tickets,
-} from "@zentro/db/schema";
+} from "@kyren/db/schema";
 
-import type { db as database } from "@zentro/db";
+import type { db as database } from "@kyren/db";
 
 type Db = typeof database;
 

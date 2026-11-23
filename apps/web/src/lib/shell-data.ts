@@ -1,4 +1,4 @@
-import { listModules, type ModuleNavLink } from "@zentro/modules";
+import { listModules, type ModuleNavLink } from "@kyren/modules";
 
 import type { ShellModule } from "~/src/components/shell/app-sidebar";
 import { paths } from "~/src/lib/paths";

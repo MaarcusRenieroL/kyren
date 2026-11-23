@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { Button } from "@zentro/ui/shadcn/button";
+import { Button } from "@kyren/ui/shadcn/button";
 import { Fragment, type CSSProperties } from "react";
 
 export function PricingCompare({ v }: { v: any }) {

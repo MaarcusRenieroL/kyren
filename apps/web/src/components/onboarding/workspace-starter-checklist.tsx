@@ -12,9 +12,9 @@ import {
   XIcon,
 } from "lucide-react";
 
-import { Button } from "@zentro/ui/shadcn/button";
-import { Progress } from "@zentro/ui/shadcn/progress";
-import { cn } from "@zentro/ui/lib/utils";
+import { Button } from "@kyren/ui/shadcn/button";
+import { Progress } from "@kyren/ui/shadcn/progress";
+import { cn } from "@kyren/ui/lib/utils";
 
 import type { StarterProgress } from "~/src/lib/starter-progress";
 
@@ -122,7 +122,7 @@ export function WorkspaceStarterChecklist({
           </div>
           <div>
             <h3 className="text-sm font-semibold text-ink">
-              Getting started with Zentro
+              Getting started with Kyren
             </h3>
             <p className="text-xs text-ink-3">
               {completedCount} of {steps.length} done

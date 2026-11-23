@@ -2,17 +2,17 @@
 
 import { FC, useCallback, useEffect, useState } from "react";
 
-import { useTrpcClient } from "@zentro/api/react";
-import { toastError, toastSuccess } from "@zentro/ui/index";
-import { Button } from "@zentro/ui/shadcn/button";
-import { Label } from "@zentro/ui/shadcn/label";
+import { useTrpcClient } from "@kyren/api/react";
+import { toastError, toastSuccess } from "@kyren/ui/index";
+import { Button } from "@kyren/ui/shadcn/button";
+import { Label } from "@kyren/ui/shadcn/label";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@zentro/ui/shadcn/select";
+} from "@kyren/ui/shadcn/select";
 
 import { usePermission } from "~/src/components/permissions/permission-provider";
 import { trpcResult } from "~/src/lib/trpc-result";

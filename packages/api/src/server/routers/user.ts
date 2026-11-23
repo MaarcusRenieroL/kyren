@@ -8,7 +8,7 @@ import {
   taskComments,
   tasks,
   users,
-} from "@zentro/db/schema";
+} from "@kyren/db/schema";
 import { authenticatedProcedure, protectedProcedure, router } from "../trpc";
 import {
   and,
@@ -19,7 +19,7 @@ import {
   isNull,
   or,
   sql,
-} from "@zentro/db/drizzle";
+} from "@kyren/db/drizzle";
 
 import { visibleDocsCondition } from "../access";
 import { currentMemberId, readableChannelIds } from "../chat";

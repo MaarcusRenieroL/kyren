@@ -1,5 +1,5 @@
 import type { FC } from "react";
-import { cn } from "@zentro/ui/index";
+import { cn } from "@kyren/ui/index";
 import type { ProjectGeneralSectionFormValues } from "~/src/lib/zod-schema";
 import { formatDate, type ProjectData, type TeamOption } from "./types";
 

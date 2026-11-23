@@ -1,11 +1,11 @@
 import { TRPCError } from "@trpc/server";
-import { and, eq, gte, inArray, or, sql } from "@zentro/db/drizzle";
+import { and, eq, gte, inArray, or, sql } from "@kyren/db/drizzle";
 import {
   compensations,
   employees,
   payRuns,
   payslips,
-} from "@zentro/db/schema";
+} from "@kyren/db/schema";
 import { z } from "zod";
 
 import { currentMemberId } from "../../chat";

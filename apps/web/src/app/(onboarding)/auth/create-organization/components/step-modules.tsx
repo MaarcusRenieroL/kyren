@@ -1,9 +1,9 @@
 "use client";
 
-import { Switch } from "@zentro/ui/shadcn/switch";
+import { Switch } from "@kyren/ui/shadcn/switch";
 import { LockIcon } from "lucide-react";
-import { cn } from "@zentro/ui/lib/utils";
-import { Skeleton } from "@zentro/ui/shadcn/skeleton";
+import { cn } from "@kyren/ui/lib/utils";
+import { Skeleton } from "@kyren/ui/shadcn/skeleton";
 import { getModuleIcon } from "~/src/lib/module-icons";
 import { moduleNote, moduleTint, type ModuleRow } from "./create-org-types";
 

@@ -1,7 +1,7 @@
 import { APIError } from "better-auth/api";
-import { db } from "@zentro/db";
-import { and, eq, sql } from "@zentro/db/drizzle";
-import * as schema from "@zentro/db/schema";
+import { db } from "@kyren/db";
+import { and, eq, sql } from "@kyren/db/drizzle";
+import * as schema from "@kyren/db/schema";
 
 /** How many organizations one person may own; `ORGANIZATIONS_PER_PERSON`, default 10. */
 export function organizationsPerPerson() {

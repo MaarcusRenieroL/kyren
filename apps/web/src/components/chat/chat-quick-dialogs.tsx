@@ -4,17 +4,17 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { HashIcon } from "lucide-react";
 
-import { useTrpcClient } from "@zentro/api/react";
-import { toastError } from "@zentro/ui/index";
-import { Button } from "@zentro/ui/shadcn/button";
+import { useTrpcClient } from "@kyren/api/react";
+import { toastError } from "@kyren/ui/index";
+import { Button } from "@kyren/ui/shadcn/button";
 import {
   Dialog,
   DialogContent,
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@zentro/ui/shadcn/dialog";
-import { Skeleton } from "@zentro/ui/shadcn/skeleton";
+} from "@kyren/ui/shadcn/dialog";
+import { Skeleton } from "@kyren/ui/shadcn/skeleton";
 
 import { useChatSidebar } from "./chat-store";
 import { usePeople } from "./channel-view";

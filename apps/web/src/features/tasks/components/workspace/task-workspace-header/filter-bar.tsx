@@ -1,8 +1,8 @@
-import { Input } from "@zentro/ui/shadcn/input";
-import { Button } from "@zentro/ui/shadcn/button";
+import { Input } from "@kyren/ui/shadcn/input";
+import { Button } from "@kyren/ui/shadcn/button";
 import { ArrowDownUpIcon, LayersIcon, SearchIcon } from "lucide-react";
-import { cn } from "@zentro/ui/lib/utils";
-import { SelectItem } from "@zentro/ui/shadcn/select";
+import { cn } from "@kyren/ui/lib/utils";
+import { SelectItem } from "@kyren/ui/shadcn/select";
 import type { TaskPriority, TaskStatus } from "~/src/features/tasks/lib/types";
 import { FilterChip } from "./filter-chip";
 import {

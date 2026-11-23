@@ -1,13 +1,13 @@
 "use client";
 
-import { Input } from "@zentro/ui/shadcn/input";
-import { Button } from "@zentro/ui/shadcn/button";
+import { Input } from "@kyren/ui/shadcn/input";
+import { Button } from "@kyren/ui/shadcn/button";
 import { FC, useEffect, useMemo, useRef, useState } from "react";
 import { FileTextIcon, SearchIcon, XIcon } from "lucide-react";
 
-import { useTrpcClient } from "@zentro/api/react";
-import { cn } from "@zentro/ui/lib/utils";
-import { StatusGlyph } from "@zentro/ui/components/status-glyph";
+import { useTrpcClient } from "@kyren/api/react";
+import { cn } from "@kyren/ui/lib/utils";
+import { StatusGlyph } from "@kyren/ui/components/status-glyph";
 import { ActorAvatar } from "~/src/components/actor-avatar";
 
 export type MentionItem = {

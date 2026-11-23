@@ -1,13 +1,13 @@
 import { randomBytes } from "node:crypto";
 
 import { TRPCError } from "@trpc/server";
-import { and, eq, inArray } from "@zentro/db/drizzle";
+import { and, eq, inArray } from "@kyren/db/drizzle";
 import {
   members,
   ticketAssignmentRules,
   ticketInboxes,
   ticketSlaPolicies,
-} from "@zentro/db/schema";
+} from "@kyren/db/schema";
 import { z } from "zod";
 
 import {

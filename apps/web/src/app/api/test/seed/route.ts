@@ -1,9 +1,9 @@
 import { randomBytes, randomUUID, timingSafeEqual } from "node:crypto";
 
-import { auth } from "@zentro/auth";
-import { db } from "@zentro/db";
-import { eq } from "@zentro/db/drizzle";
-import { users } from "@zentro/db/schema";
+import { auth } from "@kyren/auth";
+import { db } from "@kyren/db";
+import { eq } from "@kyren/db/drizzle";
+import { users } from "@kyren/db/schema";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";

@@ -1,6 +1,6 @@
 import { TRPCError } from "@trpc/server";
-import { and, asc, eq, inArray, isNull } from "@zentro/db/drizzle";
-import { docs, favorites, projects, tasks } from "@zentro/db/schema";
+import { and, asc, eq, inArray, isNull } from "@kyren/db/drizzle";
+import { docs, favorites, projects, tasks } from "@kyren/db/schema";
 import { z } from "zod";
 
 import { visibleDocsCondition } from "../access";

@@ -1,14 +1,14 @@
 "use client";
 
-import { Button } from "@zentro/ui/shadcn/button";
+import { Button } from "@kyren/ui/shadcn/button";
 import {
   Collapsible,
   CollapsibleTrigger,
   CollapsibleContent,
-} from "@zentro/ui/shadcn/collapsible";
+} from "@kyren/ui/shadcn/collapsible";
 import { useEffect, useMemo, useState } from "react";
-import { useTrpcClient } from "@zentro/api/react";
-import { toastError, toastSuccess } from "@zentro/ui/index";
+import { useTrpcClient } from "@kyren/api/react";
+import { toastError, toastSuccess } from "@kyren/ui/index";
 import { useAsyncData } from "~/src/lib/use-async-data";
 import type { WorkspaceTask } from "~/src/features/tasks/lib/types";
 import { getDateInputValue } from "../task-detail/task-detail-utils";

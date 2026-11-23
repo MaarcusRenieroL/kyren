@@ -1,8 +1,8 @@
 import { ListIcon, PlusIcon } from "lucide-react";
 
-import { Button } from "@zentro/ui/shadcn/button";
+import { Button } from "@kyren/ui/shadcn/button";
 
-import { EmptyState } from "@zentro/ui/components/empty-state";
+import { EmptyState } from "@kyren/ui/components/empty-state";
 
 import { CreateTaskModal } from "../create-task-modal";
 

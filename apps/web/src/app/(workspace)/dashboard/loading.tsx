@@ -1,4 +1,4 @@
-import { Skeleton } from "@zentro/ui/shadcn/skeleton";
+import { Skeleton } from "@kyren/ui/shadcn/skeleton";
 
 // Mirrors the Today bento: focus tile, two side tiles, four recent tiles.
 export default function Loading() {

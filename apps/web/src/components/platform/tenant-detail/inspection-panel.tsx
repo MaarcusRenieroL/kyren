@@ -5,7 +5,7 @@ import {
   TableHead,
   TableBody,
   TableCell,
-} from "@zentro/ui/shadcn/table";
+} from "@kyren/ui/shadcn/table";
 import { cell, formatDate, headCell, tableClass } from "../common";
 import { Panel } from "./panel";
 

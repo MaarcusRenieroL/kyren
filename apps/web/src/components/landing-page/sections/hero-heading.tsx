@@ -138,7 +138,7 @@ export function HeroHeading({
             textWrap: "pretty",
           }}
         >
-          Zentro puts your projects, tasks, docs and team under one permission
+          Kyren puts your projects, tasks, docs and team under one permission
           system and one search, and you switch on only the modules you use.
         </p>
         <div style={{ display: "flex", flexWrap: "wrap", gap: 12 }}>

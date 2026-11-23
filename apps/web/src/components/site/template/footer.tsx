@@ -70,7 +70,7 @@ export function SiteFooter({ v }: { v: any }) {
               letterSpacing: "-0.04em",
             }}
           >
-            Zentro
+            Kyren
           </span>
         </div>
         <span style={{ fontSize: "14px", color: "var(--ink2)" }}>
@@ -105,7 +105,7 @@ export function SiteFooter({ v }: { v: any }) {
             color: "var(--ink3)",
           }}
         >
-          © 2026 Zentro
+          © 2026 Kyren
         </span>
       </div>
       <div

@@ -1,6 +1,6 @@
 import { TRPCError } from "@trpc/server";
-import { and, eq } from "@zentro/db/drizzle";
-import { payRuns } from "@zentro/db/schema";
+import { and, eq } from "@kyren/db/drizzle";
+import { payRuns } from "@kyren/db/schema";
 import { z } from "zod";
 
 import { permissionProcedure, type OrganizationContext } from "../../trpc";

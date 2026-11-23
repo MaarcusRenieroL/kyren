@@ -2,9 +2,9 @@
 
 import { useState, type FormEvent } from "react";
 import { LockIcon } from "lucide-react";
-import { authClient } from "@zentro/auth/client";
-import { toastError, toastSuccess } from "@zentro/ui/index";
-import { Input } from "@zentro/ui/shadcn/input";
+import { authClient } from "@kyren/auth/client";
+import { toastError, toastSuccess } from "@kyren/ui/index";
+import { Input } from "@kyren/ui/shadcn/input";
 
 import {
   SettingsError,

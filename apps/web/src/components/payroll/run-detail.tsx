@@ -7,20 +7,20 @@ import {
   TableHead,
   TableBody,
   TableCell,
-} from "@zentro/ui/shadcn/table";
+} from "@kyren/ui/shadcn/table";
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowLeftIcon, DownloadIcon } from "lucide-react";
 
-import { useTrpcClient } from "@zentro/api/react";
-import type { AppRouter } from "@zentro/api/server";
+import { useTrpcClient } from "@kyren/api/react";
+import type { AppRouter } from "@kyren/api/server";
 import type { inferRouterOutputs } from "@trpc/server";
-import { EmptyState } from "@zentro/ui/components/empty-state";
-import { PageHeader } from "@zentro/ui/components/page-header";
-import { Button } from "@zentro/ui/shadcn/button";
-import { Input } from "@zentro/ui/shadcn/input";
-import { toast, toastError } from "@zentro/ui/index";
+import { EmptyState } from "@kyren/ui/components/empty-state";
+import { PageHeader } from "@kyren/ui/components/page-header";
+import { Button } from "@kyren/ui/shadcn/button";
+import { Input } from "@kyren/ui/shadcn/input";
+import { toast, toastError } from "@kyren/ui/index";
 
 import { usePageCrumb } from "~/src/components/shell/breadcrumb-context";
 

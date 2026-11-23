@@ -1,8 +1,8 @@
 import { paths } from "~/src/lib/paths";
 import { JSX } from "react";
-import { db } from "@zentro/db";
-import { and, eq } from "@zentro/db/drizzle";
-import { projects, teams, users } from "@zentro/db/schema";
+import { db } from "@kyren/db";
+import { and, eq } from "@kyren/db/drizzle";
+import { projects, teams, users } from "@kyren/db/schema";
 import { redirect } from "next/navigation";
 
 import { GeneralSection } from "~/src/components/project-detail/settings/general-section";

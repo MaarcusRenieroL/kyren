@@ -1,6 +1,6 @@
 "use client";
 
-import { Label } from "@zentro/ui/shadcn/label";
+import { Label } from "@kyren/ui/shadcn/label";
 import type { FC } from "react";
 import {
   Controller,
@@ -8,19 +8,19 @@ import {
   type UseFormSetValue,
 } from "react-hook-form";
 import { Check } from "lucide-react";
-import type { CreateProjectFormValues } from "@zentro/api/types/zod-schema";
-import { Input } from "@zentro/ui/shadcn/input";
-import { Textarea } from "@zentro/ui/shadcn/textarea";
+import type { CreateProjectFormValues } from "@kyren/api/types/zod-schema";
+import { Input } from "@kyren/ui/shadcn/input";
+import { Textarea } from "@kyren/ui/shadcn/textarea";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@zentro/ui/shadcn/select";
-import { cn } from "@zentro/ui/lib/utils";
-import { LoadingState } from "@zentro/ui/components/loading-state";
-import { slugify, slugifyInput } from "@zentro/utils";
+} from "@kyren/ui/shadcn/select";
+import { cn } from "@kyren/ui/lib/utils";
+import { LoadingState } from "@kyren/ui/components/loading-state";
+import { slugify, slugifyInput } from "@kyren/utils";
 import { box, FieldError, type TeamOption } from "./types";
 
 type CreateProjectFormFieldsProps = {

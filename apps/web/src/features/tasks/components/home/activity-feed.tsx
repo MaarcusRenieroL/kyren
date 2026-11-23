@@ -2,14 +2,14 @@
 
 import { ActivityIcon, ExternalLinkIcon } from "lucide-react";
 
-import { Button } from "@zentro/ui/shadcn/button";
+import { Button } from "@kyren/ui/shadcn/button";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@zentro/ui/shadcn/card";
+} from "@kyren/ui/shadcn/card";
 import {
   Dialog,
   DialogContent,
@@ -17,7 +17,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@zentro/ui/shadcn/dialog";
+} from "@kyren/ui/shadcn/dialog";
 import { ActivityEvent } from "~/src/features/tasks/lib/types";
 
 type Props = {

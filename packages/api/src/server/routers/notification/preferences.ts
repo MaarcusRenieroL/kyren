@@ -1,8 +1,8 @@
-import { and, eq } from "@zentro/db/drizzle";
+import { and, eq } from "@kyren/db/drizzle";
 import {
   notificationPreferences,
   notificationReads,
-} from "@zentro/db/schema";
+} from "@kyren/db/schema";
 import { z } from "zod";
 import { protectedProcedure } from "../../trpc";
 import { mutedKindsFor, preferenceKinds } from "./types";

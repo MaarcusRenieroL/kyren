@@ -1,4 +1,4 @@
-import { and, eq, isNotNull, isNull } from "@zentro/db/drizzle";
+import { and, eq, isNotNull, isNull } from "@kyren/db/drizzle";
 import {
   docComments,
   docs,
@@ -6,8 +6,8 @@ import {
   projects,
   tasks,
   teams,
-} from "@zentro/db/schema";
-import type { ProjectAccessInfo, ResourceContext } from "@zentro/permissions";
+} from "@kyren/db/schema";
+import type { ProjectAccessInfo, ResourceContext } from "@kyren/permissions";
 
 import type { OrganizationContext, ScopeResolver } from "./trpc";
 

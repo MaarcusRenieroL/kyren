@@ -1,9 +1,9 @@
 "use client";
 
-import { Button } from "@zentro/ui/shadcn/button";
+import { Button } from "@kyren/ui/shadcn/button";
 import type { FC } from "react";
 import { KeyboardIcon } from "lucide-react";
-import { Kbd } from "@zentro/ui/components/kbd";
+import { Kbd } from "@kyren/ui/components/kbd";
 
 type ListViewShortcutsProps = {
   onOpenShortcuts: () => void;

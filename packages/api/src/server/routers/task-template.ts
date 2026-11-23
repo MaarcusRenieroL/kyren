@@ -1,6 +1,6 @@
 import { TRPCError } from "@trpc/server";
-import { and, asc, eq, inArray } from "@zentro/db/drizzle";
-import { taskTemplates, tasks } from "@zentro/db/schema";
+import { and, asc, eq, inArray } from "@kyren/db/drizzle";
+import { taskTemplates, tasks } from "@kyren/db/schema";
 import { z } from "zod";
 
 import { currentMemberId } from "../chat";

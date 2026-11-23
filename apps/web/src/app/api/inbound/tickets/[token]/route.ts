@@ -1,6 +1,6 @@
-import { hit, receiveTicketMail } from "@zentro/api/server";
+import { hit, receiveTicketMail } from "@kyren/api/server";
 import { maintenanceResponse } from "~/src/lib/maintenance";
-import { db } from "@zentro/db";
+import { db } from "@kyren/db";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";

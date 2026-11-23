@@ -27,7 +27,7 @@ export function PlatformShell({
   return (
     <div className="flex min-h-dvh flex-col bg-canvas text-ink">
       <header className="flex flex-wrap items-center gap-x-6 gap-y-2 border-b border-line px-6 py-3">
-        <span className="font-display text-lg">Zentro platform</span>
+        <span className="font-display text-lg">Kyren platform</span>
         <nav
           aria-label="Platform sections"
           className="flex flex-1 flex-wrap gap-1"

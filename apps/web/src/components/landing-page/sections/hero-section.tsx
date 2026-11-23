@@ -109,7 +109,7 @@ export function HeroSection({
                   color: "var(--ink3)",
                 }}
               >
-                fernway.zentro.app / today
+                fernway.kyren.example / today
               </span>
               <span
                 style={{

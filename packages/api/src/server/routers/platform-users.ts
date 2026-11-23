@@ -1,14 +1,14 @@
 import { TRPCError } from "@trpc/server";
-import { auth } from "@zentro/auth";
-import { eq, ilike, or } from "@zentro/db/drizzle";
+import { auth } from "@kyren/auth";
+import { eq, ilike, or } from "@kyren/db/drizzle";
 import {
   members,
   organizations,
   sessions,
   twoFactors,
   users,
-} from "@zentro/db/schema";
-import type { db as Database } from "@zentro/db";
+} from "@kyren/db/schema";
+import type { db as Database } from "@kyren/db";
 import { z } from "zod";
 
 import { callAuth } from "../auth-calls";

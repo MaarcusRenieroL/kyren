@@ -4,14 +4,14 @@ import {
   Collapsible,
   CollapsibleTrigger,
   CollapsibleContent,
-} from "@zentro/ui/shadcn/collapsible";
-import { Label } from "@zentro/ui/shadcn/label";
+} from "@kyren/ui/shadcn/collapsible";
+import { Label } from "@kyren/ui/shadcn/label";
 import { useCallback, useEffect, useState } from "react";
 
-import { useTrpcClient } from "@zentro/api/react";
-import { toastError, toastSuccess } from "@zentro/ui/index";
-import { Button } from "@zentro/ui/shadcn/button";
-import { Input } from "@zentro/ui/shadcn/input";
+import { useTrpcClient } from "@kyren/api/react";
+import { toastError, toastSuccess } from "@kyren/ui/index";
+import { Button } from "@kyren/ui/shadcn/button";
+import { Input } from "@kyren/ui/shadcn/input";
 
 import { priorityLabels } from "./labels";
 

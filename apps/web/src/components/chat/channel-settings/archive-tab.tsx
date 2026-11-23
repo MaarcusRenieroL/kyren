@@ -1,8 +1,8 @@
 "use client";
 
 import { ArchiveIcon } from "lucide-react";
-import { useTrpcClient } from "@zentro/api/react";
-import { Button } from "@zentro/ui/shadcn/button";
+import { useTrpcClient } from "@kyren/api/react";
+import { Button } from "@kyren/ui/shadcn/button";
 
 import type { ChannelData } from "../channel-view";
 

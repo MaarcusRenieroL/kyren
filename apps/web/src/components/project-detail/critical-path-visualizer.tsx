@@ -1,7 +1,7 @@
 "use client";
 
-import { Button } from "@zentro/ui/shadcn/button";
-import { Input } from "@zentro/ui/shadcn/input";
+import { Button } from "@kyren/ui/shadcn/button";
+import { Input } from "@kyren/ui/shadcn/input";
 import { useEffect, useMemo, useState, type FC } from "react";
 import {
   AlertTriangleIcon,
@@ -12,8 +12,8 @@ import {
   SearchIcon,
 } from "lucide-react";
 
-import { useTrpcClient } from "@zentro/api/react";
-import { cn } from "@zentro/ui/lib/utils";
+import { useTrpcClient } from "@kyren/api/react";
+import { cn } from "@kyren/ui/lib/utils";
 import type { GraphData, Node } from "./critical-path/types";
 import { MetricsCards } from "./critical-path/metrics-cards";
 import { DagStageNode } from "./critical-path/dag-stage-node";

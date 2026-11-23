@@ -1,6 +1,6 @@
 "use client";
 
-import { Button } from "@zentro/ui/shadcn/button";
+import { Button } from "@kyren/ui/shadcn/button";
 import { useState } from "react";
 import { CheckIcon, CopyIcon } from "lucide-react";
 import { copyText } from "~/src/lib/clipboard";

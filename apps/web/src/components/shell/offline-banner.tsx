@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 
-import { Button } from "@zentro/ui/shadcn/button";
+import { Button } from "@kyren/ui/shadcn/button";
 
 const clock = (date: Date) =>
   date.toLocaleTimeString("en-GB", {
@@ -12,7 +12,7 @@ const clock = (date: Date) =>
   });
 
 /**
- * Shown above the page while the browser has no connection. Zentro does not
+ * Shown above the page while the browser has no connection. Kyren does not
  * queue edits offline, so it says what is true: reconnect to save.
  */
 export function OfflineBanner() {

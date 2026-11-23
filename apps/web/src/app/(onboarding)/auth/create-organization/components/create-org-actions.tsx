@@ -1,7 +1,7 @@
 "use client";
 
 import { ArrowLeftIcon } from "lucide-react";
-import { Button } from "@zentro/ui/shadcn/button";
+import { Button } from "@kyren/ui/shadcn/button";
 
 type CreateOrgActionsProps = {
   step: number;

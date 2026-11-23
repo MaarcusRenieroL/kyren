@@ -1,10 +1,10 @@
-import { eq } from "@zentro/db/drizzle";
-import type { db as Database } from "@zentro/db";
+import { eq } from "@kyren/db/drizzle";
+import type { db as Database } from "@kyren/db";
 import {
   organizations,
   platformIpAllowlist,
   platformSettings,
-} from "@zentro/db/schema";
+} from "@kyren/db/schema";
 
 import { ipMatches } from "./ip-policy";
 

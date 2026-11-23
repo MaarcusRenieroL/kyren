@@ -1,7 +1,7 @@
 import { TRPCError } from "@trpc/server";
-import { and, desc, eq } from "@zentro/db/drizzle";
-import { permissionOverrides, users } from "@zentro/db/schema";
-import { getPermission } from "@zentro/permissions";
+import { and, desc, eq } from "@kyren/db/drizzle";
+import { permissionOverrides, users } from "@kyren/db/schema";
+import { getPermission } from "@kyren/permissions";
 import { z } from "zod";
 
 import { assertHoldsAll } from "../../access";

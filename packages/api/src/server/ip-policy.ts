@@ -1,6 +1,6 @@
-import { eq } from "@zentro/db/drizzle";
-import type { db as Database } from "@zentro/db";
-import { ipAllowlist, organizations } from "@zentro/db/schema";
+import { eq } from "@kyren/db/drizzle";
+import type { db as Database } from "@kyren/db";
+import { ipAllowlist, organizations } from "@kyren/db/schema";
 
 /** An address as 4 or 16 bytes' worth of bits, or null when it is not an address. */
 function parseIp(raw: string): { bits: bigint; size: 32 | 128 } | null {

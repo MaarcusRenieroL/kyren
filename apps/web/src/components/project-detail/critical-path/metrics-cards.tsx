@@ -5,7 +5,7 @@ import {
   GitCommitIcon,
   ShieldAlertIcon,
 } from "lucide-react";
-import { cn } from "@zentro/ui/lib/utils";
+import { cn } from "@kyren/ui/lib/utils";
 import type { GraphData } from "./types";
 
 type MetricsCardsProps = {

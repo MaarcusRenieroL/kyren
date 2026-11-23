@@ -1,6 +1,6 @@
 "use client";
 
-import { cn } from "@zentro/ui/lib/utils";
+import { cn } from "@kyren/ui/lib/utils";
 import type { Member } from "~/src/lib/types";
 
 import type { Role } from "./members-helpers";

@@ -2,8 +2,8 @@
 
 import Link from "next/link";
 
-import { authClient } from "@zentro/auth/client";
-import { Button } from "@zentro/ui/shadcn/button";
+import { authClient } from "@kyren/auth/client";
+import { Button } from "@kyren/ui/shadcn/button";
 
 import { TwoFactorSection } from "./two-factor-section";
 import { apiPath } from "~/src/lib/paths";
@@ -25,7 +25,7 @@ export function TwoFactorGate() {
           Your organization requires two-factor sign-in
         </h1>
         <p className="text-[15px] leading-[22px] text-ink-2">
-          Turn it on to keep using Zentro. It takes a minute with an
+          Turn it on to keep using Kyren. It takes a minute with an
           authenticator app.
         </p>
       </header>
@@ -34,7 +34,7 @@ export function TwoFactorGate() {
 
       <div className="flex gap-2">
         <Button asChild>
-          <Link href="/dashboard">Continue to Zentro</Link>
+          <Link href="/dashboard">Continue to Kyren</Link>
         </Button>
         <Button variant="outline" onClick={() => void leave()}>
           Sign out

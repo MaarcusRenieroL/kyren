@@ -9,8 +9,8 @@ import {
   ne,
   or,
   type SQL,
-} from "@zentro/db/drizzle";
-import { docs, sprints, tasks, tickets, workLinks } from "@zentro/db/schema";
+} from "@kyren/db/drizzle";
+import { docs, sprints, tasks, tickets, workLinks } from "@kyren/db/schema";
 import { z } from "zod";
 
 import { visibleDocsCondition } from "../../access";

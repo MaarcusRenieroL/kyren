@@ -5,8 +5,8 @@ import { createTRPCClient, httpBatchLink } from "@trpc/client";
 import { FC, ReactNode, useState } from "react";
 import superjson from "superjson";
 
-import { makeQueryClient, TrpcProvider } from "@zentro/api/react";
-import type { AppRouter } from "@zentro/api/server";
+import { makeQueryClient, TrpcProvider } from "@kyren/api/react";
+import type { AppRouter } from "@kyren/api/server";
 import { apiPath } from "~/src/lib/paths";
 
 type Props = {

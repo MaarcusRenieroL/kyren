@@ -31,7 +31,7 @@ export const tours: Record<string, TourDefinition> = {
         title: "Unified Command Palette",
         badge: "Keyboard First",
         description:
-          "Press ⌘K anywhere in Zentro to search across Tasks, Projects, Docs, and Chat channels with instant debounce.",
+          "Press ⌘K anywhere in Kyren to search across Tasks, Projects, Docs, and Chat channels with instant debounce.",
         bullets: [
           "Search tasks by key (e.g. ZEN-42) or title",
           "Switch between dark and light themes instantly",
@@ -42,7 +42,7 @@ export const tours: Record<string, TourDefinition> = {
         title: "3-Tier AI Copilot",
         badge: "Bottom-Right Dock",
         description:
-          "Click the floating Sparkles button or press ⌘J to summon the Zentro AI Copilot for fast context queries and micro-ops.",
+          "Click the floating Sparkles button or press ⌘J to summon the Kyren AI Copilot for fast context queries and micro-ops.",
         bullets: [
           "Story point estimation using weighted Fibonacci algorithms",
           "Customer sentiment analysis and ticket triage",

@@ -3,8 +3,8 @@
 import type { FC } from "react";
 import Link from "next/link";
 import { AlertTriangleIcon, FlameIcon } from "lucide-react";
-import { StatusGlyph, PriorityMeter } from "@zentro/ui/components/status-glyph";
-import { cn } from "@zentro/ui/lib/utils";
+import { StatusGlyph, PriorityMeter } from "@kyren/ui/components/status-glyph";
+import { cn } from "@kyren/ui/lib/utils";
 import { paths } from "~/src/lib/paths";
 import { ActorAvatar } from "~/src/components/actor-avatar";
 import type { Node } from "./types";

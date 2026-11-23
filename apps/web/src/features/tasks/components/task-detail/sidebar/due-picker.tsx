@@ -1,12 +1,12 @@
 import { useState } from "react";
 import { CalendarIcon } from "lucide-react";
-import { Button } from "@zentro/ui/shadcn/button";
-import { Input } from "@zentro/ui/shadcn/input";
+import { Button } from "@kyren/ui/shadcn/button";
+import { Input } from "@kyren/ui/shadcn/input";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from "@zentro/ui/shadcn/popover";
+} from "@kyren/ui/shadcn/popover";
 import { DueDate } from "~/src/components/due-date";
 import { dueFromDateInput, getDateInputValue } from "../task-detail-utils";
 

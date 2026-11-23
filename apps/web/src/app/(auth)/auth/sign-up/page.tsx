@@ -5,10 +5,10 @@ import { useRouter } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Controller, useForm, useWatch } from "react-hook-form";
 
-import { authClient } from "@zentro/auth/client";
-import { toastError, toastSuccess } from "@zentro/ui/lib/toast";
-import { Button } from "@zentro/ui/shadcn/button";
-import { Input } from "@zentro/ui/shadcn/input";
+import { authClient } from "@kyren/auth/client";
+import { toastError, toastSuccess } from "@kyren/ui/lib/toast";
+import { Button } from "@kyren/ui/shadcn/button";
+import { Input } from "@kyren/ui/shadcn/input";
 
 import {
   AuthField,

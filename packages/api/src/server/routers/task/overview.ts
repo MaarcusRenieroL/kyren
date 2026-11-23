@@ -12,14 +12,14 @@ import {
   lte,
   ne,
   sql,
-} from "@zentro/db/drizzle";
+} from "@kyren/db/drizzle";
 import {
   activityEvents,
   members,
   projects,
   tasks,
   users,
-} from "@zentro/db/schema";
+} from "@kyren/db/schema";
 
 import { listProcedure } from "../../trpc";
 

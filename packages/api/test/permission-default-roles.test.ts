@@ -1,6 +1,6 @@
-import { db } from "@zentro/db";
-import { and, eq } from "@zentro/db/drizzle";
-import { members, projects } from "@zentro/db/schema";
+import { db } from "@kyren/db";
+import { and, eq } from "@kyren/db/drizzle";
+import { members, projects } from "@kyren/db/schema";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 import { World, type TestOrg, type TestUser } from "./helpers";

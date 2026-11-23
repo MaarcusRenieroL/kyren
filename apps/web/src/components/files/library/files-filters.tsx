@@ -1,16 +1,16 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useTrpcClient } from "@zentro/api/react";
-import { Combobox } from "@zentro/ui/components/combobox";
+import { useTrpcClient } from "@kyren/api/react";
+import { Combobox } from "@kyren/ui/components/combobox";
 import { ListFilterIcon } from "lucide-react";
-import { Button } from "@zentro/ui/shadcn/button";
-import { Input } from "@zentro/ui/shadcn/input";
+import { Button } from "@kyren/ui/shadcn/button";
+import { Input } from "@kyren/ui/shadcn/input";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from "@zentro/ui/shadcn/popover";
+} from "@kyren/ui/shadcn/popover";
 import { emptyFileFilters, type FileFilters, type Folder } from "./types";
 import { FileDateFilter } from "./file-date-filter";
 

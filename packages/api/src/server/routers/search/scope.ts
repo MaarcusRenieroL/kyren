@@ -8,8 +8,8 @@ import {
   or,
   sql,
   type SQL,
-} from "@zentro/db/drizzle";
-import { chatChannels, docs, projects, tasks } from "@zentro/db/schema";
+} from "@kyren/db/drizzle";
+import { chatChannels, docs, projects, tasks } from "@kyren/db/schema";
 import { z } from "zod";
 
 import { visibleDocsCondition } from "../../access";

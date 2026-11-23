@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { UserIcon } from "lucide-react";
-import { PriorityGlyph } from "@zentro/ui/components/status-glyph";
+import { PriorityGlyph } from "@kyren/ui/components/status-glyph";
 import { ActorAvatar } from "~/src/components/actor-avatar";
 import type { WorkspaceTask } from "~/src/features/tasks/lib/types";
 import type { TaskGroup } from "./../task-workspace-header";

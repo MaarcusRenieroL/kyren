@@ -1,6 +1,6 @@
-import { db } from "@zentro/db";
-import { and, eq, sql } from "@zentro/db/drizzle";
-import { activityEvents } from "@zentro/db/schema";
+import { db } from "@kyren/db";
+import { and, eq, sql } from "@kyren/db/drizzle";
+import { activityEvents } from "@kyren/db/schema";
 
 /**
  * True when this person has signed in before, but never from this browser.

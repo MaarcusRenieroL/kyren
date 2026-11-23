@@ -1,6 +1,6 @@
 import { taskPrioritySchema, taskStatusSchema } from "../../types/zod-schema";
-import { and, eq, sql } from "@zentro/db/drizzle";
-import { automations, tasks } from "@zentro/db/schema";
+import { and, eq, sql } from "@kyren/db/drizzle";
+import { automations, tasks } from "@kyren/db/schema";
 import { postFromAutomation } from "./post-helper";
 import type { EngineContext } from "./types";
 

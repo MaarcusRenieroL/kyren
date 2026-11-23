@@ -1,10 +1,10 @@
 "use client";
 
 import { LaptopIcon, SmartphoneIcon, TabletIcon } from "lucide-react";
-import { authClient } from "@zentro/auth/client";
-import { toastError, toastSuccess } from "@zentro/ui/index";
-import { Button } from "@zentro/ui/shadcn/button";
-import { Skeleton } from "@zentro/ui/shadcn/skeleton";
+import { authClient } from "@kyren/auth/client";
+import { toastError, toastSuccess } from "@kyren/ui/index";
+import { Button } from "@kyren/ui/shadcn/button";
+import { Skeleton } from "@kyren/ui/shadcn/skeleton";
 
 import { SettingsTile } from "../settings-kit";
 

@@ -3,21 +3,21 @@
 import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
-import { authClient } from "@zentro/auth/client";
-import { toastError, toastSuccess } from "@zentro/ui/lib/toast";
+import { authClient } from "@kyren/auth/client";
+import { toastError, toastSuccess } from "@kyren/ui/lib/toast";
 
-import { Button } from "@zentro/ui/shadcn/button";
+import { Button } from "@kyren/ui/shadcn/button";
 import {
   InputOTP,
   InputOTPGroup,
   InputOTPSlot,
-} from "@zentro/ui/shadcn/input-otp";
+} from "@kyren/ui/shadcn/input-otp";
 import { AuthHeading } from "~/src/features/auth/components/kit/auth-kit";
 import {
   formatMmSs,
   useCountdown,
 } from "~/src/features/auth/lib/use-countdown";
-import { LoadingState } from "@zentro/ui/components/loading-state";
+import { LoadingState } from "@kyren/ui/components/loading-state";
 import { paths } from "~/src/lib/paths";
 import { getOtpErrorMessage } from "~/src/features/auth/lib/helpers";
 

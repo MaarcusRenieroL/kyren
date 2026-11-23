@@ -1,5 +1,5 @@
-import { asc, count, eq } from "@zentro/db/drizzle";
-import { roleAssignments, roles } from "@zentro/db/schema";
+import { asc, count, eq } from "@kyren/db/drizzle";
+import { roleAssignments, roles } from "@kyren/db/schema";
 import { z } from "zod";
 
 import { permissionProcedure } from "../../trpc";

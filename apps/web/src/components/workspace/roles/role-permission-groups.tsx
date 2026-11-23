@@ -1,11 +1,11 @@
-import { Badge } from "@zentro/ui/shadcn/badge";
+import { Badge } from "@kyren/ui/shadcn/badge";
 import {
   Card,
   CardContent,
   CardHeader,
   CardTitle,
-} from "@zentro/ui/shadcn/card";
-import { Switch } from "@zentro/ui/shadcn/switch";
+} from "@kyren/ui/shadcn/card";
+import { Switch } from "@kyren/ui/shadcn/switch";
 
 import type { CatalogEntry } from "./use-catalog";
 import { moduleNames, type Role } from "./role-editor-types";

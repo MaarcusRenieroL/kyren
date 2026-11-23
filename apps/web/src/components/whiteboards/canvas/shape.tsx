@@ -1,5 +1,5 @@
 import type React from "react";
-import { boardTheme } from "@zentro/ui/lib/theme-colors";
+import { boardTheme } from "@kyren/ui/lib/theme-colors";
 import { apiPath } from "~/src/lib/paths";
 import { sketchPath } from "./geometry";
 import { bounds, pairs, type El } from "./model";

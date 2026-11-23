@@ -9,7 +9,7 @@ import { paths } from "~/src/lib/paths";
 const links: Record<string, { question: string; label: string; href: string }> =
   {
     "/auth/sign-in": {
-      question: "New to Zentro?",
+      question: "New to Kyren?",
       label: "Create an account",
       href: paths.auth.signUp(),
     },

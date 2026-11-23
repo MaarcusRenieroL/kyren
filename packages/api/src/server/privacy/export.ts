@@ -1,5 +1,5 @@
 import { TRPCError } from "@trpc/server";
-import { and, eq, isNull, ne, or, sql } from "@zentro/db/drizzle";
+import { and, eq, isNull, ne, or, sql } from "@kyren/db/drizzle";
 import {
   accounts,
   apiKeys,
@@ -20,11 +20,11 @@ import {
   twoFactors,
   users,
   verifications,
-} from "@zentro/db/schema";
+} from "@kyren/db/schema";
 
-import type { db as database } from "@zentro/db";
+import type { db as database } from "@kyren/db";
 
-import { removeMemberAccess } from "@zentro/auth";
+import { removeMemberAccess } from "@kyren/auth";
 
 import { isUnderHold } from "../retention";
 

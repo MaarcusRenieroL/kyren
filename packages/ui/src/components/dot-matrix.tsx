@@ -1,6 +1,6 @@
 import type { ReactElement } from "react";
 
-import { cn } from "@zentro/ui/lib/utils";
+import { cn } from "@kyren/ui/lib/utils";
 
 type DotMatrixProps = {
   /** One column per entry (a day, an hour); the number is its activity. */

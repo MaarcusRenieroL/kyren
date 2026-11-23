@@ -30,7 +30,7 @@ test("someone schedules a meeting, finds the video link, and keeps shared notes 
   await expect(page.getByText("Review the roadmap")).toBeVisible();
   await expect(
     page.getByRole("link", { name: "Join video call" }),
-  ).toHaveAttribute("href", /\/zentro-[0-9a-f]{24}$/);
+  ).toHaveAttribute("href", /\/kyren-[0-9a-f]{24}$/);
 
   await page.getByLabel("Meeting notes").fill("Decision: ship on Friday");
   await page.getByRole("button", { name: "Save notes" }).click();

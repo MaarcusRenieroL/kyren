@@ -1,5 +1,5 @@
-import { Switch } from "@zentro/ui/shadcn/switch";
-import { Button } from "@zentro/ui/shadcn/button";
+import { Switch } from "@kyren/ui/shadcn/switch";
+import { Button } from "@kyren/ui/shadcn/button";
 import { useState } from "react";
 import { MONO } from "../landing-styles";
 

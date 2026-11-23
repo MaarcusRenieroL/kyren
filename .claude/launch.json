@@ -9,7 +9,7 @@
         "NEXT_PUBLIC_BASE_URL=http://localhost:3100",
         "pnpm",
         "--filter",
-        "@zentro/web",
+        "@kyren/web",
         "exec",
         "next",
         "dev",

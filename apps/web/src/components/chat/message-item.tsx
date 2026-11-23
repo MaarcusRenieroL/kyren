@@ -1,10 +1,10 @@
 "use client";
 
-import { Button } from "@zentro/ui/shadcn/button";
+import { Button } from "@kyren/ui/shadcn/button";
 import { useState } from "react";
 import { ActivityIcon, FileTextIcon, MessageSquareIcon } from "lucide-react";
-import { cn } from "@zentro/ui/lib/utils";
-import { toastSuccess } from "@zentro/ui/index";
+import { cn } from "@kyren/ui/lib/utils";
+import { toastSuccess } from "@kyren/ui/index";
 import { copyText } from "~/src/lib/clipboard";
 import {
   EntityCard,

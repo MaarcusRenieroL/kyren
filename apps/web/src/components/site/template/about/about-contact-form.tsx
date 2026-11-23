@@ -1,9 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { Label } from "@zentro/ui/shadcn/label";
-import { Input } from "@zentro/ui/shadcn/input";
-import { NativeSelect } from "@zentro/ui/shadcn/native-select";
-import { Textarea } from "@zentro/ui/shadcn/textarea";
-import { Button } from "@zentro/ui/shadcn/button";
+import { Label } from "@kyren/ui/shadcn/label";
+import { Input } from "@kyren/ui/shadcn/input";
+import { NativeSelect } from "@kyren/ui/shadcn/native-select";
+import { Textarea } from "@kyren/ui/shadcn/textarea";
+import { Button } from "@kyren/ui/shadcn/button";
 import { Fragment } from "react";
 import { AboutContactSent } from "./contact-sent-card";
 

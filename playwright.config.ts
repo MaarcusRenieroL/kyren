@@ -37,8 +37,8 @@ export default defineConfig({
   webServer: {
     // E2E_SKIP_BUILD=1 reuses the last build for quick local reruns.
     command: process.env.E2E_SKIP_BUILD
-      ? `pnpm --filter @zentro/web start -p ${port}`
-      : `pnpm --filter @zentro/web build && pnpm --filter @zentro/web start -p ${port}`,
+      ? `pnpm --filter @kyren/web start -p ${port}`
+      : `pnpm --filter @kyren/web build && pnpm --filter @kyren/web start -p ${port}`,
     url: `${baseURL}/auth/sign-in`,
     timeout: 600_000,
     reuseExistingServer: false,

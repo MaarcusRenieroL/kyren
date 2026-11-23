@@ -1,5 +1,5 @@
-import type { db } from "@zentro/db";
-import { activityEvents, type ActivityEvent } from "@zentro/db/schema";
+import type { db } from "@kyren/db";
+import { activityEvents, type ActivityEvent } from "@kyren/db/schema";
 
 import { getAuditEvent } from "./catalog";
 import { maxChangeLength } from "./diff";
@@ -43,7 +43,7 @@ function shorten(value: string | null | undefined, max: number) {
 
 /**
  * The headers a client's address is read from, in order. Only a header the
- * proxy in front of Zentro sets itself (and overwrites) can be trusted: on
+ * proxy in front of Kyren sets itself (and overwrites) can be trusted: on
  * Vercel that is the platform's own pair; behind your own proxy, set
  * `CLIENT_IP_HEADERS=x-real-ip` and have the proxy write `X-Real-IP`.
  */

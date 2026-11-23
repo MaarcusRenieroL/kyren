@@ -9,11 +9,11 @@ import {
   CheckCircle2Icon,
   Loader2Icon,
 } from "lucide-react";
-import { useTrpcClient } from "@zentro/api/react";
-import { Button } from "@zentro/ui/shadcn/button";
-import { Input } from "@zentro/ui/shadcn/input";
-import { TabsContent } from "@zentro/ui/shadcn/tabs";
-import { toastError } from "@zentro/ui/index";
+import { useTrpcClient } from "@kyren/api/react";
+import { Button } from "@kyren/ui/shadcn/button";
+import { Input } from "@kyren/ui/shadcn/input";
+import { TabsContent } from "@kyren/ui/shadcn/tabs";
+import { toastError } from "@kyren/ui/index";
 import type { SearchHit } from "./types";
 
 export const SearchTab: FC<{

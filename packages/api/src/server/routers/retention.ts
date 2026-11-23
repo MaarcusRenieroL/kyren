@@ -1,5 +1,5 @@
-import { and, asc, eq } from "@zentro/db/drizzle";
-import { legalHolds, retentionPolicies } from "@zentro/db/schema";
+import { and, asc, eq } from "@kyren/db/drizzle";
+import { legalHolds, retentionPolicies } from "@kyren/db/schema";
 import { z } from "zod";
 
 import { currentMemberId } from "../chat";

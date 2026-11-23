@@ -2,9 +2,9 @@ import { randomBytes } from "node:crypto";
 
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
-import { db } from "@zentro/db";
-import { eq } from "@zentro/db/drizzle";
-import { organizations, tickets } from "@zentro/db/schema";
+import { db } from "@kyren/db";
+import { eq } from "@kyren/db/drizzle";
+import { organizations, tickets } from "@kyren/db/schema";
 
 import { publicArticles } from "../src/server/kb-public";
 import { forgetOrganizationStatus } from "../src/server/platform-policy";

@@ -1,6 +1,6 @@
 import { TRPCError } from "@trpc/server";
-import { and, eq, or } from "@zentro/db/drizzle";
-import { docs, members, tasks, workLinks } from "@zentro/db/schema";
+import { and, eq, or } from "@kyren/db/drizzle";
+import { docs, members, tasks, workLinks } from "@kyren/db/schema";
 import { z } from "zod";
 import { docById, taskByKey } from "../resources";
 import {

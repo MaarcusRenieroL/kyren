@@ -3,8 +3,8 @@ import {
   DropdownMenuTrigger,
   DropdownMenuContent,
   DropdownMenuItem,
-} from "@zentro/ui/shadcn/dropdown-menu";
-import { Input } from "@zentro/ui/shadcn/input";
+} from "@kyren/ui/shadcn/dropdown-menu";
+import { Input } from "@kyren/ui/shadcn/input";
 import { useRef, type RefObject } from "react";
 import {
   CheckSquareIcon,
@@ -13,7 +13,7 @@ import {
   ImageIcon,
   LayoutTemplateIcon,
 } from "lucide-react";
-import { Button } from "@zentro/ui/shadcn/button";
+import { Button } from "@kyren/ui/shadcn/button";
 import { templates } from "../canvas/templates";
 import { tools, type Tool } from "./editor-types";
 

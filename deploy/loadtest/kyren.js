@@ -1,9 +1,9 @@
-// A realistic load test: people with Zentro open, polling the way the app
+// A realistic load test: people with Kyren open, polling the way the app
 // does (notifications and chat every few seconds) and opening pages.
 //
 //   docker run --rm -i --network host -e BASE_URL=https://your-domain \
 //     -e USERS=a@x.com,b@x.com -e PASSWORD=... -e VUS=50 \
-//     grafana/k6 run - < deploy/loadtest/zentro.js
+//     grafana/k6 run - < deploy/loadtest/kyren.js
 //
 // Run it against staging or a copy, never against real customers' data.
 import http from "k6/http";

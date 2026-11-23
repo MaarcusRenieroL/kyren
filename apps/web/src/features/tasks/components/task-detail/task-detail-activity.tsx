@@ -5,7 +5,7 @@ import {
   TabsContent,
   TabsList,
   TabsTrigger,
-} from "@zentro/ui/shadcn/tabs";
+} from "@kyren/ui/shadcn/tabs";
 import type { MemberOption, TaskActivityEvent, TaskComment } from "./types";
 import { CommentComposer } from "./activity/comment-composer";
 import { CommentList, ActivityList } from "./activity/activity-list";

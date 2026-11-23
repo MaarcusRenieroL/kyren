@@ -7,8 +7,8 @@ import {
   like,
   or,
   sql,
-} from "@zentro/db/drizzle";
-import { activityEvents, users } from "@zentro/db/schema";
+} from "@kyren/db/drizzle";
+import { activityEvents, users } from "@kyren/db/schema";
 import { z } from "zod";
 
 import { cursorCondition, cursorSchema, encodeCursor } from "../../activity";

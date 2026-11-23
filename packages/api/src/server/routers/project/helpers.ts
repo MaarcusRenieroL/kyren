@@ -1,5 +1,5 @@
-import { eq } from "@zentro/db/drizzle";
-import { projects } from "@zentro/db/schema";
+import { eq } from "@kyren/db/drizzle";
+import { projects } from "@kyren/db/schema";
 
 export const createTaskKeyPrefixBase = (slug: string) => {
   const parts = slug.split("-").filter(Boolean);
@@ -16,7 +16,7 @@ export const createUniqueTaskKeyPrefix = async ({
   organizationId,
   slug,
 }: {
-  db: typeof import("@zentro/db").db;
+  db: typeof import("@kyren/db").db;
   organizationId: string;
   slug: string;
 }) => {

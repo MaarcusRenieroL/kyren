@@ -1,5 +1,5 @@
-import { and, eq } from "@zentro/db/drizzle";
-import { notificationPreferences } from "@zentro/db/schema";
+import { and, eq } from "@kyren/db/drizzle";
+import { notificationPreferences } from "@kyren/db/schema";
 
 export const WINDOW_DAYS = 30;
 export const LIMIT = 60;
@@ -46,7 +46,7 @@ export function excerpt(body: string) {
 }
 
 export async function mutedKindsFor(ctx: {
-  db: typeof import("@zentro/db").db;
+  db: typeof import("@kyren/db").db;
   user: { id: string };
   activeOrganization: { id: string };
 }) {

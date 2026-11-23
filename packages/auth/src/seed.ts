@@ -1,5 +1,5 @@
-import { db as defaultDb } from "@zentro/db";
-import { and, eq, inArray, isNull, sql } from "@zentro/db/drizzle";
+import { db as defaultDb } from "@kyren/db";
+import { and, eq, inArray, isNull, sql } from "@kyren/db/drizzle";
 import {
   apiKeys,
   permissionOverrides,
@@ -8,8 +8,8 @@ import {
   sessions,
   teamMembers,
   members,
-} from "@zentro/db/schema";
-import { getSystemRoleDefinitions } from "@zentro/permissions";
+} from "@kyren/db/schema";
+import { getSystemRoleDefinitions } from "@kyren/permissions";
 
 type Database = typeof defaultDb;
 

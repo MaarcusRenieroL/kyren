@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef } from "react";
-import { useTrpcClient } from "@zentro/api/react";
+import { useTrpcClient } from "@kyren/api/react";
 import type { Person } from "./composer-types";
 
 export interface UseComposerDraftProps {

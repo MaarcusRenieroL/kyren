@@ -1,4 +1,4 @@
-import { Button } from "@zentro/ui/shadcn/button";
+import { Button } from "@kyren/ui/shadcn/button";
 import type { CSSProperties, ReactNode } from "react";
 
 export const DISPLAY = "var(--font-bricolage), var(--font-geist), sans-serif";

@@ -5,13 +5,13 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { PencilIcon, PlusIcon, Trash2Icon } from "lucide-react";
 
-import { useTrpcClient } from "@zentro/api/react";
-import type { AppRouter } from "@zentro/api/server";
+import { useTrpcClient } from "@kyren/api/react";
+import type { AppRouter } from "@kyren/api/server";
 import type { inferRouterOutputs } from "@trpc/server";
-import { EmptyState } from "@zentro/ui/components/empty-state";
-import { PageHeader } from "@zentro/ui/components/page-header";
-import { Button } from "@zentro/ui/shadcn/button";
-import { Input } from "@zentro/ui/shadcn/input";
+import { EmptyState } from "@kyren/ui/components/empty-state";
+import { PageHeader } from "@kyren/ui/components/page-header";
+import { Button } from "@kyren/ui/shadcn/button";
+import { Input } from "@kyren/ui/shadcn/input";
 import {
   Dialog,
   DialogContent,
@@ -19,7 +19,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@zentro/ui/shadcn/dialog";
+} from "@kyren/ui/shadcn/dialog";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -29,8 +29,8 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from "@zentro/ui/shadcn/alert-dialog";
-import { toast, toastError } from "@zentro/ui/index";
+} from "@kyren/ui/shadcn/alert-dialog";
+import { toast, toastError } from "@kyren/ui/index";
 
 type Board = inferRouterOutputs<AppRouter>["whiteboard"]["list"][number];
 type Trashed = inferRouterOutputs<AppRouter>["whiteboard"]["trash"][number];

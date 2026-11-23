@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { FC, ReactNode } from "react";
 
-import { cn } from "@zentro/ui/lib/utils";
+import { cn } from "@kyren/ui/lib/utils";
 
 import { usePermissionMap } from "~/src/components/permissions/permission-provider";
 import { paths } from "~/src/lib/paths";

@@ -1,7 +1,7 @@
 import { TRPCError } from "@trpc/server";
-import { getAuditEvent } from "@zentro/audit";
-import { and, desc, eq } from "@zentro/db/drizzle";
-import { webhookDeliveries, webhookEndpoints } from "@zentro/db/schema";
+import { getAuditEvent } from "@kyren/audit";
+import { and, desc, eq } from "@kyren/db/drizzle";
+import { webhookDeliveries, webhookEndpoints } from "@kyren/db/schema";
 import { z } from "zod";
 
 import { isSafeUrl } from "../chat-unfurl";

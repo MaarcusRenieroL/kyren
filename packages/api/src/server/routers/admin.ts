@@ -1,5 +1,5 @@
-import { actorName, describeEvent } from "@zentro/audit";
-import { and, count, desc, eq, gt, isNull, lt, sql } from "@zentro/db/drizzle";
+import { actorName, describeEvent } from "@kyren/audit";
+import { and, count, desc, eq, gt, isNull, lt, sql } from "@kyren/db/drizzle";
 import {
   activityEvents,
   docs,
@@ -11,7 +11,7 @@ import {
   tasks,
   teams,
   users,
-} from "@zentro/db/schema";
+} from "@kyren/db/schema";
 
 import { permissionProcedure, router } from "../trpc";
 

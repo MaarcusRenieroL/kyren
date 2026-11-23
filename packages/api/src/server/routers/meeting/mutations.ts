@@ -1,8 +1,8 @@
 import { randomBytes } from "node:crypto";
 
 import { TRPCError } from "@trpc/server";
-import { and, asc, desc, eq, gte, inArray, lt } from "@zentro/db/drizzle";
-import { meetingAttendees, meetings, members, users } from "@zentro/db/schema";
+import { and, asc, desc, eq, gte, inArray, lt } from "@kyren/db/drizzle";
+import { meetingAttendees, meetings, members, users } from "@kyren/db/schema";
 import { z } from "zod";
 
 import { aiAvailable, askClaude } from "../../chat-ai";
@@ -29,7 +29,7 @@ function joinUrl(slug: string) {
       ? configured
       : "https://meet.jit.si";
 
-  return `${base}/zentro-${slug}`;
+  return `${base}/kyren-${slug}`;
 }
 
 /** A meeting the person organizes or is invited to; anything else does not exist for them. */

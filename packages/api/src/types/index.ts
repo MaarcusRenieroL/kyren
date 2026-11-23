@@ -1,6 +1,6 @@
-import type { auth } from "@zentro/auth";
-import type { db } from "@zentro/db";
-import type { ModuleId } from "@zentro/modules";
+import type { auth } from "@kyren/auth";
+import type { db } from "@kyren/db";
+import type { ModuleId } from "@kyren/modules";
 
 import type { AuditContext } from "../server/audit";
 import type { PermissionContext } from "../server/permissions";

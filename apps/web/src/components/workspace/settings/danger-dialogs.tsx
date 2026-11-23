@@ -1,8 +1,8 @@
 "use client";
 
-import { Label } from "@zentro/ui/shadcn/label";
-import { cn } from "@zentro/ui/lib/utils";
-import { Button } from "@zentro/ui/shadcn/button";
+import { Label } from "@kyren/ui/shadcn/label";
+import { cn } from "@kyren/ui/lib/utils";
+import { Button } from "@kyren/ui/shadcn/button";
 import {
   Dialog,
   DialogContent,
@@ -10,8 +10,8 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@zentro/ui/shadcn/dialog";
-import { Input } from "@zentro/ui/shadcn/input";
+} from "@kyren/ui/shadcn/dialog";
+import { Input } from "@kyren/ui/shadcn/input";
 
 type DeleteDialogProps = {
   open: boolean;

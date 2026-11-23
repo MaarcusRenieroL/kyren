@@ -1,6 +1,6 @@
 import { useCallback, type RefObject } from "react";
-import { toast, toastError } from "@zentro/ui/index";
-import { boardTheme } from "@zentro/ui/lib/theme-colors";
+import { toast, toastError } from "@kyren/ui/index";
+import { boardTheme } from "@kyren/ui/lib/theme-colors";
 import { apiPath } from "~/src/lib/paths";
 import { boardPng, boardSvg, download } from "../canvas/export";
 import {

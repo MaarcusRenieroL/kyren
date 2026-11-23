@@ -1,8 +1,8 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
-import { db } from "@zentro/db";
-import { eq } from "@zentro/db/drizzle";
-import { apiKeys } from "@zentro/db/schema";
+import { db } from "@kyren/db";
+import { eq } from "@kyren/db/drizzle";
+import { apiKeys } from "@kyren/db/schema";
 
 import { authenticateApiKey, bearerToken } from "../src/server/api-keys";
 import { World } from "./helpers";
@@ -109,7 +109,7 @@ describe("API keys", () => {
 
     expect(await authenticateApiKey(db, created.key)).not.toBeNull();
 
-    const { members } = await import("@zentro/db/schema");
+    const { members } = await import("@kyren/db/schema");
     await db.delete(members).where(eq(members.id, b.member.id));
 
     expect(await authenticateApiKey(db, created.key)).toBeNull();

@@ -4,10 +4,10 @@ import Link from "next/link";
 import { useEffect, useState, type ReactNode } from "react";
 import { MessageSquareIcon } from "lucide-react";
 
-import { useTrpcClient } from "@zentro/api/react";
-import { StatusGlyph } from "@zentro/ui/components/status-glyph";
-import { Thread, ThreadItem } from "@zentro/ui/components/thread";
-import { Skeleton } from "@zentro/ui/shadcn/skeleton";
+import { useTrpcClient } from "@kyren/api/react";
+import { StatusGlyph } from "@kyren/ui/components/status-glyph";
+import { Thread, ThreadItem } from "@kyren/ui/components/thread";
+import { Skeleton } from "@kyren/ui/shadcn/skeleton";
 
 import { useReachable } from "~/src/components/permissions/permission-provider";
 import { paths } from "~/src/lib/paths";

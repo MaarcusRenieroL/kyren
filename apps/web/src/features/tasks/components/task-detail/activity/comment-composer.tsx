@@ -1,9 +1,9 @@
 "use client";
 
 import { useState, type KeyboardEvent } from "react";
-import { Kbd } from "@zentro/ui/components/kbd";
-import { RichTextEditor } from "@zentro/ui/components/rich-text-editor";
-import { Button } from "@zentro/ui/shadcn/button";
+import { Kbd } from "@kyren/ui/components/kbd";
+import { RichTextEditor } from "@kyren/ui/components/rich-text-editor";
+import { Button } from "@kyren/ui/shadcn/button";
 
 export function CommentComposer({
   disabled,

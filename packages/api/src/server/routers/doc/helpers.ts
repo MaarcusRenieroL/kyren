@@ -1,6 +1,6 @@
 import { TRPCError } from "@trpc/server";
-import { and, eq, isNull, sql } from "@zentro/db/drizzle";
-import { docComments, docs } from "@zentro/db/schema";
+import { and, eq, isNull, sql } from "@kyren/db/drizzle";
+import { docComments, docs } from "@kyren/db/schema";
 
 import type { TRPCContext } from "../../../types";
 import { type DbHandle } from "../../access";

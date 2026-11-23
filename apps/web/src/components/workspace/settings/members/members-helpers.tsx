@@ -1,14 +1,14 @@
 "use client";
 
 import type { FC } from "react";
-import { cn } from "@zentro/ui/lib/utils";
+import { cn } from "@kyren/ui/lib/utils";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@zentro/ui/components/shadcn/select";
+} from "@kyren/ui/components/shadcn/select";
 import type { Member } from "~/src/lib/types";
 
 export type Role = "owner" | "admin" | "member";

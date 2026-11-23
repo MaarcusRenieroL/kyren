@@ -1,7 +1,7 @@
 "use client";
 
-import { StatusGlyph } from "@zentro/ui/components/status-glyph";
-import { cn } from "@zentro/ui/lib/utils";
+import { StatusGlyph } from "@kyren/ui/components/status-glyph";
+import { cn } from "@kyren/ui/lib/utils";
 
 import {
   channels,

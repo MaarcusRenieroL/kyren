@@ -1,9 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { useTrpcClient } from "@zentro/api/react";
-import { Button } from "@zentro/ui/shadcn/button";
-import { toastError } from "@zentro/ui/index";
+import { useTrpcClient } from "@kyren/api/react";
+import { Button } from "@kyren/ui/shadcn/button";
+import { toastError } from "@kyren/ui/index";
 
 import { formatMoney } from "../money";
 

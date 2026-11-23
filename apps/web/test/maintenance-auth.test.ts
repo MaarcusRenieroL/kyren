@@ -12,7 +12,7 @@ describe("auth during maintenance", () => {
       "organization/set-active",
       "revoke-session",
     ]) {
-      expect(authAllowedDuringMaintenance(`/zentro/api/auth/${action}`)).toBe(
+      expect(authAllowedDuringMaintenance(`/kyren/api/auth/${action}`)).toBe(
         true,
       );
       expect(authAllowedDuringMaintenance(`/api/auth/${action}`)).toBe(true);

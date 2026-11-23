@@ -1,5 +1,5 @@
 {
-  "name": "@zentro/permissions",
+  "name": "@kyren/permissions",
   "version": "0.0.0",
   "private": true,
   "exports": {
@@ -10,9 +10,9 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@zentro/modules": "workspace:*"
+    "@kyren/modules": "workspace:*"
   },
   "devDependencies": {
-    "@zentro/typescript-config": "workspace:*"
+    "@kyren/typescript-config": "workspace:*"
   }
 }

@@ -1,14 +1,14 @@
 "use client";
 
-import { Label } from "@zentro/ui/shadcn/label";
-import { Input } from "@zentro/ui/shadcn/input";
+import { Label } from "@kyren/ui/shadcn/label";
+import { Input } from "@kyren/ui/shadcn/input";
 import { ClockIcon, ChevronDownIcon } from "lucide-react";
-import { Button } from "@zentro/ui/shadcn/button";
+import { Button } from "@kyren/ui/shadcn/button";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from "@zentro/ui/shadcn/popover";
+} from "@kyren/ui/shadcn/popover";
 import { laterChoices, localInput } from "./composer-types";
 
 type ComposerSchedulePopoverProps = {

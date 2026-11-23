@@ -1,12 +1,12 @@
 "use client";
 
 import { Can } from "~/src/components/permissions/permission-provider";
-import { Button } from "@zentro/ui/shadcn/button";
+import { Button } from "@kyren/ui/shadcn/button";
 import { FileTextIcon, InfoIcon, RotateCcwIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 
-import { useTrpcClient } from "@zentro/api/react";
-import { toastError, toastSuccess } from "@zentro/ui/index";
+import { useTrpcClient } from "@kyren/api/react";
+import { toastError, toastSuccess } from "@kyren/ui/index";
 
 import { ActorAvatar } from "~/src/components/actor-avatar";
 import { ModuleTabs } from "~/src/components/shell/module-section-nav";

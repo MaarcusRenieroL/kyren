@@ -5,8 +5,8 @@ import {
   TableHead,
   TableBody,
   TableCell,
-} from "@zentro/ui/shadcn/table";
-import { cn } from "@zentro/ui/lib/utils";
+} from "@kyren/ui/shadcn/table";
+import { cn } from "@kyren/ui/lib/utils";
 import type { OverviewData } from "~/src/lib/overview-data";
 
 /** Done-task counts as cells: darker green means more finished that day. */

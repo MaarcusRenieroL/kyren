@@ -1,5 +1,5 @@
-import { and, asc, desc, eq, gte, lte, ne } from "@zentro/db/drizzle";
-import { employees, leaveRequests } from "@zentro/db/schema";
+import { and, asc, desc, eq, gte, lte, ne } from "@kyren/db/drizzle";
+import { employees, leaveRequests } from "@kyren/db/schema";
 import { z } from "zod";
 
 import { isoDate } from "../../zod-common";

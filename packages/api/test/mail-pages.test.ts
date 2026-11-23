@@ -1,8 +1,8 @@
 import { randomUUID } from "node:crypto";
 
-import { db } from "@zentro/db";
-import { sql } from "@zentro/db/drizzle";
-import { mailMessages, mailRecipients } from "@zentro/db/schema";
+import { db } from "@kyren/db";
+import { sql } from "@kyren/db/drizzle";
+import { mailMessages, mailRecipients } from "@kyren/db/schema";
 import { afterAll, describe, expect, it } from "vitest";
 
 import { World } from "./helpers";

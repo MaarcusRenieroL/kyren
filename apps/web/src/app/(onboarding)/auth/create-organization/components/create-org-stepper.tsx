@@ -2,8 +2,8 @@
 
 import Link from "next/link";
 import { CheckIcon } from "lucide-react";
-import { Logo } from "@zentro/ui/components/logo";
-import { cn } from "@zentro/ui/lib/utils";
+import { Logo } from "@kyren/ui/components/logo";
+import { cn } from "@kyren/ui/lib/utils";
 import { paths } from "~/src/lib/paths";
 
 export const steps = ["Workspace", "Teammates", "Modules"] as const;
@@ -67,7 +67,7 @@ export function CreateOrgHeader({
 }) {
   return (
     <header className="flex h-16 items-center gap-4 border-b border-hairline px-5 sm:px-8">
-      <Link href={paths.home()} aria-label="Zentro home" className="w-fit">
+      <Link href={paths.home()} aria-label="Kyren home" className="w-fit">
         <Logo />
       </Link>
       <Stepper step={step} />

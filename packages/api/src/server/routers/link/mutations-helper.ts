@@ -1,11 +1,11 @@
 import { TRPCError } from "@trpc/server";
-import { and, eq, or, sql, type SQL } from "@zentro/db/drizzle";
+import { and, eq, or, sql, type SQL } from "@kyren/db/drizzle";
 import {
   docs,
   members,
   tasks,
   workLinks,
-} from "@zentro/db/schema";
+} from "@kyren/db/schema";
 import { z } from "zod";
 import { docById, loadProjectById, taskByKey } from "../../resources";
 import { denialFor, type OrganizationContext } from "../../trpc";

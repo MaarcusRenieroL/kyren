@@ -1,12 +1,12 @@
 "use client";
 
-import { formatEventTime } from "@zentro/utils";
+import { formatEventTime } from "@kyren/utils";
 import { FC, useCallback, useEffect, useState } from "react";
 
-import { actorName, describeEvent } from "@zentro/audit";
-import { useTrpcClient } from "@zentro/api/react";
-import { Button } from "@zentro/ui/shadcn/button";
-import { Skeleton } from "@zentro/ui/shadcn/skeleton";
+import { actorName, describeEvent } from "@kyren/audit";
+import { useTrpcClient } from "@kyren/api/react";
+import { Button } from "@kyren/ui/shadcn/button";
+import { Skeleton } from "@kyren/ui/shadcn/skeleton";
 
 import { trpcResult } from "~/src/lib/trpc-result";
 

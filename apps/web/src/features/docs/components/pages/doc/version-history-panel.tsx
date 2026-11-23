@@ -1,12 +1,12 @@
 "use client";
 
-import { Button } from "@zentro/ui/shadcn/button";
+import { Button } from "@kyren/ui/shadcn/button";
 import { FC, useEffect, useState } from "react";
 import { EyeIcon, HistoryIcon, RotateCcwIcon, XIcon } from "lucide-react";
 
-import { useTrpcClient } from "@zentro/api/react";
-import { cn } from "@zentro/ui/lib/utils";
-import { toastError, toastSuccess } from "@zentro/ui/index";
+import { useTrpcClient } from "@kyren/api/react";
+import { cn } from "@kyren/ui/lib/utils";
+import { toastError, toastSuccess } from "@kyren/ui/index";
 import { ActorAvatar } from "~/src/components/actor-avatar";
 
 type VersionEntry = {

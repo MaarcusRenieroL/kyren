@@ -1,5 +1,5 @@
-import type { db as Database } from "@zentro/db";
-import { platformAuditEvents } from "@zentro/db/schema";
+import type { db as Database } from "@kyren/db";
+import { platformAuditEvents } from "@kyren/db/schema";
 
 import { clientIp } from "./client-ip";
 

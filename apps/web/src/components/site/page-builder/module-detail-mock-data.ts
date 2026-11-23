@@ -54,7 +54,7 @@ export const buildTdProps = () =>
   [
     ["Status", "In progress", "var(--amber)"],
     ["Assignee", "Priya Raman"],
-    ["Project", "Zentro Web"],
+    ["Project", "Kyren Web"],
     ["Due", "Tomorrow"],
     ["Tracked", "01:12:40", 0, 1],
     ["Key", "ZEN-18", 0, 1],
@@ -70,7 +70,7 @@ export const buildTdProps = () =>
   }));
 
 export const tdLinks = [
-  ["Project", "Zentro Web", "ZEN · 31 open tasks"],
+  ["Project", "Kyren Web", "ZEN · 31 open tasks"],
   ["Blocks", "BIL-7 · Migrate invoices table", "Arjun · overdue Oct 11"],
   ["Related task", "ZEN-14 · Session timeout banner", "Tom · done Oct 8"],
   ["Doc", "Session handling spec", "Edited 1h ago by Priya"],
@@ -85,14 +85,14 @@ export const upNext = [
 export const dh = [
   [
     "Session handling spec",
-    "Zentro Web",
+    "Kyren Web",
     "2 tasks",
     "1h ago · Priya",
     "var(--peach)",
   ],
   [
     "ADR 014: Session storage",
-    "Zentro Web",
+    "Kyren Web",
     "1 task",
     "Oct 12 · Tom",
     "var(--peach)",

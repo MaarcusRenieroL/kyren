@@ -3,13 +3,13 @@
 import { useCallback, useEffect, useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useTrpcClient } from "@zentro/api/react";
+import { useTrpcClient } from "@kyren/api/react";
 import {
   CreateProjectFormValues,
   createProjectSchema,
-} from "@zentro/api/types/zod-schema";
-import { useSlugAvailability } from "@zentro/ui/hooks/use-slug-availability";
-import { toastError, toastSuccess } from "@zentro/ui/index";
+} from "@kyren/api/types/zod-schema";
+import { useSlugAvailability } from "@kyren/ui/hooks/use-slug-availability";
+import { toastError, toastSuccess } from "@kyren/ui/index";
 import type { TeamOption } from "./types";
 
 type UseCreateProjectFormParams = {

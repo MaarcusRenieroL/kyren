@@ -1,5 +1,5 @@
-import { appRouter } from "@zentro/api/server";
-import { MAX_FILE_BYTES } from "@zentro/api/server";
+import { appRouter } from "@kyren/api/server";
+import { MAX_FILE_BYTES } from "@kyren/api/server";
 import { TRPCError } from "@trpc/server";
 
 import { createRequestContext } from "~/src/lib/request-context";

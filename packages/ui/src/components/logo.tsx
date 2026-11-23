@@ -1,15 +1,15 @@
 import type { ComponentProps, ReactElement } from "react";
 
-import { cn } from "@zentro/ui/lib/utils";
+import { cn } from "@kyren/ui/lib/utils";
 
 /**
- * The Zentro mark: a Z drawn as one continuous stroke with a node at each end,
+ * The Kyren mark: a Z drawn as one continuous stroke with a node at each end,
  * "everything is connected" in a single gesture. It draws in `currentColor`,
  * so it works in one color on any surface.
  */
 export function LogoMark({
   className,
-  title = "Zentro",
+  title = "Kyren",
   ...props
 }: Omit<ComponentProps<"svg">, "children"> & { title?: string }): ReactElement {
   return (
@@ -49,7 +49,7 @@ export function Wordmark({
       )}
       {...props}
     >
-      Zentro
+      Kyren
     </span>
   );
 }

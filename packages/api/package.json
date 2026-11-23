@@ -1,5 +1,5 @@
 {
-  "name": "@zentro/api",
+  "name": "@kyren/api",
   "version": "1.0.0",
   "type": "module",
   "exports": {
@@ -18,20 +18,20 @@
     "@trpc/client": "^11.17.0",
     "@trpc/server": "^11.17.0",
     "@trpc/tanstack-react-query": "^11.17.0",
-    "@zentro/audit": "workspace:*",
-    "@zentro/auth": "workspace:*",
-    "@zentro/db": "workspace:*",
-    "@zentro/modules": "workspace:*",
-    "@zentro/permissions": "workspace:*",
-    "@zentro/utils": "workspace:*",
+    "@kyren/audit": "workspace:*",
+    "@kyren/auth": "workspace:*",
+    "@kyren/db": "workspace:*",
+    "@kyren/modules": "workspace:*",
+    "@kyren/permissions": "workspace:*",
+    "@kyren/utils": "workspace:*",
     "better-auth": "^1.7.15",
     "superjson": "^2.2.6",
     "undici": "^8.12.3",
     "zod": "^4.3.6"
   },
   "devDependencies": {
-    "@zentro/test-utils": "workspace:*",
-    "@zentro/typescript-config": "workspace:*",
+    "@kyren/test-utils": "workspace:*",
+    "@kyren/typescript-config": "workspace:*",
     "react": "19.2.4"
   }
 }

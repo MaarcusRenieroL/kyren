@@ -2,10 +2,10 @@
 
 import { useEffect, useState } from "react";
 
-import { useTrpcClient } from "@zentro/api/react";
-import type { AppRouter } from "@zentro/api/server";
+import { useTrpcClient } from "@kyren/api/react";
+import type { AppRouter } from "@kyren/api/server";
 import type { inferRouterOutputs } from "@trpc/server";
-import { Button } from "@zentro/ui/shadcn/button";
+import { Button } from "@kyren/ui/shadcn/button";
 import {
   Dialog,
   DialogContent,
@@ -13,10 +13,10 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@zentro/ui/shadcn/dialog";
-import { Input } from "@zentro/ui/shadcn/input";
-import { Label } from "@zentro/ui/shadcn/label";
-import { NativeSelect } from "@zentro/ui/shadcn/native-select";
+} from "@kyren/ui/shadcn/dialog";
+import { Input } from "@kyren/ui/shadcn/input";
+import { Label } from "@kyren/ui/shadcn/label";
+import { NativeSelect } from "@kyren/ui/shadcn/native-select";
 
 import { messageOf } from "../tickets/labels";
 

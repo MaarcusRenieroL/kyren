@@ -1,5 +1,5 @@
 function parseHref(href: string) {
-  const url = new URL(href, "http://zentro.local");
+  const url = new URL(href, "http://kyren.local");
 
   return { path: url.pathname, params: url.searchParams };
 }

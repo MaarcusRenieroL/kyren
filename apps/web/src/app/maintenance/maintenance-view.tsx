@@ -3,8 +3,8 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
-import { Logo } from "@zentro/ui/components/logo";
-import { Button } from "@zentro/ui/shadcn/button";
+import { Logo } from "@kyren/ui/components/logo";
+import { Button } from "@kyren/ui/shadcn/button";
 
 import { apiPath, paths } from "~/src/lib/paths";
 
@@ -104,7 +104,7 @@ export function MaintenanceView({
             <div className="h-full bg-ink" style={{ width: `${progress}%` }} />
           </div>
           <p className="text-xs text-ink-3">
-            This page reloads on its own when Zentro is back.
+            This page reloads on its own when Kyren is back.
           </p>
         </div>
         <div className="mt-1 flex gap-2">

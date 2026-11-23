@@ -1,12 +1,12 @@
 "use client";
 
-import { Label } from "@zentro/ui/shadcn/label";
+import { Label } from "@kyren/ui/shadcn/label";
 import { useState } from "react";
 import { PlusIcon, SearchIcon } from "lucide-react";
-import { useTrpcClient } from "@zentro/api/react";
-import { Button } from "@zentro/ui/shadcn/button";
-import { Input } from "@zentro/ui/shadcn/input";
-import { NativeSelect } from "@zentro/ui/shadcn/native-select";
+import { useTrpcClient } from "@kyren/api/react";
+import { Button } from "@kyren/ui/shadcn/button";
+import { Input } from "@kyren/ui/shadcn/input";
+import { NativeSelect } from "@kyren/ui/shadcn/native-select";
 
 import type { ChannelData } from "../channel-view";
 import type { Person } from "../composer";

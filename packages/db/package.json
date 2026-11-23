@@ -1,5 +1,5 @@
 {
-  "name": "@zentro/db",
+  "name": "@kyren/db",
   "version": "0.0.0",
   "private": true,
   "exports": {
@@ -24,7 +24,7 @@
   },
   "devDependencies": {
     "@types/pg": "^8.20.0",
-    "@zentro/typescript-config": "workspace:*",
+    "@kyren/typescript-config": "workspace:*",
     "dotenv": "^17.4.2",
     "drizzle-kit": "^0.31.10",
     "tsx": "^4.21.0"

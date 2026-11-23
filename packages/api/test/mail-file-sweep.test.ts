@@ -1,6 +1,6 @@
-import { db } from "@zentro/db";
-import { inArray } from "@zentro/db/drizzle";
-import { files } from "@zentro/db/schema";
+import { db } from "@kyren/db";
+import { inArray } from "@kyren/db/drizzle";
+import { files } from "@kyren/db/schema";
 import { afterAll, describe, expect, it } from "vitest";
 
 import { retireUnsentMailFiles } from "../src/server/file-purge";

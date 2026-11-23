@@ -1,6 +1,6 @@
 "use client";
 
-import { Button } from "@zentro/ui/shadcn/button";
+import { Button } from "@kyren/ui/shadcn/button";
 import { useState, useEffect } from "react";
 import { SparklesIcon } from "lucide-react";
 import {
@@ -9,8 +9,8 @@ import {
   SheetHeader,
   SheetTitle,
   SheetDescription,
-} from "@zentro/ui/shadcn/sheet";
-import { Tabs, TabsList, TabsTrigger } from "@zentro/ui/shadcn/tabs";
+} from "@kyren/ui/shadcn/sheet";
+import { Tabs, TabsList, TabsTrigger } from "@kyren/ui/shadcn/tabs";
 import { usePermission } from "~/src/components/permissions/permission-provider";
 import { SearchTab } from "./ai-copilot/search-tab";
 import { MicroOpsTab } from "./ai-copilot/microops-tab";
@@ -61,7 +61,7 @@ export function AiCopilotBubble() {
                   <SparklesIcon className="size-4" />
                 </span>
                 <SheetTitle className="text-base font-semibold">
-                  Zentro Copilot
+                  Kyren Copilot
                 </SheetTitle>
               </div>
             </div>

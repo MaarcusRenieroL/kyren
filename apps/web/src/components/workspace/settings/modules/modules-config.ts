@@ -1,4 +1,4 @@
-import type { TileTint } from "@zentro/ui/components/tile";
+import type { TileTint } from "@kyren/ui/components/tile";
 
 export const tints: Record<string, string> = {
   dashboard: "bg-tint-tasks",

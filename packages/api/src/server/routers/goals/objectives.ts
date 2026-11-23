@@ -1,5 +1,5 @@
 import { TRPCError } from "@trpc/server";
-import { and, asc, desc, eq, inArray, isNull, sql } from "@zentro/db/drizzle";
+import { and, asc, desc, eq, inArray, isNull, sql } from "@kyren/db/drizzle";
 import {
   keyResultCheckIns,
   keyResults,
@@ -8,7 +8,7 @@ import {
   objectives,
   tasks,
   users,
-} from "@zentro/db/schema";
+} from "@kyren/db/schema";
 import { z } from "zod";
 
 import { currentMemberId } from "../../chat";

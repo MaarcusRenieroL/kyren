@@ -1,9 +1,9 @@
 "use client";
 
-import { Button } from "@zentro/ui/shadcn/button";
+import { Button } from "@kyren/ui/shadcn/button";
 import type { FC } from "react";
 import { ChevronDownIcon, ChevronUpIcon, PalmtreeIcon } from "lucide-react";
-import { cn } from "@zentro/ui/lib/utils";
+import { cn } from "@kyren/ui/lib/utils";
 import { ActorAvatar } from "~/src/components/actor-avatar";
 import type { LiveMemberLoad } from "./types";
 import { WorkloadTaskRow } from "./workload-task-row";

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { HashIcon, LockIcon } from "lucide-react";
-import { cn } from "@zentro/ui/lib/utils";
+import { cn } from "@kyren/ui/lib/utils";
 import type { SidebarChannel } from "../chat-store";
 import { Avatar } from "../message-item";
 

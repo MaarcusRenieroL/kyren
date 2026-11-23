@@ -1,4 +1,4 @@
-import type { db as database } from "@zentro/db";
+import type { db as database } from "@kyren/db";
 import {
   and,
   desc,
@@ -9,17 +9,17 @@ import {
   or,
   sql,
   type SQL,
-} from "@zentro/db/drizzle";
+} from "@kyren/db/drizzle";
 import {
   activityEvents,
   docVersions,
   docs,
   roleAssignments,
   roles,
-} from "@zentro/db/schema";
+} from "@kyren/db/schema";
 
 import { TRPCError } from "@trpc/server";
-import { holdsAll, type ResourceContext } from "@zentro/permissions";
+import { holdsAll, type ResourceContext } from "@kyren/permissions";
 
 import type { AuditContext } from "./audit";
 import type { PermissionContext } from "./permissions";

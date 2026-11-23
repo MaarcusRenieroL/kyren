@@ -56,7 +56,7 @@ export async function reportError(
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({
-        text: `[zentro] ${scope}: ${message}`,
+        text: `[kyren] ${scope}: ${message}`,
         scope,
         message,
         ...safe,

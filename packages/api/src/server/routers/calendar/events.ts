@@ -12,7 +12,7 @@ import {
   lt,
   lte,
   or,
-} from "@zentro/db/drizzle";
+} from "@kyren/db/drizzle";
 import {
   calendarEvents,
   chatChannels,
@@ -23,7 +23,7 @@ import {
   members,
   tasks,
   users,
-} from "@zentro/db/schema";
+} from "@kyren/db/schema";
 import { z } from "zod";
 import { holdsOwn } from "../../access";
 import { currentMemberId, readableChannelIds } from "../../chat";

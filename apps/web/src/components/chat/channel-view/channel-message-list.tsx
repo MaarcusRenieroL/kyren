@@ -1,6 +1,6 @@
 import type { RefObject } from "react";
-import { Button } from "@zentro/ui/shadcn/button";
-import { Skeleton } from "@zentro/ui/shadcn/skeleton";
+import { Button } from "@kyren/ui/shadcn/button";
+import { Skeleton } from "@kyren/ui/shadcn/skeleton";
 import { dayHeading } from "../message-body";
 import {
   MessageItem,

@@ -1,20 +1,20 @@
 "use client";
 
-import { Label } from "@zentro/ui/shadcn/label";
-import { Checkbox } from "@zentro/ui/shadcn/checkbox";
+import { Label } from "@kyren/ui/shadcn/label";
+import { Checkbox } from "@kyren/ui/shadcn/checkbox";
 import { useCallback, useEffect, useState } from "react";
 
-import { useTrpcClient } from "@zentro/api/react";
-import { toastError, toastSuccess } from "@zentro/ui/index";
-import { Button } from "@zentro/ui/shadcn/button";
+import { useTrpcClient } from "@kyren/api/react";
+import { toastError, toastSuccess } from "@kyren/ui/index";
+import { Button } from "@kyren/ui/shadcn/button";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from "@zentro/ui/shadcn/dialog";
-import { Input } from "@zentro/ui/shadcn/input";
+} from "@kyren/ui/shadcn/dialog";
+import { Input } from "@kyren/ui/shadcn/input";
 
 import { apiPath } from "~/src/lib/paths";
 

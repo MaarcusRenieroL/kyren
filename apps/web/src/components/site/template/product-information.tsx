@@ -1,4 +1,4 @@
-import { Button } from "@zentro/ui/shadcn/button";
+import { Button } from "@kyren/ui/shadcn/button";
 import type { ReactNode } from "react";
 import { useEffect, useState } from "react";
 
@@ -67,7 +67,7 @@ export function ChangelogPage() {
   return (
     <Information
       title="Changelog"
-      intro="Highlights from Zentro’s version history. Availability depends on the version your organization runs."
+      intro="Highlights from Kyren’s version history. Availability depends on the version your organization runs."
     >
       <Row title="Upload scanning">
         Self-hosted deployments can scan uploaded files with ClamAV.
@@ -99,8 +99,8 @@ export function ChangelogPage() {
 export function AboutPage() {
   return (
     <Information
-      title="About Zentro"
-      intro="Zentro brings project work, team conversations and business operations into one organization workspace."
+      title="About Kyren"
+      intro="Kyren brings project work, team conversations and business operations into one organization workspace."
     >
       <Row title="From request to delivery">
         Connect a support ticket to a task, keep its specification in Docs and
@@ -132,7 +132,7 @@ export function SecurityPage() {
         Self-hosted operators can configure ClamAV to scan uploaded files.
       </Row>
       <Row title="Roles and permissions">
-        Zentro includes Owner, Admin and Member roles. Organizations can define
+        Kyren includes Owner, Admin and Member roles. Organizations can define
         custom roles and inspect a person’s effective permissions.
       </Row>
       <Row title="Audit log">

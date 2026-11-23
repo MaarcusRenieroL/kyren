@@ -14,7 +14,7 @@ import {
   TableIcon,
   type LucideIcon,
 } from "lucide-react";
-import { Button } from "@zentro/ui/shadcn/button";
+import { Button } from "@kyren/ui/shadcn/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -22,14 +22,14 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@zentro/ui/shadcn/dropdown-menu";
-import { Input } from "@zentro/ui/shadcn/input";
+} from "@kyren/ui/shadcn/dropdown-menu";
+import { Input } from "@kyren/ui/shadcn/input";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from "@zentro/ui/shadcn/popover";
-import { cn } from "@zentro/ui/lib/utils";
+} from "@kyren/ui/shadcn/popover";
+import { cn } from "@kyren/ui/lib/utils";
 import {
   headingOptions,
   slashCommands,

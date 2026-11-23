@@ -1,10 +1,10 @@
 "use client";
 
 import { useState, type FC } from "react";
-import { useTrpcClient } from "@zentro/api/react";
-import { Button } from "@zentro/ui/shadcn/button";
-import { TabsContent } from "@zentro/ui/shadcn/tabs";
-import { toastSuccess, toastError } from "@zentro/ui/index";
+import { useTrpcClient } from "@kyren/api/react";
+import { Button } from "@kyren/ui/shadcn/button";
+import { TabsContent } from "@kyren/ui/shadcn/tabs";
+import { toastSuccess, toastError } from "@kyren/ui/index";
 import type { SweepResult } from "./types";
 
 export const CustodianTab: FC = () => {

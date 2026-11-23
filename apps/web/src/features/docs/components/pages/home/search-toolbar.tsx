@@ -1,6 +1,6 @@
 "use client";
 
-import { Input } from "@zentro/ui/shadcn/input";
+import { Input } from "@kyren/ui/shadcn/input";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { FC, useEffect, useRef, type FormEvent } from "react";
@@ -12,16 +12,16 @@ import {
   XIcon,
 } from "lucide-react";
 
-import { Kbd } from "@zentro/ui/components/kbd";
-import { Button } from "@zentro/ui/shadcn/button";
+import { Kbd } from "@kyren/ui/components/kbd";
+import { Button } from "@kyren/ui/shadcn/button";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@zentro/ui/shadcn/select";
-import { cn } from "@zentro/ui/lib/utils";
+} from "@kyren/ui/shadcn/select";
+import { cn } from "@kyren/ui/lib/utils";
 
 import { paths } from "~/src/lib/paths";
 

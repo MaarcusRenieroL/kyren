@@ -5,12 +5,12 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { ExternalLinkIcon, FileIcon, MessageSquareIcon } from "lucide-react";
 
 import type { inferRouterOutputs } from "@trpc/server";
-import type { AppRouter } from "@zentro/api/server";
-import { useTrpcClient } from "@zentro/api/react";
-import { toastError } from "@zentro/ui/index";
-import { cn } from "@zentro/ui/lib/utils";
-import { Button } from "@zentro/ui/shadcn/button";
-import { Skeleton } from "@zentro/ui/shadcn/skeleton";
+import type { AppRouter } from "@kyren/api/server";
+import { useTrpcClient } from "@kyren/api/react";
+import { toastError } from "@kyren/ui/index";
+import { cn } from "@kyren/ui/lib/utils";
+import { Button } from "@kyren/ui/shadcn/button";
+import { Skeleton } from "@kyren/ui/shadcn/skeleton";
 
 import { useReachable } from "~/src/components/permissions/permission-provider";
 

@@ -1,4 +1,4 @@
-# HTTPS for Zentro; Caddy gets and renews the certificate for {$DOMAIN}.
+# HTTPS for Kyren; Caddy gets and renews the certificate for {$DOMAIN}.
 {$DOMAIN} {
 	encode zstd gzip
 

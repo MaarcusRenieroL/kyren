@@ -1,6 +1,6 @@
 import { TRPCError } from "@trpc/server";
-import { organizationModules } from "@zentro/db/schema";
-import { canDisable, canEnable, getModule, listModules } from "@zentro/modules";
+import { organizationModules } from "@kyren/db/schema";
+import { canDisable, canEnable, getModule, listModules } from "@kyren/modules";
 import { z } from "zod";
 
 import { loadEnabledModules } from "../modules";

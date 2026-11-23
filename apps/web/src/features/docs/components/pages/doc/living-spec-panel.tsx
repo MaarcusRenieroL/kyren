@@ -6,9 +6,9 @@ import {
   LayersIcon,
   RefreshCwIcon,
 } from "lucide-react";
-import { Button } from "@zentro/ui/shadcn/button";
-import { Input } from "@zentro/ui/shadcn/input";
-import { cn } from "@zentro/ui/lib/utils";
+import { Button } from "@kyren/ui/shadcn/button";
+import { Input } from "@kyren/ui/shadcn/input";
+import { cn } from "@kyren/ui/lib/utils";
 import type { LivingSpecTask } from "./living-spec/types";
 import { LivingSpecItem } from "./living-spec/living-spec-item";
 import { ActionItemsCompiler } from "./living-spec/action-items-compiler";

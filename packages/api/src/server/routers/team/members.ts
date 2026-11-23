@@ -1,4 +1,4 @@
-import { and, eq, inArray } from "@zentro/db/drizzle";
+import { and, eq, inArray } from "@kyren/db/drizzle";
 import {
   members,
   roleAssignments,
@@ -6,7 +6,7 @@ import {
   teamMembers,
   teams,
   users,
-} from "@zentro/db/schema";
+} from "@kyren/db/schema";
 
 import { updateTeamMembersSchema } from "../../../types/zod-schema";
 import { permissionProcedure } from "../../trpc";

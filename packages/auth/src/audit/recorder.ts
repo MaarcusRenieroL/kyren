@@ -2,10 +2,10 @@ import { randomUUID } from "node:crypto";
 import {
   insertActivityEvent,
   requestContextFromHeaders,
-} from "@zentro/audit/server";
-import { db } from "@zentro/db";
-import { eq, sql } from "@zentro/db/drizzle";
-import { members, users } from "@zentro/db/schema";
+} from "@kyren/audit/server";
+import { db } from "@kyren/db";
+import { eq, sql } from "@kyren/db/drizzle";
+import { members, users } from "@kyren/db/schema";
 import type { HookContext } from "./types";
 
 export async function organizationsOf(userId: string) {

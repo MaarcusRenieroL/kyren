@@ -3,10 +3,10 @@
 import { useState, type FC } from "react";
 import { useRouter } from "next/navigation";
 import { CheckCircle2Icon, CircleDashedIcon, CircleIcon } from "lucide-react";
-import { useTrpcClient } from "@zentro/api/react";
-import { Button } from "@zentro/ui/components/shadcn/button";
-import { toastError, toastSuccess } from "@zentro/ui/index";
-import { cn } from "@zentro/ui/lib/utils";
+import { useTrpcClient } from "@kyren/api/react";
+import { Button } from "@kyren/ui/components/shadcn/button";
+import { toastError, toastSuccess } from "@kyren/ui/index";
+import { cn } from "@kyren/ui/lib/utils";
 import { usePermission } from "~/src/components/permissions/permission-provider";
 import { trpcResult } from "~/src/lib/trpc-result";
 import {

@@ -6,7 +6,7 @@ import {
   isNull,
   ne,
   sql,
-} from "@zentro/db/drizzle";
+} from "@kyren/db/drizzle";
 import {
   chatChannels,
   chatDrafts,
@@ -15,7 +15,7 @@ import {
   chatSaved,
   chatScheduled,
   chatThreadFollows,
-} from "@zentro/db/schema";
+} from "@kyren/db/schema";
 
 import { currentMemberId, memberProfiles } from "../../chat";
 import { runChatJobsLazily } from "../../chat-jobs";

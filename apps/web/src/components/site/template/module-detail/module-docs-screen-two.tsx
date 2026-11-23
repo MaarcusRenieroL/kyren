@@ -61,7 +61,7 @@ export function ModuleDocsScreenTwo({ v }: { v: any }) {
           color: "var(--ink3)",
         }}
       >
-        Zentro Web · edited 1h ago by Priya Raman
+        Kyren Web · edited 1h ago by Priya Raman
       </div>
       <p
         style={{

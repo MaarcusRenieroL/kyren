@@ -1,8 +1,8 @@
 import { randomUUID } from "node:crypto";
-import { requestContextFromHeaders } from "@zentro/audit/server";
-import { db } from "@zentro/db";
-import { eq } from "@zentro/db/drizzle";
-import { users } from "@zentro/db/schema";
+import { requestContextFromHeaders } from "@kyren/audit/server";
+import { db } from "@kyren/db";
+import { eq } from "@kyren/db/drizzle";
+import { users } from "@kyren/db/schema";
 import { sendNewSignInEmail } from "../lib/email";
 import { isNewDevice } from "../lib/new-device";
 import { recordForUser, recordInOrganization, userByEmail } from "./recorder";

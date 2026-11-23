@@ -4,8 +4,8 @@ import "./globals.css";
 
 import { useEffect, useState } from "react";
 
-import { Logo } from "@zentro/ui/components/logo";
-import { Button } from "@zentro/ui/shadcn/button";
+import { Logo } from "@kyren/ui/components/logo";
+import { Button } from "@kyren/ui/shadcn/button";
 
 type Props = {
   error: Error & { digest?: string };
@@ -39,7 +39,7 @@ export default function GlobalError({ error, reset }: Props) {
           <div className="mx-auto my-auto flex w-full max-w-[560px] flex-col gap-4">
             <p className="eyebrow">SOMETHING WENT WRONG</p>
             <h1 className="font-display font-semibold text-3xl leading-tight tracking-tight text-ink sm:text-4xl">
-              Zentro couldn’t start.
+              Kyren couldn’t start.
             </h1>
             <p className="max-w-[500px] text-base leading-6 text-ink-2">
               Part of the app didn’t load, usually after an update or a dropped
@@ -47,7 +47,7 @@ export default function GlobalError({ error, reset }: Props) {
             </p>
             <div className="mt-2 flex flex-wrap gap-2">
               <Button size="lg" onClick={() => window.location.reload()}>
-                Reload Zentro
+                Reload Kyren
               </Button>
               <Button
                 variant="outline"

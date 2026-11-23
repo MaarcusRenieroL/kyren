@@ -18,7 +18,7 @@ export const copy: Record<
   },
 };
 
-export const storageKey = (kind: Kind) => `zentro:notify:${kind}`;
+export const storageKey = (kind: Kind) => `kyren:notify:${kind}`;
 
 export const files = [
   {

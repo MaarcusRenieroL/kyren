@@ -1,5 +1,5 @@
-import { db } from "@zentro/db";
-import { emailSuppressions } from "@zentro/db/schema";
+import { db } from "@kyren/db";
+import { emailSuppressions } from "@kyren/db/schema";
 
 import { verifySignature } from "../../../../lib/webhook-signature";
 
@@ -13,7 +13,7 @@ type EmailEvent = {
 
 /**
  * Bounces and spam complaints from the email provider. A hard bounce or a
- * complaint puts the address on the suppression list; Zentro stops mailing it.
+ * complaint puts the address on the suppression list; Kyren stops mailing it.
  */
 export async function POST(request: Request) {
   const secret = process.env.RESEND_WEBHOOK_SECRET;

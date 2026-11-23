@@ -1,13 +1,13 @@
 "use client";
 
-import { Button } from "@zentro/ui/shadcn/button";
+import { Button } from "@kyren/ui/shadcn/button";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { LayoutGridIcon, ListIcon } from "lucide-react";
 
-import { useTrpcClient } from "@zentro/api/react";
-import { ErrorState } from "@zentro/ui/components/error-state";
-import { cn } from "@zentro/ui/lib/utils";
+import { useTrpcClient } from "@kyren/api/react";
+import { ErrorState } from "@kyren/ui/components/error-state";
+import { cn } from "@kyren/ui/lib/utils";
 
 import { paths } from "~/src/lib/paths";
 import { useFavoriteProjects } from "~/src/components/projects/favorites";

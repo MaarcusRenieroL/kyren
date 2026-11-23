@@ -10,13 +10,13 @@ import {
   or,
   sql,
   type SQL,
-} from "@zentro/db/drizzle";
+} from "@kyren/db/drizzle";
 import {
   chatAttachments,
   chatChannels,
   chatMembers,
   chatMessages,
-} from "@zentro/db/schema";
+} from "@kyren/db/schema";
 import { z } from "zod";
 
 import { currentMemberId, readableChannelIds } from "../../chat";

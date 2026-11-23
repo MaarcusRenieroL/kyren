@@ -4,21 +4,21 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { PlusIcon, SearchIcon } from "lucide-react";
 
-import { useTrpcClient } from "@zentro/api/react";
-import type { AppRouter } from "@zentro/api/server";
+import { useTrpcClient } from "@kyren/api/react";
+import type { AppRouter } from "@kyren/api/server";
 import type { inferRouterOutputs } from "@trpc/server";
-import { EmptyState } from "@zentro/ui/components/empty-state";
-import { PageHeader } from "@zentro/ui/components/page-header";
-import { Button } from "@zentro/ui/shadcn/button";
-import { Input } from "@zentro/ui/shadcn/input";
+import { EmptyState } from "@kyren/ui/components/empty-state";
+import { PageHeader } from "@kyren/ui/components/page-header";
+import { Button } from "@kyren/ui/shadcn/button";
+import { Input } from "@kyren/ui/shadcn/input";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@zentro/ui/shadcn/select";
-import { toast } from "@zentro/ui/index";
+} from "@kyren/ui/shadcn/select";
+import { toast } from "@kyren/ui/index";
 
 import {
   EmployeeDialog,

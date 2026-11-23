@@ -1,6 +1,6 @@
 import type { ComponentProps, ReactElement, ReactNode } from "react";
 
-import { cn } from "@zentro/ui/lib/utils";
+import { cn } from "@kyren/ui/lib/utils";
 
 /**
  * The connection thread: a 1px vertical line with a node (a dot or an avatar)

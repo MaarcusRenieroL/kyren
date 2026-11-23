@@ -8,7 +8,7 @@ import {
   type ReactNode,
 } from "react";
 import { DownloadIcon, PlusIcon } from "lucide-react";
-import { Button } from "@zentro/ui/shadcn/button";
+import { Button } from "@kyren/ui/shadcn/button";
 
 export const FramedContext = createContext(false);
 export const useFramed = () => useContext(FramedContext);

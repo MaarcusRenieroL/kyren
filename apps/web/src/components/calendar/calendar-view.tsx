@@ -3,9 +3,9 @@
 import Link from "next/link";
 import { ChevronLeftIcon, ChevronRightIcon, PlusIcon } from "lucide-react";
 
-import { PageHeader } from "@zentro/ui/components/page-header";
-import { Button } from "@zentro/ui/shadcn/button";
-import { toastError } from "@zentro/ui/index";
+import { PageHeader } from "@kyren/ui/components/page-header";
+import { Button } from "@kyren/ui/shadcn/button";
+import { toastError } from "@kyren/ui/index";
 
 import { startOfDay } from "./dates";
 import { EventDialog } from "./event-dialog";

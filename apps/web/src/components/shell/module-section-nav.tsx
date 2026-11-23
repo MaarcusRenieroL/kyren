@@ -11,7 +11,7 @@ import {
   type ReactNode,
 } from "react";
 
-import { cn } from "@zentro/ui/lib/utils";
+import { cn } from "@kyren/ui/lib/utils";
 
 import { findActiveHref } from "~/src/lib/active-href";
 
@@ -58,7 +58,7 @@ function useActive(items: Item[]) {
   const search = useSearchParams();
 
   const onListPage = items.some(
-    (item) => new URL(item.href, "http://zentro.local").pathname === pathname,
+    (item) => new URL(item.href, "http://kyren.local").pathname === pathname,
   );
   const activeHref = findActiveHref(
     items.map((item) => item.href),

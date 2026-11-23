@@ -1,7 +1,7 @@
 import { TRPCError } from "@trpc/server";
-import { and, asc, eq, isNull, or } from "@zentro/db/drizzle";
-import { docComments, members, users } from "@zentro/db/schema";
-import { sanitizeRichText } from "@zentro/utils";
+import { and, asc, eq, isNull, or } from "@kyren/db/drizzle";
+import { docComments, members, users } from "@kyren/db/schema";
+import { sanitizeRichText } from "@kyren/utils";
 
 import {
   createDocCommentSchema,

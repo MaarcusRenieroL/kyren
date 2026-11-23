@@ -2,10 +2,10 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { useTrpcClient } from "@zentro/api/react";
-import { InlineAlert } from "@zentro/ui/components/inline-alert";
-import { toastError, toastSuccess } from "@zentro/ui/index";
-import { Button } from "@zentro/ui/shadcn/button";
+import { useTrpcClient } from "@kyren/api/react";
+import { InlineAlert } from "@kyren/ui/components/inline-alert";
+import { toastError, toastSuccess } from "@kyren/ui/index";
+import { Button } from "@kyren/ui/shadcn/button";
 import { useAsyncData } from "~/src/lib/use-async-data";
 import {
   Failed,

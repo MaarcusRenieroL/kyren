@@ -1,7 +1,7 @@
 import { timingSafeEqual } from "node:crypto";
 
-import { db } from "@zentro/db";
-import { sql } from "@zentro/db/drizzle";
+import { db } from "@kyren/db";
+import { sql } from "@kyren/db/drizzle";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { cn } from "@zentro/ui/lib/utils";
+import { cn } from "@kyren/ui/lib/utils";
 import { paths } from "~/src/lib/paths";
 import { formatUpdated, tintFor, type ProjectListItem } from "./types";
 import { Contributors, Star, StatusPill } from "./status-pill";

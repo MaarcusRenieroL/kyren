@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { FolderKanbanIcon } from "lucide-react";
-import { cn } from "@zentro/ui/lib/utils";
+import { cn } from "@kyren/ui/lib/utils";
 import { paths } from "~/src/lib/paths";
 import { formatUpdated, tintFor, type ProjectListItem } from "./types";
 import { Star, StatusPill } from "./status-pill";

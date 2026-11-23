@@ -1,5 +1,5 @@
 import { TRPCError } from "@trpc/server";
-import { and, count, eq, isNull, ne, sql } from "@zentro/db/drizzle";
+import { and, count, eq, isNull, ne, sql } from "@kyren/db/drizzle";
 import {
   members,
   taskTimeLogs,
@@ -7,8 +7,8 @@ import {
   users,
   workLinks,
   type Task,
-} from "@zentro/db/schema";
-import type { AuditHandle } from "@zentro/audit/server";
+} from "@kyren/db/schema";
+import type { AuditHandle } from "@kyren/audit/server";
 import type { TRPCContext } from "../../../types";
 import { runTaskAutomations } from "../../automations/engine";
 

@@ -1,11 +1,11 @@
-import { db } from "@zentro/db";
-import { and, eq } from "@zentro/db/drizzle";
+import { db } from "@kyren/db";
+import { and, eq } from "@kyren/db/drizzle";
 import {
   invitations,
   members,
   organizations,
   users,
-} from "@zentro/db/schema";
+} from "@kyren/db/schema";
 import { afterAll, describe, expect, it } from "vitest";
 
 import { callAuth as call } from "./helpers/auth-call";

@@ -14,7 +14,7 @@ import {
   PinIcon,
   Trash2Icon,
 } from "lucide-react";
-import { Button } from "@zentro/ui/shadcn/button";
+import { Button } from "@kyren/ui/shadcn/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -24,7 +24,7 @@ import {
   DropdownMenuSubContent,
   DropdownMenuSubTrigger,
   DropdownMenuTrigger,
-} from "@zentro/ui/shadcn/dropdown-menu";
+} from "@kyren/ui/shadcn/dropdown-menu";
 import { languages, reminderChoices, type MessageActions, type MessageView } from "./message-item-types";
 
 type MessageActionsMenuProps = {

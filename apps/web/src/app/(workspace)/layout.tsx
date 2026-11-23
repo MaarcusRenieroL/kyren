@@ -1,11 +1,11 @@
 import { JSX } from "react";
 import { cookies } from "next/headers";
 
-import { db } from "@zentro/db";
-import { and, count, eq, isNull, ne } from "@zentro/db/drizzle";
-import { members, tasks } from "@zentro/db/schema";
+import { db } from "@kyren/db";
+import { and, count, eq, isNull, ne } from "@kyren/db/drizzle";
+import { members, tasks } from "@kyren/db/schema";
 
-import { effectivePermissions, getCatalogKeys } from "@zentro/permissions";
+import { effectivePermissions, getCatalogKeys } from "@kyren/permissions";
 
 import { PermissionProvider } from "~/src/components/permissions/permission-provider";
 import { AnnouncementBanner } from "~/src/components/shell/announcement-banner";

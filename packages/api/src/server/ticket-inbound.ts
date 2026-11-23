@@ -1,10 +1,10 @@
-import { and, eq, sql } from "@zentro/db/drizzle";
+import { and, eq, sql } from "@kyren/db/drizzle";
 import {
   ticketInbound,
   ticketInboxes,
   ticketMessages,
   tickets,
-} from "@zentro/db/schema";
+} from "@kyren/db/schema";
 
 import type { DbHandle } from "./access";
 import { ticketsOpenToPublic } from "./tickets-public";

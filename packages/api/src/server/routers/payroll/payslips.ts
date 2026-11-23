@@ -1,6 +1,6 @@
 import { TRPCError } from "@trpc/server";
-import { and, desc, eq, inArray } from "@zentro/db/drizzle";
-import { employees, payRuns, payslips } from "@zentro/db/schema";
+import { and, desc, eq, inArray } from "@kyren/db/drizzle";
+import { employees, payRuns, payslips } from "@kyren/db/schema";
 import { z } from "zod";
 
 import { uuid } from "../../zod-common";

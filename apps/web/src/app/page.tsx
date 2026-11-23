@@ -2,7 +2,7 @@ import { JSX } from "react";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 
-import { auth } from "@zentro/auth";
+import { auth } from "@kyren/auth";
 
 import { paths } from "~/src/lib/paths";
 import { LandingPage } from "../components/landing-page/landing-page";

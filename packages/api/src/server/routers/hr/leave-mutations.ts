@@ -1,7 +1,7 @@
 import { TRPCError } from "@trpc/server";
-import { and, eq, inArray, lte, gte, sql } from "@zentro/db/drizzle";
-import { employees, leaveRequests } from "@zentro/db/schema";
-import { encryptField } from "@zentro/utils/field-crypto";
+import { and, eq, inArray, lte, gte, sql } from "@kyren/db/drizzle";
+import { employees, leaveRequests } from "@kyren/db/schema";
+import { encryptField } from "@kyren/utils/field-crypto";
 import { z } from "zod";
 
 import { currentMemberId } from "../../chat";

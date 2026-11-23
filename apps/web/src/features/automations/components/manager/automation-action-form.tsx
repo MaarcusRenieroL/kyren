@@ -1,7 +1,7 @@
 "use client";
 
 import { BotIcon } from "lucide-react";
-import { NativeSelect } from "@zentro/ui/shadcn/native-select";
+import { NativeSelect } from "@kyren/ui/shadcn/native-select";
 
 import type { ActionType, TriggerEvent } from "./automation-types";
 

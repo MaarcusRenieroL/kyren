@@ -2,14 +2,14 @@
 
 import Link from "next/link";
 import { ArrowRightIcon } from "lucide-react";
-import { Button } from "@zentro/ui/shadcn/button";
-import { Kbd } from "@zentro/ui/components/kbd";
+import { Button } from "@kyren/ui/shadcn/button";
+import { Kbd } from "@kyren/ui/components/kbd";
 import {
   StatusGlyph,
   priorityLabels,
-} from "@zentro/ui/components/status-glyph";
-import { cn } from "@zentro/ui/lib/utils";
-import { describeFocusReason } from "@zentro/utils";
+} from "@kyren/ui/components/status-glyph";
+import { cn } from "@kyren/ui/lib/utils";
+import { describeFocusReason } from "@kyren/utils";
 import { CreateTaskModal } from "~/src/features/tasks/components/create-task-modal";
 import type { TodayData, TodayTask } from "~/src/lib/today-data";
 import { dueLabel, RunningTimer } from "../today-helpers";

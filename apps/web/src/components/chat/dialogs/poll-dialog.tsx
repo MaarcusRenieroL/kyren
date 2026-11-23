@@ -1,13 +1,13 @@
 "use client";
 
-import { Label } from "@zentro/ui/shadcn/label";
-import { FieldSet, FieldLegend } from "@zentro/ui/shadcn/field";
-import { Checkbox } from "@zentro/ui/shadcn/checkbox";
+import { Label } from "@kyren/ui/shadcn/label";
+import { FieldSet, FieldLegend } from "@kyren/ui/shadcn/field";
+import { Checkbox } from "@kyren/ui/shadcn/checkbox";
 import { useState } from "react";
 import { PlusIcon, Trash2Icon } from "lucide-react";
-import { useTrpcClient } from "@zentro/api/react";
-import { toastError } from "@zentro/ui/index";
-import { Button } from "@zentro/ui/shadcn/button";
+import { useTrpcClient } from "@kyren/api/react";
+import { toastError } from "@kyren/ui/index";
+import { Button } from "@kyren/ui/shadcn/button";
 import {
   Dialog,
   DialogContent,
@@ -15,8 +15,8 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@zentro/ui/shadcn/dialog";
-import { Input } from "@zentro/ui/shadcn/input";
+} from "@kyren/ui/shadcn/dialog";
+import { Input } from "@kyren/ui/shadcn/input";
 
 /** A question with two to eight options. */
 export function PollDialog({

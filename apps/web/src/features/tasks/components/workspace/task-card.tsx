@@ -4,8 +4,8 @@ import Link from "next/link";
 import { CheckSquareIcon, ClockIcon } from "lucide-react";
 import { FC } from "react";
 
-import { PriorityMeter } from "@zentro/ui/components/status-glyph";
-import { cn } from "@zentro/ui/lib/utils";
+import { PriorityMeter } from "@kyren/ui/components/status-glyph";
+import { cn } from "@kyren/ui/lib/utils";
 
 import { ActorAvatar } from "~/src/components/actor-avatar";
 import { DueDate } from "~/src/components/due-date";

@@ -3,14 +3,14 @@
 import type { FC } from "react";
 import { MoreHorizontalIcon, ShieldIcon, Trash2Icon } from "lucide-react";
 import { ActorAvatar } from "~/src/components/actor-avatar";
-import { Button } from "@zentro/ui/components/shadcn/button";
+import { Button } from "@kyren/ui/components/shadcn/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@zentro/ui/components/shadcn/dropdown-menu";
-import { cn } from "@zentro/ui/lib/utils";
+} from "@kyren/ui/components/shadcn/dropdown-menu";
+import { cn } from "@kyren/ui/lib/utils";
 import type { Member } from "~/src/lib/types";
 
 import { dotFor, monthYear, RoleControl, shortAgo, type Role } from "./members-helpers";

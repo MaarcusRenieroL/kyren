@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 
-import { cn } from "@zentro/ui/lib/utils";
+import { cn } from "@kyren/ui/lib/utils";
 
 type SystemPageProps = {
   /** Mono eyebrow: "404 · /tasks/ZEN-99". */

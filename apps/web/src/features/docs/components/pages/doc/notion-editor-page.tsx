@@ -3,9 +3,9 @@
 import { useState, useEffect } from "react";
 import { EditorContent } from "@tiptap/react";
 import { FileTextIcon, PlusIcon } from "lucide-react";
-import { Button } from "@zentro/ui/shadcn/button";
-import { Input } from "@zentro/ui/shadcn/input";
-import { cn } from "@zentro/ui/lib/utils";
+import { Button } from "@kyren/ui/shadcn/button";
+import { Input } from "@kyren/ui/shadcn/input";
+import { cn } from "@kyren/ui/lib/utils";
 import { CreateTaskModal } from "~/src/features/tasks/components/create-task-modal";
 import { ActivityFeed } from "~/src/components/workspace/activity/activity-feed";
 import { ActorAvatar } from "~/src/components/actor-avatar";

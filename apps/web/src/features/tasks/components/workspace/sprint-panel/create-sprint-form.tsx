@@ -1,6 +1,6 @@
-import { Label } from "@zentro/ui/shadcn/label";
-import { Button } from "@zentro/ui/shadcn/button";
-import { Input } from "@zentro/ui/shadcn/input";
+import { Label } from "@kyren/ui/shadcn/label";
+import { Button } from "@kyren/ui/shadcn/button";
+import { Input } from "@kyren/ui/shadcn/input";
 
 export function CreateSprintForm({
   name,

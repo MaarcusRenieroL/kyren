@@ -3,14 +3,14 @@
 import { FC, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
-import { useTrpcClient } from "@zentro/api/react";
-import type { JoinOrganizationListSchema } from "@zentro/api/types/zod-schema";
-import { authClient } from "@zentro/auth/client";
-import { OrgAvatar } from "@zentro/ui/components/org-avatar";
-import { toastError, toastSuccess } from "@zentro/ui/index";
-import { Button } from "@zentro/ui/shadcn/button";
-import { Input } from "@zentro/ui/shadcn/input";
-import { Skeleton } from "@zentro/ui/shadcn/skeleton";
+import { useTrpcClient } from "@kyren/api/react";
+import type { JoinOrganizationListSchema } from "@kyren/api/types/zod-schema";
+import { authClient } from "@kyren/auth/client";
+import { OrgAvatar } from "@kyren/ui/components/org-avatar";
+import { toastError, toastSuccess } from "@kyren/ui/index";
+import { Button } from "@kyren/ui/shadcn/button";
+import { Input } from "@kyren/ui/shadcn/input";
+import { Skeleton } from "@kyren/ui/shadcn/skeleton";
 
 import { paths } from "~/src/lib/paths";
 

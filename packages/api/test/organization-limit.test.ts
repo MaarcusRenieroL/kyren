@@ -1,4 +1,4 @@
-import { auth } from "@zentro/auth";
+import { auth } from "@kyren/auth";
 import { afterAll, describe, expect, it } from "vitest";
 
 import { World } from "./helpers";

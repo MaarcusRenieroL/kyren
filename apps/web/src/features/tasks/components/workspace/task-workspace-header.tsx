@@ -7,7 +7,7 @@ import {
   DropdownMenuRadioGroup,
   DropdownMenuRadioItem,
   DropdownMenuTrigger,
-} from "@zentro/ui/shadcn/dropdown-menu";
+} from "@kyren/ui/shadcn/dropdown-menu";
 import { ModuleTabs } from "~/src/components/shell/module-section-nav";
 import { paths } from "~/src/lib/paths";
 import { CreateTaskModal } from "../create-task-modal";

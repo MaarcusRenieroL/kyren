@@ -1,13 +1,13 @@
 "use client";
 
-import { Checkbox as ShadcnCheckbox } from "@zentro/ui/shadcn/checkbox";
-import { Button } from "@zentro/ui/shadcn/button";
+import { Checkbox as ShadcnCheckbox } from "@kyren/ui/shadcn/checkbox";
+import { Button } from "@kyren/ui/shadcn/button";
 import Link from "next/link";
 import type { FC, Ref } from "react";
 import { CheckSquareIcon, ClockIcon } from "lucide-react";
 
-import { StatusGlyph, PriorityMeter } from "@zentro/ui/components/status-glyph";
-import { cn } from "@zentro/ui/lib/utils";
+import { StatusGlyph, PriorityMeter } from "@kyren/ui/components/status-glyph";
+import { cn } from "@kyren/ui/lib/utils";
 
 import { ActorAvatar } from "~/src/components/actor-avatar";
 import { DueDate } from "~/src/components/due-date";

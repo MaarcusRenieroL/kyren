@@ -1,11 +1,11 @@
 {
-  "extends": "@zentro/typescript-config/react-library.json",
+  "extends": "@kyren/typescript-config/react-library.json",
   "compilerOptions": {
     "baseUrl": ".",
     "paths": {
-      "@zentro/ui/*": ["./src/*"],
-      "@zentro/ui/shadcn/*": ["./src/components/shadcn/*"],
-      "@zentro/ui/lib/*": ["./src/lib/*"]
+      "@kyren/ui/*": ["./src/*"],
+      "@kyren/ui/shadcn/*": ["./src/components/shadcn/*"],
+      "@kyren/ui/lib/*": ["./src/lib/*"]
     }
   },
   "include": ["."],

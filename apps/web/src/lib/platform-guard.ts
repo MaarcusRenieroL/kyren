@@ -1,7 +1,7 @@
 import { headers } from "next/headers";
 import { notFound, redirect } from "next/navigation";
 
-import { appRouter } from "@zentro/api/server";
+import { appRouter } from "@kyren/api/server";
 
 import { paths } from "~/src/lib/paths";
 import { createRequestContext } from "~/src/lib/request-context";

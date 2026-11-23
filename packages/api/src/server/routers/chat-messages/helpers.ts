@@ -1,6 +1,6 @@
 import { TRPCError } from "@trpc/server";
-import { and, eq, inArray, isNull } from "@zentro/db/drizzle";
-import { chatAttachments, chatMessages, files } from "@zentro/db/schema";
+import { and, eq, inArray, isNull } from "@kyren/db/drizzle";
+import { chatAttachments, chatMessages, files } from "@kyren/db/schema";
 
 import { type OrganizationContext } from "../../trpc";
 

@@ -9,14 +9,14 @@ import {
   isNull,
   lt,
   sql,
-} from "@zentro/db/drizzle";
+} from "@kyren/db/drizzle";
 import {
   members,
   runningTimers,
   taskTimeLogs,
   tasks,
   users,
-} from "@zentro/db/schema";
+} from "@kyren/db/schema";
 import { z } from "zod";
 
 import type { DbHandle } from "../access";

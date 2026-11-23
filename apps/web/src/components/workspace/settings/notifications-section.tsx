@@ -1,14 +1,14 @@
 "use client";
 
-import { Label } from "@zentro/ui/shadcn/label";
-import { Checkbox } from "@zentro/ui/shadcn/checkbox";
+import { Label } from "@kyren/ui/shadcn/label";
+import { Checkbox } from "@kyren/ui/shadcn/checkbox";
 import { useState } from "react";
 
-import { useTrpcClient } from "@zentro/api/react";
-import { toastError } from "@zentro/ui/index";
-import { EmptyState } from "@zentro/ui/components/empty-state";
-import { Button } from "@zentro/ui/shadcn/button";
-import { Skeleton } from "@zentro/ui/shadcn/skeleton";
+import { useTrpcClient } from "@kyren/api/react";
+import { toastError } from "@kyren/ui/index";
+import { EmptyState } from "@kyren/ui/components/empty-state";
+import { Button } from "@kyren/ui/shadcn/button";
+import { Skeleton } from "@kyren/ui/shadcn/skeleton";
 
 import { useAsyncData } from "~/src/lib/use-async-data";
 

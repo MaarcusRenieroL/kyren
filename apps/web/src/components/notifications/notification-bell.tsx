@@ -4,13 +4,13 @@ import Link from "next/link";
 import { useState } from "react";
 import { BellIcon } from "lucide-react";
 
-import { Button } from "@zentro/ui/shadcn/button";
+import { Button } from "@kyren/ui/shadcn/button";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from "@zentro/ui/shadcn/popover";
-import { toastSuccess } from "@zentro/ui/lib/toast";
+} from "@kyren/ui/shadcn/popover";
+import { toastSuccess } from "@kyren/ui/lib/toast";
 
 import { paths } from "~/src/lib/paths";
 

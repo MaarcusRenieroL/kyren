@@ -1,8 +1,8 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
-import { publicArticle } from "@zentro/api/server";
-import { db } from "@zentro/db";
+import { publicArticle } from "@kyren/api/server";
+import { db } from "@kyren/db";
 
 export const dynamic = "force-dynamic";
 

@@ -6,10 +6,10 @@ import {
   useState,
   type FormEvent,
 } from "react";
-import { authClient } from "@zentro/auth/client";
-import { toastError, toastSuccess } from "@zentro/ui/index";
-import { Button } from "@zentro/ui/shadcn/button";
-import { Input } from "@zentro/ui/shadcn/input";
+import { authClient } from "@kyren/auth/client";
+import { toastError, toastSuccess } from "@kyren/ui/index";
+import { Button } from "@kyren/ui/shadcn/button";
+import { Input } from "@kyren/ui/shadcn/input";
 
 import {
   SettingsError,

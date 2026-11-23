@@ -45,7 +45,7 @@ export function LandingFooter({
               letterSpacing: "-0.04em",
             }}
           >
-            Zentro
+            Kyren
           </span>
         </div>
         <span style={{ fontSize: 14, color: "var(--ink2)" }}>
@@ -54,7 +54,7 @@ export function LandingFooter({
         <span
           style={{ fontFamily: MONO, fontSize: 11, color: "var(--ink3)" }}
         >
-          © 2026 Zentro
+          © 2026 Kyren
         </span>
       </div>
       <div

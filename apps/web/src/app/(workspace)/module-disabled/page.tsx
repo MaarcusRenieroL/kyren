@@ -2,8 +2,8 @@ import { JSX } from "react";
 import Link from "next/link";
 import { CircleDotIcon } from "lucide-react";
 
-import { Button } from "@zentro/ui/shadcn/button";
-import { getModule } from "@zentro/modules";
+import { Button } from "@kyren/ui/shadcn/button";
+import { getModule } from "@kyren/modules";
 
 import { SystemPage } from "~/src/components/system/system-page";
 import { TurnOnModuleButton } from "~/src/components/system/turn-on-module-button";

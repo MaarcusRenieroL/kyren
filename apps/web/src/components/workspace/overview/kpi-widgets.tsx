@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import { ArrowDownIcon, ArrowUpIcon } from "lucide-react";
-import { cn } from "@zentro/ui/lib/utils";
+import { cn } from "@kyren/ui/lib/utils";
 
 export function Pill({ children, tone }: { children: ReactNode; tone?: "bad" }) {
   return (

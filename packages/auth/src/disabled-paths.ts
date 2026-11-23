@@ -14,7 +14,7 @@ export const disabledCodePaths = [
 ];
 
 // Endpoints that read or change organization data are only reachable through
-// our tRPC procedures, which check permissions with @zentro/permissions. Better
+// our tRPC procedures, which check permissions with @kyren/permissions. Better
 // Auth's own role check is wide open (see access-control.ts), so leaving these
 // reachable over HTTP would let any member call them directly.
 export const disabledOrganizationPaths = [

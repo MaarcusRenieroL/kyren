@@ -3,11 +3,11 @@
 import { FC, useCallback, useEffect, useMemo, useState } from "react";
 import { DownloadIcon } from "lucide-react";
 
-import { useTrpcClient } from "@zentro/api/react";
-import { toastError } from "@zentro/ui/index";
-import { Button } from "@zentro/ui/shadcn/button";
-import { EmptyState } from "@zentro/ui/components/empty-state";
-import { Skeleton } from "@zentro/ui/shadcn/skeleton";
+import { useTrpcClient } from "@kyren/api/react";
+import { toastError } from "@kyren/ui/index";
+import { Button } from "@kyren/ui/shadcn/button";
+import { EmptyState } from "@kyren/ui/components/empty-state";
+import { Skeleton } from "@kyren/ui/shadcn/skeleton";
 
 import { ActorAvatar } from "~/src/components/actor-avatar";
 import { usePermission } from "~/src/components/permissions/permission-provider";

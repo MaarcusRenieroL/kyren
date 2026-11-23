@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
-import { db } from "@zentro/db";
-import { sharedDoc } from "@zentro/api/server";
+import { db } from "@kyren/db";
+import { sharedDoc } from "@kyren/api/server";
 
 // A private link: keep it out of search engines and out of Referer headers.
 export const metadata: Metadata = {

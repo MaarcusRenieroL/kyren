@@ -1,7 +1,7 @@
 import * as React from "react";
 import { OTPInput, OTPInputContext } from "input-otp";
 
-import { cn } from "@zentro/ui/lib/utils";
+import { cn } from "@kyren/ui/lib/utils";
 import { MinusIcon } from "lucide-react";
 
 function InputOTP({

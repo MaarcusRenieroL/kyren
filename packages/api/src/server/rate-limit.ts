@@ -1,5 +1,5 @@
 import { TRPCError } from "@trpc/server";
-import { hit } from "@zentro/db/rate-limit";
+import { hit } from "@kyren/db/rate-limit";
 
 type Database = Parameters<typeof hit>[0];
 type Options = Parameters<typeof hit>[2];

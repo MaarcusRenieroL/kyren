@@ -1,8 +1,8 @@
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 
-import { db } from "@zentro/db";
-import { eq } from "@zentro/db/drizzle";
-import { automations, tasks } from "@zentro/db/schema";
+import { db } from "@kyren/db";
+import { eq } from "@kyren/db/drizzle";
+import { automations, tasks } from "@kyren/db/schema";
 
 import { runTaskAutomations } from "../src/server/automations/engine";
 import { World } from "./helpers";

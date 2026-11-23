@@ -1,4 +1,4 @@
-# Zentro roadmap — features to build
+# Kyren roadmap — features to build
 
 Everything here is self-contained: no Google, Microsoft or other third-party sign-in or sync. Outgoing email keeps
 using the existing email provider (Resend). Effort is focused working days including tests.

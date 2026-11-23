@@ -6,8 +6,8 @@ import {
   type AuditHandle,
   type AuditRequestContext,
   type RecordEventInput,
-} from "@zentro/audit/server";
-import type { ActivityEvent } from "@zentro/db/schema";
+} from "@kyren/audit/server";
+import type { ActivityEvent } from "@kyren/db/schema";
 
 import { enqueueWebhooks } from "./webhooks";
 

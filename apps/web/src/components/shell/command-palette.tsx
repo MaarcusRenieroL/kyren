@@ -4,14 +4,14 @@ import { useRouter } from "next/navigation";
 import { Command } from "cmdk";
 import { SearchIcon } from "lucide-react";
 
-import { Kbd } from "@zentro/ui/components/kbd";
-import { cn } from "@zentro/ui/lib/utils";
+import { Kbd } from "@kyren/ui/components/kbd";
+import { cn } from "@kyren/ui/lib/utils";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogTitle,
-} from "@zentro/ui/shadcn/dialog";
+} from "@kyren/ui/shadcn/dialog";
 
 import type { ShellModule } from "./app-sidebar";
 import { useRecent } from "./use-recent";

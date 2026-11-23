@@ -1,19 +1,19 @@
 "use client";
 
-import { Label } from "@zentro/ui/shadcn/label";
+import { Label } from "@kyren/ui/shadcn/label";
 import { useRef, useState } from "react";
 import { Trash2Icon } from "lucide-react";
-import { useTrpcClient } from "@zentro/api/react";
-import { toastError, toastSuccess } from "@zentro/ui/index";
-import { Button } from "@zentro/ui/shadcn/button";
+import { useTrpcClient } from "@kyren/api/react";
+import { toastError, toastSuccess } from "@kyren/ui/index";
+import { Button } from "@kyren/ui/shadcn/button";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from "@zentro/ui/shadcn/dialog";
-import { Input } from "@zentro/ui/shadcn/input";
+} from "@kyren/ui/shadcn/dialog";
+import { Input } from "@kyren/ui/shadcn/input";
 
 import { apiPath } from "~/src/lib/paths";
 import { useCustomEmoji } from "../custom-emoji";

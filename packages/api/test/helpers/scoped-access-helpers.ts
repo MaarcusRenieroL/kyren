@@ -1,6 +1,6 @@
-import { db } from "@zentro/db";
-import { eq } from "@zentro/db/drizzle";
-import { roles, teamMembers } from "@zentro/db/schema";
+import { db } from "@kyren/db";
+import { eq } from "@kyren/db/drizzle";
+import { roles, teamMembers } from "@kyren/db/schema";
 import { type TestOrg, type World } from "./world";
 
 export const forbidden = { code: "FORBIDDEN" };

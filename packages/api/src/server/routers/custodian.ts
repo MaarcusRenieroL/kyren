@@ -1,5 +1,5 @@
-import { and, count, eq, inArray, isNull, lt, ne } from "@zentro/db/drizzle";
-import { docs, tasks, tickets, workLinks } from "@zentro/db/schema";
+import { and, count, eq, inArray, isNull, lt, ne } from "@kyren/db/drizzle";
+import { docs, tasks, tickets, workLinks } from "@kyren/db/schema";
 import { z } from "zod";
 
 import { visibleDocsCondition } from "../access";

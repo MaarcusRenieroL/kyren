@@ -77,7 +77,7 @@ export function AttachedSection({
             textWrap: "pretty",
           }}
         >
-          A Zentro task knows the doc it was written from, its files, the
+          A Kyren task knows the doc it was written from, its files, the
           message that changed it, the meeting where it was decided and the
           ticket behind it.
         </p>

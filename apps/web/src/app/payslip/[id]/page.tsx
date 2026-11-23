@@ -7,17 +7,17 @@ import {
   TableRow,
   TableHead,
   TableCell,
-} from "@zentro/ui/shadcn/table";
+} from "@kyren/ui/shadcn/table";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { PrinterIcon } from "lucide-react";
 
-import { useTrpcClient } from "@zentro/api/react";
-import type { AppRouter } from "@zentro/api/server";
+import { useTrpcClient } from "@kyren/api/react";
+import type { AppRouter } from "@kyren/api/server";
 import { TRPCClientError } from "@trpc/client";
 import type { inferRouterOutputs } from "@trpc/server";
-import { Button } from "@zentro/ui/shadcn/button";
+import { Button } from "@kyren/ui/shadcn/button";
 
 import { formatMoney, formatPeriod } from "~/src/components/payroll/money";
 

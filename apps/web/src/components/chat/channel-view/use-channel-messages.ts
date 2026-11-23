@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import type { useTrpcClient } from "@zentro/api/react";
+import type { useTrpcClient } from "@kyren/api/react";
 import { everyWhileVisible } from "~/src/lib/poll";
 import type { Draft, Person } from "../composer";
 import type { MessageView } from "../message-item";

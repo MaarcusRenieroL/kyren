@@ -1,12 +1,12 @@
 "use client";
 
-import { Button } from "@zentro/ui/shadcn/button";
+import { Button } from "@kyren/ui/shadcn/button";
 import Link from "next/link";
 import { useMemo, type FC } from "react";
 import { CopyIcon, FolderIcon, SparklesIcon } from "lucide-react";
 
-import { cn } from "@zentro/ui/lib/utils";
-import { toastSuccess } from "@zentro/ui/index";
+import { cn } from "@kyren/ui/lib/utils";
+import { toastSuccess } from "@kyren/ui/index";
 
 import { ActorAvatar } from "~/src/components/actor-avatar";
 import { StarButton } from "~/src/components/favorites/star-button";

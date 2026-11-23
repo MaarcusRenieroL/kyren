@@ -1,12 +1,12 @@
 "use client";
 
-import { Button } from "@zentro/ui/shadcn/button";
+import { Button } from "@kyren/ui/shadcn/button";
 import { useState } from "react";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from "@zentro/ui/shadcn/popover";
+} from "@kyren/ui/shadcn/popover";
 import { quickReactions } from "./message-item-types";
 
 type ReactionPickerProps = {

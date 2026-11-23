@@ -2,9 +2,9 @@ import {
   createAuditContext,
   createEnabledModulesLoader,
   createPermissionContext,
-} from "@zentro/api/server";
-import { auth } from "@zentro/auth";
-import { db } from "@zentro/db";
+} from "@kyren/api/server";
+import { auth } from "@kyren/auth";
+import { db } from "@kyren/db";
 
 /** The same context the tRPC route builds, for route handlers that need it. */
 export async function createRequestContext(request: Request) {

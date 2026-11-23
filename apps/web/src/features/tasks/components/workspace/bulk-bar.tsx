@@ -1,19 +1,19 @@
 "use client";
 
-import { Button } from "@zentro/ui/shadcn/button";
+import { Button } from "@kyren/ui/shadcn/button";
 import { useEffect, useState, type FC, type ReactNode } from "react";
 import { XIcon } from "lucide-react";
 
-import { useTrpcClient } from "@zentro/api/react";
-import { PriorityMeter, StatusGlyph } from "@zentro/ui/components/status-glyph";
-import { cn } from "@zentro/ui/lib/utils";
+import { useTrpcClient } from "@kyren/api/react";
+import { PriorityMeter, StatusGlyph } from "@kyren/ui/components/status-glyph";
+import { cn } from "@kyren/ui/lib/utils";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@zentro/ui/shadcn/dropdown-menu";
+} from "@kyren/ui/shadcn/dropdown-menu";
 
 import { ActorAvatar } from "~/src/components/actor-avatar";
 import { useReachable } from "~/src/components/permissions/permission-provider";

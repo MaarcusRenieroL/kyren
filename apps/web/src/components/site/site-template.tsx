@@ -1,6 +1,6 @@
 import { PricingPage } from "./template/pricing/pricing-page";
 import { RoadmapPage, ChangelogPage, AboutPage, StatusPage, SecurityPage } from "./template/product-information";
-// Generated from the Zentro site design (Zentro Site Page).
+// Generated from the Kyren site design (Kyren Site Page).
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { SiteHeader } from "./template/header";
 import { SiteMobileMenu } from "./template/mobile-menu";

@@ -1,15 +1,15 @@
 "use client";
 
-import { Label } from "@zentro/ui/shadcn/label";
+import { Label } from "@kyren/ui/shadcn/label";
 import { useState, type FC, type FormEvent, type KeyboardEvent } from "react";
 import { useRouter } from "next/navigation";
 import { XIcon } from "lucide-react";
-import { useTrpcClient } from "@zentro/api/react";
-import { Button } from "@zentro/ui/components/shadcn/button";
-import { Input } from "@zentro/ui/components/shadcn/input";
-import { Switch } from "@zentro/ui/components/shadcn/switch";
-import { toastSuccess } from "@zentro/ui/index";
-import { cn } from "@zentro/ui/lib/utils";
+import { useTrpcClient } from "@kyren/api/react";
+import { Button } from "@kyren/ui/components/shadcn/button";
+import { Input } from "@kyren/ui/components/shadcn/input";
+import { Switch } from "@kyren/ui/components/shadcn/switch";
+import { toastSuccess } from "@kyren/ui/index";
+import { cn } from "@kyren/ui/lib/utils";
 import { trpcResult } from "~/src/lib/trpc-result";
 import { SettingsError } from "../settings-kit";
 import { emailPattern, problemWith, type Role } from "./invitations-helpers";

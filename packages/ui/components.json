@@ -11,11 +11,11 @@
     "prefix": ""
   },
   "aliases": {
-    "components": "@zentro/ui/components",
-    "utils": "@zentro/ui/lib/utils",
-    "ui": "@zentro/ui/components/shadcn",
-    "lib": "@zentro/ui/lib",
-    "hooks": "@zentro/ui/hooks"
+    "components": "@kyren/ui/components",
+    "utils": "@kyren/ui/lib/utils",
+    "ui": "@kyren/ui/components/shadcn",
+    "lib": "@kyren/ui/lib",
+    "hooks": "@kyren/ui/hooks"
   },
   "iconLibrary": "lucide"
 }

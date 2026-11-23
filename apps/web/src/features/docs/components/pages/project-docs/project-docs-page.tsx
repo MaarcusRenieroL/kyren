@@ -1,16 +1,16 @@
 "use client";
 
-import { Skeleton } from "@zentro/ui/shadcn/skeleton";
+import { Skeleton } from "@kyren/ui/shadcn/skeleton";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@zentro/ui/shadcn/select";
+} from "@kyren/ui/shadcn/select";
 import { useEffect, useMemo, useState } from "react";
 
-import { useTrpcClient } from "@zentro/api/react";
+import { useTrpcClient } from "@kyren/api/react";
 
 import { ModuleTabs } from "~/src/components/shell/module-section-nav";
 

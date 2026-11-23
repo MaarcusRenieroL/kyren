@@ -1,8 +1,8 @@
 "use client";
 
 import { PenSquareIcon } from "lucide-react";
-import { Button } from "@zentro/ui/shadcn/button";
-import { NativeSelect } from "@zentro/ui/shadcn/native-select";
+import { Button } from "@kyren/ui/shadcn/button";
+import { NativeSelect } from "@kyren/ui/shadcn/native-select";
 
 import { folders, type Folder } from "./mail-types";
 

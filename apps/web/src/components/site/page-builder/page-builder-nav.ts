@@ -128,7 +128,7 @@ export function buildNavAndShell(ctx: SiteBuilderCtx): Record<string, any> {
     ],
     security: [
       "Invite your team and choose who can do what before anyone creates a task.",
-      "About Zentro",
+      "About Kyren",
       "about",
     ],
     changelog: [

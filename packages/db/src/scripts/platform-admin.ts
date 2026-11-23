@@ -3,7 +3,7 @@ import { eq } from "drizzle-orm";
 import { db } from "../client";
 import { users } from "../schema";
 
-// Usage: pnpm --filter @zentro/db platform-admin <grant|revoke> <email>
+// Usage: pnpm --filter @kyren/db platform-admin <grant|revoke> <email>
 // Platform access is never granted through the app; an operator runs this.
 const [action, email] = process.argv.slice(2);
 

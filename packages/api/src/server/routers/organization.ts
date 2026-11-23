@@ -1,13 +1,13 @@
 import { TRPCError } from "@trpc/server";
-import { and, count, eq } from "@zentro/db/drizzle";
-import { invitations, members, organizations, users } from "@zentro/db/schema";
+import { and, count, eq } from "@kyren/db/drizzle";
+import { invitations, members, organizations, users } from "@kyren/db/schema";
 
 import { orgInviteDetailsSchema } from "../../types/zod-schema";
 import { z } from "zod";
 
-import { auth } from "@zentro/auth";
+import { auth } from "@kyren/auth";
 
-import { buildChanges } from "@zentro/audit";
+import { buildChanges } from "@kyren/audit";
 import { forgetTwoFactorPolicy } from "../two-factor-policy";
 import { callAuth } from "../auth-calls";
 import {

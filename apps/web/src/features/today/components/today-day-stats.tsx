@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { StatusGlyph } from "@zentro/ui/components/status-glyph";
+import { StatusGlyph } from "@kyren/ui/components/status-glyph";
 import { DueDate } from "~/src/components/due-date";
 import type { TodayTask } from "~/src/lib/today-data";
 

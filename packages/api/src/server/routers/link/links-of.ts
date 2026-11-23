@@ -1,4 +1,4 @@
-import { and, desc, eq, inArray, isNull, or, type SQL } from "@zentro/db/drizzle";
+import { and, desc, eq, inArray, isNull, or, type SQL } from "@kyren/db/drizzle";
 import {
   chatChannels,
   chatMessages,
@@ -8,7 +8,7 @@ import {
   tasks,
   users,
   workLinks,
-} from "@zentro/db/schema";
+} from "@kyren/db/schema";
 import { visibleDocsCondition } from "../../access";
 import { currentMemberId, readableChannelIds } from "../../chat";
 import type { OrganizationContext } from "../../trpc";

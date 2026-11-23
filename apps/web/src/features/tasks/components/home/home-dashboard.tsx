@@ -2,9 +2,9 @@
 
 import { FC, useEffect, useState } from "react";
 
-import { useTrpcClient } from "@zentro/api/react";
-import { Skeleton } from "@zentro/ui/shadcn/skeleton";
-import { toastError } from "@zentro/ui/index";
+import { useTrpcClient } from "@kyren/api/react";
+import { Skeleton } from "@kyren/ui/shadcn/skeleton";
+import { toastError } from "@kyren/ui/index";
 
 import { statusLabels, statusOrder } from "~/src/features/tasks/lib/constants";
 import { formatRelativeTime } from "~/src/features/tasks/lib/format";

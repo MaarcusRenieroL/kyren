@@ -8,12 +8,12 @@ import {
   DropdownMenuLabel,
   DropdownMenuRadioGroup,
   DropdownMenuRadioItem,
-} from "@zentro/ui/shadcn/dropdown-menu";
+} from "@kyren/ui/shadcn/dropdown-menu";
 import {
   densityCookie,
   parseDensity,
   type Density,
-} from "@zentro/ui/lib/theme-colors";
+} from "@kyren/ui/lib/theme-colors";
 
 /** Applies a density to the page and remembers it for the next request. */
 export function applyDensity(density: Density) {

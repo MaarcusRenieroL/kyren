@@ -7,14 +7,14 @@ import {
   PlusIcon,
   SquareCheckIcon,
 } from "lucide-react";
-import { Kbd } from "@zentro/ui/components/kbd";
-import { Button } from "@zentro/ui/shadcn/button";
+import { Kbd } from "@kyren/ui/components/kbd";
+import { Button } from "@kyren/ui/shadcn/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@zentro/ui/shadcn/dropdown-menu";
+} from "@kyren/ui/shadcn/dropdown-menu";
 
 import { CreateProjectModal } from "~/src/components/projects/create-project-modal";
 import { CreateDocModal } from "~/src/features/docs/components/pages/home/create-doc-modal";

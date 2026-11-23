@@ -3,8 +3,8 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
-import { useTrpcClient } from "@zentro/api/react";
-import { StatusGlyph } from "@zentro/ui/components/status-glyph";
+import { useTrpcClient } from "@kyren/api/react";
+import { StatusGlyph } from "@kyren/ui/components/status-glyph";
 
 import { useReachable } from "~/src/components/permissions/permission-provider";
 import { paths } from "~/src/lib/paths";

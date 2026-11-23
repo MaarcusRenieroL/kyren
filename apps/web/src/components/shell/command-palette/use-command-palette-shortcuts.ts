@@ -3,7 +3,7 @@
 import { useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useTheme } from "next-themes";
-import { applyDensity } from "@zentro/ui/components/appearance";
+import { applyDensity } from "@kyren/ui/components/appearance";
 import type { ShellModule } from "../app-sidebar";
 import { goKeys, isTyping } from "./types";
 

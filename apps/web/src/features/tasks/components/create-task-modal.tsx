@@ -6,7 +6,7 @@ import {
   useState,
 } from "react";
 import { PlusIcon, XIcon } from "lucide-react";
-import { Button } from "@zentro/ui/shadcn/button";
+import { Button } from "@kyren/ui/shadcn/button";
 import {
   Dialog,
   DialogClose,
@@ -14,8 +14,8 @@ import {
   DialogDescription,
   DialogTitle,
   DialogTrigger,
-} from "@zentro/ui/shadcn/dialog";
-import { Kbd } from "@zentro/ui/components/kbd";
+} from "@kyren/ui/shadcn/dialog";
+import { Kbd } from "@kyren/ui/components/kbd";
 import { useReachable } from "~/src/components/permissions/permission-provider";
 
 import { CreateTaskFields } from "./create-task/create-task-fields";

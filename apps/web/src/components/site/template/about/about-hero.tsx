@@ -108,7 +108,7 @@ export function AboutHero({ v }: { v: any }) {
                 textWrap: "pretty",
               }}
             >
-              Zentro is one workspace for everything a company runs on: projects,
+              Kyren is one workspace for everything a company runs on: projects,
               tasks, docs and teams under one permission system and one search.
               You switch on only the modules you use.
             </p>

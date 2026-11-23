@@ -1,11 +1,11 @@
-import { and, asc, desc, eq, inArray, or } from "@zentro/db/drizzle";
+import { and, asc, desc, eq, inArray, or } from "@kyren/db/drizzle";
 import {
   projects,
   roleAssignments,
   roles,
   teams,
   users,
-} from "@zentro/db/schema";
+} from "@kyren/db/schema";
 import { z } from "zod";
 
 import {

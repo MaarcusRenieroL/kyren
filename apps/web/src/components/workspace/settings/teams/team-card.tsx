@@ -12,9 +12,9 @@ import {
 import { ActorAvatar } from "~/src/components/actor-avatar";
 import { usePermission } from "~/src/components/permissions/permission-provider";
 import { paths } from "~/src/lib/paths";
-import { Button } from "@zentro/ui/components/shadcn/button";
-import { Card } from "@zentro/ui/components/shadcn/card";
-import { cn } from "@zentro/ui";
+import { Button } from "@kyren/ui/components/shadcn/button";
+import { Card } from "@kyren/ui/components/shadcn/card";
+import { cn } from "@kyren/ui";
 import { getColorClass, sortMembers, type Team, type TeamScopeCounts } from "./teams-types";
 
 type TeamActionsProps = {

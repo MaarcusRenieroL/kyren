@@ -5,7 +5,7 @@ import { SitePage } from "~/src/components/site/site-page";
 
 export const metadata: Metadata = {
   title: "About and contact",
-  description: "About Zentro, and how to reach us.",
+  description: "About Kyren, and how to reach us.",
 };
 
 export default function Page(): JSX.Element {

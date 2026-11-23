@@ -1,10 +1,10 @@
 "use client";
 
-import { EmptyState } from "@zentro/ui/components/empty-state";
-import { ErrorState } from "@zentro/ui/components/error-state";
-import { InlineAlert } from "@zentro/ui/components/inline-alert";
-import { Toolbar } from "@zentro/ui/components/toolbar";
-import { Button } from "@zentro/ui/shadcn/button";
+import { EmptyState } from "@kyren/ui/components/empty-state";
+import { ErrorState } from "@kyren/ui/components/error-state";
+import { InlineAlert } from "@kyren/ui/components/inline-alert";
+import { Toolbar } from "@kyren/ui/components/toolbar";
+import { Button } from "@kyren/ui/shadcn/button";
 import {
   Dialog,
   DialogContent,
@@ -13,17 +13,17 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@zentro/ui/shadcn/dialog";
+} from "@kyren/ui/shadcn/dialog";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@zentro/ui/shadcn/dropdown-menu";
-import { Input } from "@zentro/ui/shadcn/input";
-import { ScrollArea } from "@zentro/ui/shadcn/scroll-area";
-import { Separator } from "@zentro/ui/shadcn/separator";
+} from "@kyren/ui/shadcn/dropdown-menu";
+import { Input } from "@kyren/ui/shadcn/input";
+import { ScrollArea } from "@kyren/ui/shadcn/scroll-area";
+import { Separator } from "@kyren/ui/shadcn/separator";
 import {
   Sheet,
   SheetContent,
@@ -31,14 +31,14 @@ import {
   SheetHeader,
   SheetTitle,
   SheetTrigger,
-} from "@zentro/ui/shadcn/sheet";
-import { Skeleton } from "@zentro/ui/shadcn/skeleton";
+} from "@kyren/ui/shadcn/sheet";
+import { Skeleton } from "@kyren/ui/shadcn/skeleton";
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
-} from "@zentro/ui/shadcn/tooltip";
-import { toastSuccess, toastError } from "@zentro/ui/index";
+} from "@kyren/ui/shadcn/tooltip";
+import { toastSuccess, toastError } from "@kyren/ui/index";
 import { Block } from "./block";
 
 export function OverlaySpecimens() {

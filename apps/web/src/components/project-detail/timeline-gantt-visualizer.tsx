@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect, useMemo, useState, type FC } from "react";
-import { useTrpcClient } from "@zentro/api/react";
-import { cn } from "@zentro/ui/lib/utils";
+import { useTrpcClient } from "@kyren/api/react";
+import { cn } from "@kyren/ui/lib/utils";
 import type { WorkspaceTask } from "~/src/features/tasks/lib/types";
 
 import type { DependencyGraphData, TimelineScale } from "./timeline/types";

@@ -1,13 +1,13 @@
 import type { FC } from "react";
 import Link from "next/link";
 import { CopyIcon, LockIcon, MoreHorizontalIcon, Trash2Icon } from "lucide-react";
-import { Button } from "@zentro/ui/shadcn/button";
+import { Button } from "@kyren/ui/shadcn/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@zentro/ui/shadcn/dropdown-menu";
+} from "@kyren/ui/shadcn/dropdown-menu";
 import { ActorAvatar } from "~/src/components/actor-avatar";
 import { paths } from "~/src/lib/paths";
 import { scopeLabels } from "../use-catalog";

@@ -1,16 +1,16 @@
 "use client";
 
-import { Label } from "@zentro/ui/shadcn/label";
-import { Input } from "@zentro/ui/shadcn/input";
+import { Label } from "@kyren/ui/shadcn/label";
+import { Input } from "@kyren/ui/shadcn/input";
 import { PlusIcon, SearchIcon } from "lucide-react";
-import { cn } from "@zentro/ui/lib/utils";
-import { Button } from "@zentro/ui/shadcn/button";
+import { cn } from "@kyren/ui/lib/utils";
+import { Button } from "@kyren/ui/shadcn/button";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from "@zentro/ui/shadcn/popover";
-import { Skeleton } from "@zentro/ui/shadcn/skeleton";
+} from "@kyren/ui/shadcn/popover";
+import { Skeleton } from "@kyren/ui/shadcn/skeleton";
 import type { Candidate, Source } from "./types";
 import { kinds } from "./types";
 import { Glyph } from "./glyph";

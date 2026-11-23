@@ -1,7 +1,7 @@
 "use client";
 
-import { useTrpcClient } from "@zentro/api/react";
-import { Button } from "@zentro/ui/shadcn/button";
+import { useTrpcClient } from "@kyren/api/react";
+import { Button } from "@kyren/ui/shadcn/button";
 
 import { useAsyncData } from "~/src/lib/use-async-data";
 

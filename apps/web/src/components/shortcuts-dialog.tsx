@@ -6,8 +6,8 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-} from "@zentro/ui/shadcn/dialog";
-import { Kbd } from "@zentro/ui/components/kbd";
+} from "@kyren/ui/shadcn/dialog";
+import { Kbd } from "@kyren/ui/components/kbd";
 import { KeyboardIcon } from "lucide-react";
 
 type Props = {

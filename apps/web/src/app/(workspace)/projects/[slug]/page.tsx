@@ -2,7 +2,7 @@
 
 import { usePageCrumb } from "~/src/components/shell/breadcrumb-context";
 import { paths } from "~/src/lib/paths";
-import { useTrpcClient } from "@zentro/api/react";
+import { useTrpcClient } from "@kyren/api/react";
 import { ProjectDetail } from "~/src/lib/types";
 import { toWorkspaceTask } from "~/src/features/tasks/lib/to-workspace-task";
 import type { WorkspaceTask } from "~/src/features/tasks/lib/types";

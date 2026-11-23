@@ -1,8 +1,8 @@
 "use client";
 
-import { Button } from "@zentro/ui/shadcn/button";
+import { Button } from "@kyren/ui/shadcn/button";
 import { BarChart3Icon, CheckIcon } from "lucide-react";
-import { cn } from "@zentro/ui/lib/utils";
+import { cn } from "@kyren/ui/lib/utils";
 import type { MessageView } from "./message-item";
 
 /** A poll: options with live counts, who voted, and a close button. */

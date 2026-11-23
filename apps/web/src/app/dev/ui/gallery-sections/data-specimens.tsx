@@ -1,30 +1,30 @@
 "use client";
 
 import Link from "next/link";
-import { CountUp } from "@zentro/ui/components/count-up";
-import { FigureRow, StatCard } from "@zentro/ui/components/figure-row";
-import { Kbd } from "@zentro/ui/components/kbd";
-import { OrgAvatar } from "@zentro/ui/components/org-avatar";
-import { SectionCard } from "@zentro/ui/components/section-card";
-import { SectionNav } from "@zentro/ui/components/section-nav";
-import { Spinner } from "@zentro/ui/components/spinner";
-import { PriorityGlyph, StatusGlyph } from "@zentro/ui/components/status-glyph";
-import { Thread, ThreadItem } from "@zentro/ui/components/thread";
+import { CountUp } from "@kyren/ui/components/count-up";
+import { FigureRow, StatCard } from "@kyren/ui/components/figure-row";
+import { Kbd } from "@kyren/ui/components/kbd";
+import { OrgAvatar } from "@kyren/ui/components/org-avatar";
+import { SectionCard } from "@kyren/ui/components/section-card";
+import { SectionNav } from "@kyren/ui/components/section-nav";
+import { Spinner } from "@kyren/ui/components/spinner";
+import { PriorityGlyph, StatusGlyph } from "@kyren/ui/components/status-glyph";
+import { Thread, ThreadItem } from "@kyren/ui/components/thread";
 import {
   Avatar,
   AvatarFallback,
   AvatarGroup,
   AvatarGroupCount,
-} from "@zentro/ui/shadcn/avatar";
-import { Badge } from "@zentro/ui/shadcn/badge";
-import { Button } from "@zentro/ui/shadcn/button";
+} from "@kyren/ui/shadcn/avatar";
+import { Badge } from "@kyren/ui/shadcn/badge";
+import { Button } from "@kyren/ui/shadcn/button";
 import {
   Card,
   CardContent,
   CardHeader,
   CardTitle,
-} from "@zentro/ui/shadcn/card";
-import { Progress } from "@zentro/ui/shadcn/progress";
+} from "@kyren/ui/shadcn/card";
+import { Progress } from "@kyren/ui/shadcn/progress";
 import {
   Table,
   TableBody,
@@ -32,8 +32,8 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@zentro/ui/shadcn/table";
-import { Tabs, TabsList, TabsTrigger } from "@zentro/ui/shadcn/tabs";
+} from "@kyren/ui/shadcn/table";
+import { Tabs, TabsList, TabsTrigger } from "@kyren/ui/shadcn/tabs";
 import { Block } from "./block";
 
 const statuses = ["backlog", "todo", "in-progress", "review", "done"];

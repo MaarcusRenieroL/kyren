@@ -1,7 +1,7 @@
 import { timingSafeEqual } from "node:crypto";
 
-import { reportError, runChatJobs } from "@zentro/api/server";
-import { db } from "@zentro/db";
+import { reportError, runChatJobs } from "@kyren/api/server";
+import { db } from "@kyren/db";
 
 import { storage } from "../../../../lib/storage";
 import { maintenanceResponse } from "../../../../lib/maintenance";

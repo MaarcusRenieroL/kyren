@@ -1,6 +1,6 @@
-import { db } from "@zentro/db";
-import { eq } from "@zentro/db/drizzle";
-import { organizations } from "@zentro/db/schema";
+import { db } from "@kyren/db";
+import { eq } from "@kyren/db/drizzle";
+import { organizations } from "@kyren/db/schema";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 import {

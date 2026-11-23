@@ -64,7 +64,7 @@ function rank<T extends FocusCandidate>(task: T, now: Date): Ranked<T> {
  * Puts a person's open tasks in the order they should do them: overdue first
  * (longest overdue first), then due today, then high priority, then whatever
  * has waited longest. Within a tier a task already in progress goes first, so
- * Zentro never steals you away from something you have started.
+ * Kyren never steals you away from something you have started.
  */
 export function rankTasks<T extends FocusCandidate>(
   tasks: readonly T[],

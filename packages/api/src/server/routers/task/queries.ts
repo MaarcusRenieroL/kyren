@@ -8,7 +8,7 @@ import {
   isNull,
   ne,
   sql,
-} from "@zentro/db/drizzle";
+} from "@kyren/db/drizzle";
 import {
   members,
   projects,
@@ -17,7 +17,7 @@ import {
   teams,
   users,
   workLinks,
-} from "@zentro/db/schema";
+} from "@kyren/db/schema";
 
 import {
   getTaskByKeySchema,

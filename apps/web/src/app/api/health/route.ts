@@ -1,5 +1,5 @@
-import { sql } from "@zentro/db/drizzle";
-import { db } from "@zentro/db";
+import { sql } from "@kyren/db/drizzle";
+import { db } from "@kyren/db";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";

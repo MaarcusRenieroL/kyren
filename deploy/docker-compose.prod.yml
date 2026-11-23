@@ -1,4 +1,4 @@
-# Zentro on one VM: Postgres, migrations, the app, a cron runner and Caddy
+# Kyren on one VM: Postgres, migrations, the app, a cron runner and Caddy
 # for HTTPS. From the repo root:
 #   docker compose -f deploy/docker-compose.prod.yml --env-file deploy/.env --profile db up -d --build
 # Leave out `--profile db` and set DATABASE_URL to use an outside database

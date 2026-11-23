@@ -32,7 +32,7 @@ export async function sendOrgInviteEmail(
   await send({
     from: authEnv.EMAIL_FROM,
     to: invitation.email,
-    subject: `You're invited to join ${organizationName} on Zentro`,
+    subject: `You're invited to join ${organizationName} on Kyren`,
     html: `
       <div style="background:#0a0a0a;padding:40px 20px;color:#e5e7eb;font-family: Inter, Arial, Sans-serif">
         <table style="
@@ -49,7 +49,7 @@ export async function sendOrgInviteEmail(
               </h1>
 
               <p style="margin:0 0 16px;color:#d1d5db;line-height:1.5;">
-                ${escapeHtml(inviterName)} invited you to join <strong>${escapeHtml(organizationName)}</strong> on Zentro.
+                ${escapeHtml(inviterName)} invited you to join <strong>${escapeHtml(organizationName)}</strong> on Kyren.
               </p>
 
               <p style="margin:0 0 24px;color:#d1d5db;line-height:1.5;">

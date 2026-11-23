@@ -68,7 +68,7 @@ test.describe("Onboarding, Stepper Walkthrough, and AI Copilot @dashboard", () =
 
     const copilotSheet = page.getByRole("dialog");
     await expect(copilotSheet).toBeVisible();
-    await expect(copilotSheet.getByText("Zentro Copilot")).toBeVisible();
+    await expect(copilotSheet.getByText("Kyren Copilot")).toBeVisible();
 
     // Check tabs
     await expect(

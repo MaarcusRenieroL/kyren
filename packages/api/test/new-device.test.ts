@@ -1,8 +1,8 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
-import { isNewDevice } from "@zentro/auth";
-import { insertActivityEvent } from "@zentro/audit/server";
-import { db } from "@zentro/db";
+import { isNewDevice } from "@kyren/auth";
+import { insertActivityEvent } from "@kyren/audit/server";
+import { db } from "@kyren/db";
 
 import { World } from "./helpers";
 

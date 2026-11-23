@@ -10,7 +10,7 @@ import {
   NewspaperIcon,
   SearchIcon,
 } from "lucide-react";
-import { cn } from "@zentro/ui/lib/utils";
+import { cn } from "@kyren/ui/lib/utils";
 import { Count, row } from "./channel-row";
 
 export function SidebarNavLinks({

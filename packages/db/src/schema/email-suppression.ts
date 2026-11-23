@@ -1,7 +1,7 @@
 import { pgTable, text, timestamp } from "drizzle-orm/pg-core";
 
 /**
- * Addresses Zentro no longer emails: they bounced hard or reported a message
+ * Addresses Kyren no longer emails: they bounced hard or reported a message
  * as spam. Sending to them again hurts deliverability for everyone.
  */
 export const emailSuppressions = pgTable("emailSuppression", {

@@ -1,10 +1,10 @@
 {
-  "extends": "@zentro/typescript-config/nextjs.json",
+  "extends": "@kyren/typescript-config/nextjs.json",
   "compilerOptions": {
     "baseUrl": ".",
     "paths": {
       "~/*": ["./*"],
-      "@zentro/ui/*": ["../../packages/ui/src/*"]
+      "@kyren/ui/*": ["../../packages/ui/src/*"]
     },
     "plugins": [
       {

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import type { inferRouterOutputs } from "@trpc/server";
-import type { AppRouter } from "@zentro/api/server";
+import type { AppRouter } from "@kyren/api/server";
 
 import { MessageBody, relativeAgo } from "./message-body";
 import { Avatar } from "./message-item";

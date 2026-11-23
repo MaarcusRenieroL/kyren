@@ -1,5 +1,5 @@
-import { db as database } from "@zentro/db";
-import { and, eq, inArray, isNull, sql } from "@zentro/db/drizzle";
+import { db as database } from "@kyren/db";
+import { and, eq, inArray, isNull, sql } from "@kyren/db/drizzle";
 import {
   chatChannels,
   chatMembers,
@@ -8,7 +8,7 @@ import {
   members,
   notificationPreferences,
   users,
-} from "@zentro/db/schema";
+} from "@kyren/db/schema";
 
 import { mentionedMemberIds, plainBody } from "./chat";
 import { enqueueJob, registerJobHandler } from "./jobs";
@@ -46,7 +46,7 @@ async function send(mail: MentionMail) {
   // Reserved test addresses never receive real mail.
   if (mail.to.toLowerCase().endsWith(".test")) return;
 
-  const { sendChatMentionEmail } = await import("@zentro/auth");
+  const { sendChatMentionEmail } = await import("@kyren/auth");
 
   await sendChatMentionEmail(mail);
 }

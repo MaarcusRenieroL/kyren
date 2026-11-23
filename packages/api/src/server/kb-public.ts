@@ -1,7 +1,7 @@
-import { and, asc, desc, eq, isNull } from "@zentro/db/drizzle";
-import { kbArticles, organizations } from "@zentro/db/schema";
+import { and, asc, desc, eq, isNull } from "@kyren/db/drizzle";
+import { kbArticles, organizations } from "@kyren/db/schema";
 
-import type { db as database } from "@zentro/db";
+import type { db as database } from "@kyren/db";
 
 import { ticketsOpenToPublic } from "./tickets-public";
 

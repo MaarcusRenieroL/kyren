@@ -2,10 +2,10 @@
 
 import { useEffect, useState } from "react";
 
-import { useTrpcClient } from "@zentro/api/react";
-import type { AppRouter } from "@zentro/api/server";
+import { useTrpcClient } from "@kyren/api/react";
+import type { AppRouter } from "@kyren/api/server";
 import type { inferRouterOutputs } from "@trpc/server";
-import { InlineAlert } from "@zentro/ui/components/inline-alert";
+import { InlineAlert } from "@kyren/ui/components/inline-alert";
 
 type Notice = inferRouterOutputs<AppRouter>["announcement"]["active"][number];
 

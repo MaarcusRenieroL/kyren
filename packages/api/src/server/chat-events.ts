@@ -1,4 +1,4 @@
-import { and, eq, isNull, sql } from "@zentro/db/drizzle";
+import { and, eq, isNull, sql } from "@kyren/db/drizzle";
 import {
   chatChannels,
   chatFeedRules,
@@ -8,7 +8,7 @@ import {
   tasks,
   users,
   workLinks,
-} from "@zentro/db/schema";
+} from "@kyren/db/schema";
 
 import type { DbHandle } from "./access";
 import { normalizeChannelName } from "./chat";

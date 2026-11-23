@@ -1,16 +1,16 @@
 "use client";
 
-import { Button } from "@zentro/ui/shadcn/button";
+import { Button } from "@kyren/ui/shadcn/button";
 import { FC, ReactNode, useId, useMemo, useState } from "react";
 import { CheckIcon, ChevronDownIcon, PlusIcon } from "lucide-react";
 
-import { cn } from "@zentro/ui/lib/utils";
-import { Input } from "@zentro/ui/shadcn/input";
+import { cn } from "@kyren/ui/lib/utils";
+import { Input } from "@kyren/ui/shadcn/input";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from "@zentro/ui/shadcn/popover";
+} from "@kyren/ui/shadcn/popover";
 
 import { OrgAvatar } from "./org-avatar";
 

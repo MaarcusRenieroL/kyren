@@ -1,5 +1,5 @@
-import { and, eq, inArray, sql } from "@zentro/db/drizzle";
-import { members, ticketAssignmentRules, tickets } from "@zentro/db/schema";
+import { and, eq, inArray, sql } from "@kyren/db/drizzle";
+import { members, ticketAssignmentRules, tickets } from "@kyren/db/schema";
 
 import type { DbHandle } from "./access";
 import { awayUntilByMember } from "./away";

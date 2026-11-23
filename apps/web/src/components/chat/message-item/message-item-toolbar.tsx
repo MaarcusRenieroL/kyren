@@ -1,8 +1,8 @@
 "use client";
 
 import { MessageSquareIcon, SmilePlusIcon } from "lucide-react";
-import { cn } from "@zentro/ui/lib/utils";
-import { Button } from "@zentro/ui/shadcn/button";
+import { cn } from "@kyren/ui/lib/utils";
+import { Button } from "@kyren/ui/shadcn/button";
 import { MessageActionsMenu } from "./message-actions-menu";
 import { ReactionPicker } from "./message-reaction-picker";
 import {

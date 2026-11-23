@@ -9,8 +9,8 @@ import {
   lt,
   lte,
   sql,
-} from "@zentro/db/drizzle";
-import { chatMessages } from "@zentro/db/schema";
+} from "@kyren/db/drizzle";
+import { chatMessages } from "@kyren/db/schema";
 import { z } from "zod";
 
 import { readableChannel } from "../../chat";

@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { Textarea } from "@zentro/ui/shadcn/textarea";
+import { Textarea } from "@kyren/ui/shadcn/textarea";
 import type { PointerEvent as ReactPointerEvent, RefObject } from "react";
 import type { Box, El } from "../canvas/model";
 import { Shape } from "../canvas/shape";

@@ -23,20 +23,20 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from "@zentro/ui/shadcn/alert-dialog";
+} from "@kyren/ui/shadcn/alert-dialog";
 import type { LibraryFile } from "./library/types";
 
-import { EmptyState } from "@zentro/ui/components/empty-state";
-import { PageHeader } from "@zentro/ui/components/page-header";
-import { Button } from "@zentro/ui/shadcn/button";
-import { Input } from "@zentro/ui/shadcn/input";
+import { EmptyState } from "@kyren/ui/components/empty-state";
+import { PageHeader } from "@kyren/ui/components/page-header";
+import { Button } from "@kyren/ui/shadcn/button";
+import { Input } from "@kyren/ui/shadcn/input";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@zentro/ui/shadcn/dropdown-menu";
+} from "@kyren/ui/shadcn/dropdown-menu";
 
 import { usePermission } from "~/src/components/permissions/permission-provider";
 import { formatSize, type FileSort } from "./library/types";
@@ -50,7 +50,7 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@zentro/ui/shadcn/select";
+} from "@kyren/ui/shadcn/select";
 
 export function FilesLibrary() {
   const [deletion, setDeletion] = useState<"folder" | LibraryFile | null>(null);

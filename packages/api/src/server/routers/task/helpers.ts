@@ -1,6 +1,6 @@
 import { TRPCError } from "@trpc/server";
-import { and, eq, isNull } from "@zentro/db/drizzle";
-import { tasks } from "@zentro/db/schema";
+import { and, eq, isNull } from "@kyren/db/drizzle";
+import { tasks } from "@kyren/db/schema";
 
 import { memberName, postTaskEvent } from "../../chat-events";
 import { runTaskAutomations } from "../../automations/engine";

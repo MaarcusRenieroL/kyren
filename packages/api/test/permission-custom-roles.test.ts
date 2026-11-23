@@ -1,7 +1,7 @@
-import { ensureSystemRoles } from "@zentro/auth";
-import { db } from "@zentro/db";
-import { and, eq } from "@zentro/db/drizzle";
-import { members, roles, teamMembers } from "@zentro/db/schema";
+import { ensureSystemRoles } from "@kyren/auth";
+import { db } from "@kyren/db";
+import { and, eq } from "@kyren/db/drizzle";
+import { members, roles, teamMembers } from "@kyren/db/schema";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 import { World, type TestOrg } from "./helpers";

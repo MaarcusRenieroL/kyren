@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 
-import { useTrpcClient } from "@zentro/api/react";
+import { useTrpcClient } from "@kyren/api/react";
 
 export type CatalogEntry = {
   key: string;

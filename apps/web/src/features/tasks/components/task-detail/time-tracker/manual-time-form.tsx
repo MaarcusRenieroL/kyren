@@ -1,8 +1,8 @@
 "use client";
 
-import { Input } from "@zentro/ui/shadcn/input";
+import { Input } from "@kyren/ui/shadcn/input";
 import { useState } from "react";
-import { Button } from "@zentro/ui/shadcn/button";
+import { Button } from "@kyren/ui/shadcn/button";
 
 type Props = {
   isLogging: boolean;

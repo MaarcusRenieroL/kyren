@@ -2,16 +2,16 @@
 
 import { useRef, useState, type FormEvent } from "react";
 import { PaperclipIcon, XIcon } from "lucide-react";
-import { Button } from "@zentro/ui/shadcn/button";
+import { Button } from "@kyren/ui/shadcn/button";
 import {
   DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@zentro/ui/shadcn/dialog";
-import { Input } from "@zentro/ui/shadcn/input";
-import { Label } from "@zentro/ui/shadcn/label";
-import { Textarea } from "@zentro/ui/shadcn/textarea";
+} from "@kyren/ui/shadcn/dialog";
+import { Input } from "@kyren/ui/shadcn/input";
+import { Label } from "@kyren/ui/shadcn/label";
+import { Textarea } from "@kyren/ui/shadcn/textarea";
 import { fileSize } from "~/src/components/chat/message-body";
 import {
   type Attachment,

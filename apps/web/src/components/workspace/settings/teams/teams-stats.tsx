@@ -1,7 +1,7 @@
 "use client";
 
 import { PlusIcon } from "lucide-react";
-import { Button } from "@zentro/ui/components/shadcn/button";
+import { Button } from "@kyren/ui/components/shadcn/button";
 import { sortMembers, type AvailableMember, type Team, type TeamScopeCounts } from "./teams-types";
 
 type TeamsStatsProps = {

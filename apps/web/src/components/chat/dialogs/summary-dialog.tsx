@@ -2,15 +2,15 @@
 
 import { useEffect, useState } from "react";
 import { SparklesIcon } from "lucide-react";
-import { useTrpcClient } from "@zentro/api/react";
+import { useTrpcClient } from "@kyren/api/react";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from "@zentro/ui/shadcn/dialog";
-import { Skeleton } from "@zentro/ui/shadcn/skeleton";
+} from "@kyren/ui/shadcn/dialog";
+import { Skeleton } from "@kyren/ui/shadcn/skeleton";
 
 import { MessageBody } from "../message-body";
 

@@ -6,7 +6,7 @@ import {
   Trash2Icon,
 } from "lucide-react";
 import type { inferRouterOutputs } from "@trpc/server";
-import type { AppRouter } from "@zentro/api/server";
+import type { AppRouter } from "@kyren/api/server";
 
 export type Outputs = inferRouterOutputs<AppRouter>["mail"];
 export type Row = Outputs["list"]["items"][number];

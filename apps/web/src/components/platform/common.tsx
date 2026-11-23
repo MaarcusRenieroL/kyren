@@ -2,7 +2,7 @@
 
 import type { ReactNode } from "react";
 
-import { InlineAlert } from "@zentro/ui/components/inline-alert";
+import { InlineAlert } from "@kyren/ui/components/inline-alert";
 import { errorMessage } from "~/src/lib/use-async-data";
 
 const dateFormat = new Intl.DateTimeFormat(undefined, {

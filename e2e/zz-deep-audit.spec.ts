@@ -6,8 +6,8 @@ import { test } from "./fixtures";
 import { query } from "./helpers";
 
 const OUT =
-  "/private/tmp/claude-501/-Users-maarcusrenierol-Desktop-projects-zentro/53cc9eaa-b8de-42c8-aa5e-347d667dd338/scratchpad/audit";
-const PASSWORD = "Zentro-demo-1234";
+  "/private/tmp/claude-501/-Users-maarcusrenierol-Desktop-projects-kyren/53cc9eaa-b8de-42c8-aa5e-347d667dd338/scratchpad/audit";
+const PASSWORD = "Kyren-demo-1234";
 const ORG = "5cba4782-7a7d-4b3b-8ffe-0222125241fc";
 
 const one = async (sql: string, params: unknown[] = []) =>

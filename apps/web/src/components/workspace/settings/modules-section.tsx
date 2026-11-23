@@ -4,13 +4,13 @@ import { useRouter } from "next/navigation";
 import { FC, useCallback, useEffect, useState } from "react";
 import { LinkIcon } from "lucide-react";
 
-import { useTrpcClient } from "@zentro/api/react";
-import { TintChip } from "@zentro/ui/components/tile";
-import { toastError, toastSuccess } from "@zentro/ui/index";
-import { cn } from "@zentro/ui/lib/utils";
-import { Button } from "@zentro/ui/shadcn/button";
-import { Skeleton } from "@zentro/ui/shadcn/skeleton";
-import { Switch } from "@zentro/ui/shadcn/switch";
+import { useTrpcClient } from "@kyren/api/react";
+import { TintChip } from "@kyren/ui/components/tile";
+import { toastError, toastSuccess } from "@kyren/ui/index";
+import { cn } from "@kyren/ui/lib/utils";
+import { Button } from "@kyren/ui/shadcn/button";
+import { Skeleton } from "@kyren/ui/shadcn/skeleton";
+import { Switch } from "@kyren/ui/shadcn/switch";
 
 import { getModuleIcon } from "~/src/lib/module-icons";
 import { SettingsHeader } from "./settings-kit";

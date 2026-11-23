@@ -1,7 +1,7 @@
 import type { FC } from "react";
 import { FlameIcon } from "lucide-react";
-import { StatusGlyph } from "@zentro/ui/components/status-glyph";
-import { cn } from "@zentro/ui/lib/utils";
+import { StatusGlyph } from "@kyren/ui/components/status-glyph";
+import { cn } from "@kyren/ui/lib/utils";
 import { ActorAvatar } from "~/src/components/actor-avatar";
 import type { TimeBucket, TimelineTask } from "./types";
 

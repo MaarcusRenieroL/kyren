@@ -1,11 +1,11 @@
-import { and, eq, isNull, lte, sql } from "@zentro/db/drizzle";
+import { and, eq, isNull, lte, sql } from "@kyren/db/drizzle";
 import {
   chatChannels,
   chatMembers,
   chatMessages,
   chatSaved,
   chatScheduled,
-} from "@zentro/db/schema";
+} from "@kyren/db/schema";
 
 import type { DbHandle } from "./access";
 import {

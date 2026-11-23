@@ -4,12 +4,12 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { ArrowLeftIcon } from "lucide-react";
 
-import { useTrpcClient } from "@zentro/api/react";
-import { EmptyState } from "@zentro/ui/components/empty-state";
-import { PageHeader } from "@zentro/ui/components/page-header";
-import { Button } from "@zentro/ui/shadcn/button";
-import { Textarea } from "@zentro/ui/shadcn/textarea";
-import { toastError, toastSuccess } from "@zentro/ui/index";
+import { useTrpcClient } from "@kyren/api/react";
+import { EmptyState } from "@kyren/ui/components/empty-state";
+import { PageHeader } from "@kyren/ui/components/page-header";
+import { Button } from "@kyren/ui/shadcn/button";
+import { Textarea } from "@kyren/ui/shadcn/textarea";
+import { toastError, toastSuccess } from "@kyren/ui/index";
 
 import { useCurrentUserId } from "~/src/components/permissions/permission-provider";
 import { usePageCrumb } from "~/src/components/shell/breadcrumb-context";

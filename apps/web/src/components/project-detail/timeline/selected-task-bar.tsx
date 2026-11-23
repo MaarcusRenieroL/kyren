@@ -1,7 +1,7 @@
 import type { FC } from "react";
 import Link from "next/link";
 import { CalendarIcon } from "lucide-react";
-import { StatusGlyph } from "@zentro/ui/components/status-glyph";
+import { StatusGlyph } from "@kyren/ui/components/status-glyph";
 import { paths } from "~/src/lib/paths";
 import type { TimelineTask } from "./types";
 

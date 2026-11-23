@@ -1,7 +1,7 @@
-import { eq } from "@zentro/db/drizzle";
-import { organizationModules } from "@zentro/db/schema";
-import type { db as database } from "@zentro/db";
-import { resolveEnabled, type ModuleId } from "@zentro/modules";
+import { eq } from "@kyren/db/drizzle";
+import { organizationModules } from "@kyren/db/schema";
+import type { db as database } from "@kyren/db";
+import { resolveEnabled, type ModuleId } from "@kyren/modules";
 
 type Database = typeof database;
 

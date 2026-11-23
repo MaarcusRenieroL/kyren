@@ -5,10 +5,10 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { PlusIcon, SearchIcon } from "lucide-react";
 
-import { useTrpcClient } from "@zentro/api/react";
-import type { AppRouter } from "@zentro/api/server";
+import { useTrpcClient } from "@kyren/api/react";
+import type { AppRouter } from "@kyren/api/server";
 import type { inferRouterOutputs } from "@trpc/server";
-import { EmptyState } from "@zentro/ui/components/empty-state";
+import { EmptyState } from "@kyren/ui/components/empty-state";
 import { SlaBadge } from "./sla-badge";
 import { SlaTargets } from "./sla-targets";
 import { IntakeForms } from "./intake-forms";
@@ -16,10 +16,10 @@ import { KnowledgeBase } from "./knowledge-base";
 import { SavedRepliesPanel } from "./saved-replies";
 import { SupportInbox } from "./support-inbox";
 import { TicketAssignment } from "./ticket-assignment";
-import { PageHeader } from "@zentro/ui/components/page-header";
+import { PageHeader } from "@kyren/ui/components/page-header";
 import { usePermission } from "~/src/components/permissions/permission-provider";
-import { Button } from "@zentro/ui/shadcn/button";
-import { Input } from "@zentro/ui/shadcn/input";
+import { Button } from "@kyren/ui/shadcn/button";
+import { Input } from "@kyren/ui/shadcn/input";
 
 import {
   awayLabel,

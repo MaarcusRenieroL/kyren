@@ -1,6 +1,6 @@
 import { TRPCError } from "@trpc/server";
-import { and, desc, eq, isNull, sql } from "@zentro/db/drizzle";
-import { docVersions, docs, members, users } from "@zentro/db/schema";
+import { and, desc, eq, isNull, sql } from "@kyren/db/drizzle";
+import { docVersions, docs, members, users } from "@kyren/db/schema";
 
 import {
   docVersionSchema,

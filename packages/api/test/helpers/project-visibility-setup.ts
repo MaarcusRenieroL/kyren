@@ -1,10 +1,10 @@
-import { db } from "@zentro/db";
+import { db } from "@kyren/db";
 import {
   activityEvents,
   docComments,
   taskComments,
   teamMembers,
-} from "@zentro/db/schema";
+} from "@kyren/db/schema";
 import { type World } from "./world";
 
 export type ScenarioConfig = {

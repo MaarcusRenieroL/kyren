@@ -1,18 +1,18 @@
 "use client";
 
-import { Label as ShadcnLabel } from "@zentro/ui/shadcn/label";
-import { Input } from "@zentro/ui/shadcn/input";
+import { Label as ShadcnLabel } from "@kyren/ui/shadcn/label";
+import { Input } from "@kyren/ui/shadcn/input";
 import type { ReactNode } from "react";
 import { Control, Controller } from "react-hook-form";
-import type { CreateTaskFormValues } from "@zentro/api/types/zod-schema";
-import { RichTextEditor } from "@zentro/ui/components/rich-text-editor";
+import type { CreateTaskFormValues } from "@kyren/api/types/zod-schema";
+import { RichTextEditor } from "@kyren/ui/components/rich-text-editor";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@zentro/ui/shadcn/select";
+} from "@kyren/ui/shadcn/select";
 
 import { TaskMetaFields } from "./task-meta-fields";
 import {

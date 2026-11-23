@@ -1,10 +1,10 @@
 "use client";
 
 import { FC, useCallback, useEffect, useState } from "react";
-import { useTrpcClient } from "@zentro/api/react";
-import { toastError, toastSuccess } from "@zentro/ui/index";
-import { Button } from "@zentro/ui/shadcn/button";
-import { Skeleton } from "@zentro/ui/shadcn/skeleton";
+import { useTrpcClient } from "@kyren/api/react";
+import { toastError, toastSuccess } from "@kyren/ui/index";
+import { Button } from "@kyren/ui/shadcn/button";
+import { Skeleton } from "@kyren/ui/shadcn/skeleton";
 import { usePermission } from "~/src/components/permissions/permission-provider";
 import { trpcResult } from "~/src/lib/trpc-result";
 

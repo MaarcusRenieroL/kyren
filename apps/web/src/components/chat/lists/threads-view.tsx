@@ -3,11 +3,11 @@
 import { useCallback, useEffect, useState } from "react";
 import { MessageSquareIcon } from "lucide-react";
 import type { inferRouterOutputs } from "@trpc/server";
-import type { AppRouter } from "@zentro/api/server";
-import { useTrpcClient } from "@zentro/api/react";
-import { cn } from "@zentro/ui/lib/utils";
-import { toastError } from "@zentro/ui/index";
-import { Button } from "@zentro/ui/shadcn/button";
+import type { AppRouter } from "@kyren/api/server";
+import { useTrpcClient } from "@kyren/api/react";
+import { cn } from "@kyren/ui/lib/utils";
+import { toastError } from "@kyren/ui/index";
+import { Button } from "@kyren/ui/shadcn/button";
 import { useChatSidebar } from "../chat-store";
 import { MessageBody, relativeAgo } from "../message-body";
 import { Avatar } from "../message-item";

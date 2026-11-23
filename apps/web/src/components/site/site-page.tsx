@@ -6,7 +6,7 @@
 // the markup is in site-template.tsx and the content in site-data.ts.
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { authClient } from "@zentro/auth/client";
+import { authClient } from "@kyren/auth/client";
 import { clamp } from "./site-data";
 import { SiteTemplate } from "./site-template";
 import { buildSitePageVals } from "./page-builder/build-site-page-vals";
@@ -176,6 +176,6 @@ export function SitePage(props: Props) {
     chooseMode,
   });
 
-  // Signed in already: "Open Zentro" instead of "Sign in" / "Get started".
+  // Signed in already: "Open Kyren" instead of "Sign in" / "Get started".
   return <SiteTemplate v={{ ...vals, signedIn }} />;
 }

@@ -1,4 +1,4 @@
-import { FormSkeleton, TableSkeleton } from "@zentro/ui/components/skeletons";
+import { FormSkeleton, TableSkeleton } from "@kyren/ui/components/skeletons";
 
 // The settings frame is already on screen; this stands in for one page.
 export default function Loading() {

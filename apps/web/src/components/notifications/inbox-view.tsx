@@ -1,17 +1,17 @@
 "use client";
 
-import { Switch } from "@zentro/ui/shadcn/switch";
-import { Label } from "@zentro/ui/shadcn/label";
+import { Switch } from "@kyren/ui/shadcn/switch";
+import { Label } from "@kyren/ui/shadcn/label";
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { CheckIcon } from "lucide-react";
 
-import { cn } from "@zentro/ui/lib/utils";
-import { toastSuccess } from "@zentro/ui/lib/toast";
-import { EmptyState } from "@zentro/ui/components/empty-state";
-import { ErrorState } from "@zentro/ui/components/error-state";
-import { Button } from "@zentro/ui/shadcn/button";
-import { Skeleton } from "@zentro/ui/shadcn/skeleton";
+import { cn } from "@kyren/ui/lib/utils";
+import { toastSuccess } from "@kyren/ui/lib/toast";
+import { EmptyState } from "@kyren/ui/components/empty-state";
+import { ErrorState } from "@kyren/ui/components/error-state";
+import { Button } from "@kyren/ui/shadcn/button";
+import { Skeleton } from "@kyren/ui/shadcn/skeleton";
 
 import { paths } from "~/src/lib/paths";
 

@@ -1,4 +1,4 @@
-import { listModules } from "@zentro/modules";
+import { listModules } from "@kyren/modules";
 import { describe, expect, it } from "vitest";
 
 import {

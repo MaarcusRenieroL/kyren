@@ -2,14 +2,14 @@ import { randomUUID } from "node:crypto";
 
 import { afterAll, describe, expect, it } from "vitest";
 
-import { db } from "@zentro/db";
-import { and, eq } from "@zentro/db/drizzle";
+import { db } from "@kyren/db";
+import { and, eq } from "@kyren/db/drizzle";
 import {
   apiKeys,
   members,
   permissionOverrides,
   roleAssignments,
-} from "@zentro/db/schema";
+} from "@kyren/db/schema";
 
 import { World } from "./helpers";
 

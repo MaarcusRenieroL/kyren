@@ -4,8 +4,8 @@ import * as React from "react";
 import { cva, type VariantProps } from "class-variance-authority";
 import { Tabs as TabsPrimitive } from "radix-ui";
 
-import { cn } from "@zentro/ui/lib/utils";
-import { useActiveBox } from "@zentro/ui/lib/use-active-box";
+import { cn } from "@kyren/ui/lib/utils";
+import { useActiveBox } from "@kyren/ui/lib/use-active-box";
 
 function Tabs({
   className,

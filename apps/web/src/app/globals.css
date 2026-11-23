@@ -1,4 +1,4 @@
-@import "@zentro/ui/globals.css";
+@import "@kyren/ui/globals.css";
 
 @source "../../../../packages/ui/src/**/*.{ts,tsx}";
 

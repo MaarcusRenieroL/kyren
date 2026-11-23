@@ -1,6 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 
-import { auth } from "@zentro/auth";
+import { auth } from "@kyren/auth";
 
 import { paths } from "~/src/lib/paths";
 
@@ -15,7 +15,7 @@ function isOnboardingRoute(pathname: string) {
   );
 }
 
-// NextURL keeps the base path (e.g. /zentro behind the gateway); new URL() would drop it.
+// NextURL keeps the base path (e.g. /kyren behind the gateway); new URL() would drop it.
 function appUrl(request: NextRequest, path: string) {
   const url = request.nextUrl.clone();
   const target = new URL(path, "http://app.invalid");

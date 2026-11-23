@@ -1,14 +1,14 @@
 "use client";
 
-import { Label } from "@zentro/ui/shadcn/label";
+import { Label } from "@kyren/ui/shadcn/label";
 import { useCallback, useEffect, useState, type FormEvent } from "react";
 
-import { useTrpcClient } from "@zentro/api/react";
-import type { AppRouter } from "@zentro/api/server";
+import { useTrpcClient } from "@kyren/api/react";
+import type { AppRouter } from "@kyren/api/server";
 import type { inferRouterOutputs } from "@trpc/server";
-import { toastError, toastSuccess } from "@zentro/ui/index";
-import { Button } from "@zentro/ui/shadcn/button";
-import { Input } from "@zentro/ui/shadcn/input";
+import { toastError, toastSuccess } from "@kyren/ui/index";
+import { Button } from "@kyren/ui/shadcn/button";
+import { Input } from "@kyren/ui/shadcn/input";
 
 import { Shell } from "./admin-console";
 
@@ -91,7 +91,7 @@ export function Webhooks() {
             Webhooks
           </h2>
           <p className="text-sm text-ink-2">
-            Zentro sends a signed POST to your address whenever something
+            Kyren sends a signed POST to your address whenever something
             happens. It says what happened and to which item, not the content.
             Use an API key to read the details.
           </p>
@@ -102,7 +102,7 @@ export function Webhooks() {
             <span className="text-ink-2">Address</span>
             <Input
               type="url"
-              placeholder="https://example.com/hooks/zentro"
+              placeholder="https://example.com/hooks/kyren"
               value={url}
               maxLength={500}
               onChange={(event) => setUrl(event.target.value)}

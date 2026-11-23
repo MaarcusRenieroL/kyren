@@ -11,7 +11,7 @@ import {
   or,
   sql,
   type SQL,
-} from "@zentro/db/drizzle";
+} from "@kyren/db/drizzle";
 import {
   files,
   mailAttachments,
@@ -19,7 +19,7 @@ import {
   mailRecipients,
   members,
   users,
-} from "@zentro/db/schema";
+} from "@kyren/db/schema";
 import { z } from "zod";
 import { currentMemberId } from "../../chat";
 import { likePattern } from "../../like";

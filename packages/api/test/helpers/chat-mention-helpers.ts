@@ -1,6 +1,6 @@
-import { db } from "@zentro/db";
-import { and, eq, sql } from "@zentro/db/drizzle";
-import { jobs } from "@zentro/db/schema";
+import { db } from "@kyren/db";
+import { and, eq, sql } from "@kyren/db/drizzle";
+import { jobs } from "@kyren/db/schema";
 import { type MentionMail } from "../../src/server/chat-mention-mail";
 import { World } from "./world";
 

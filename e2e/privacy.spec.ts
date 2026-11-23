@@ -18,7 +18,7 @@ test("a person downloads their data, and the only owner cannot delete themselves
 
   const file = await download;
 
-  expect(file.suggestedFilename()).toBe("my-zentro-data.json");
+  expect(file.suggestedFilename()).toBe("my-kyren-data.json");
 
   await page.getByLabel("Type your email to confirm").fill(email);
   await page.getByRole("button", { name: "Delete my account" }).click();

@@ -5,11 +5,11 @@ import {
   getSessionFromCtx,
 } from "better-auth/api";
 import { drizzleAdapter } from "@better-auth/drizzle-adapter";
-import { db } from "@zentro/db";
-import { hit } from "@zentro/db/rate-limit";
-import { desc, eq } from "@zentro/db/drizzle";
-import * as schema from "@zentro/db/schema";
-import { clientIpHeaders } from "@zentro/audit/server";
+import { db } from "@kyren/db";
+import { hit } from "@kyren/db/rate-limit";
+import { desc, eq } from "@kyren/db/drizzle";
+import * as schema from "@kyren/db/schema";
+import { clientIpHeaders } from "@kyren/audit/server";
 import { userAdditionalFields } from "./additional-fields";
 import { auditAfter, auditBefore } from "./audit-hooks";
 import { emailOTP, organization, twoFactor } from "better-auth/plugins";
@@ -189,7 +189,7 @@ export const auth = betterAuth({
 
   advanced: {
     // Rate limits key on the client address, so read it only from headers
-    // the proxy in front of Zentro sets itself (CLIENT_IP_HEADERS).
+    // the proxy in front of Kyren sets itself (CLIENT_IP_HEADERS).
     ipAddress: {
       ipAddressHeaders: clientIpHeaders(),
     },
@@ -200,7 +200,7 @@ export const auth = betterAuth({
 
   plugins: [
     // Opt-in authenticator-app codes. Backup codes cover a lost phone.
-    twoFactor({ issuer: "Zentro" }),
+    twoFactor({ issuer: "Kyren" }),
     organization({
       ac: betterAuthAc,
       roles: betterAuthRoles,
@@ -210,7 +210,7 @@ export const auth = betterAuth({
       },
       invitationExpiresIn: 60 * 60 * 24 * 7,
       // Better Auth caps every organization at 100 members by default, and
-      // uses the same number as the page size of member lists. Zentro's own
+      // uses the same number as the page size of member lists. Kyren's own
       // seat limit (`assertSeatAvailable`) is the real cap.
       membershipLimit: Number.MAX_SAFE_INTEGER,
       organizationLimit: (user) => ownsTooManyOrganizations(user.id),

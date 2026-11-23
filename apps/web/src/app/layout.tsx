@@ -3,12 +3,12 @@ import { cookies, headers } from "next/headers";
 import localFont from "next/font/local";
 import { JSX } from "react";
 
-import { Toaster } from "@zentro/ui/shadcn/sonner";
+import { Toaster } from "@kyren/ui/shadcn/sonner";
 import {
   densityCookie,
   parseDensity,
   themeColors,
-} from "@zentro/ui/lib/theme-colors";
+} from "@kyren/ui/lib/theme-colors";
 
 import "./globals.css";
 import { ThemeProvider } from "../components/providers/theme-provider";
@@ -58,8 +58,8 @@ export const metadata: Metadata = {
     process.env.NEXT_PUBLIC_BASE_URL ?? "http://localhost:3000",
   ),
   title: {
-    default: "Zentro",
-    template: "%s · Zentro",
+    default: "Kyren",
+    template: "%s · Kyren",
   },
   description:
     "Projects, tasks and docs in one workspace, with roles and an audit log that go all the way down.",

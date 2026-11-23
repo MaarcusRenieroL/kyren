@@ -1,6 +1,6 @@
 import { TRPCError } from "@trpc/server";
-import { and, desc, eq, isNull } from "@zentro/db/drizzle";
-import { apiKeys, users } from "@zentro/db/schema";
+import { and, desc, eq, isNull } from "@kyren/db/drizzle";
+import { apiKeys, users } from "@kyren/db/schema";
 import { z } from "zod";
 
 import { generateApiKey } from "../api-keys";

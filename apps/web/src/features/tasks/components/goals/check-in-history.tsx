@@ -1,8 +1,8 @@
 "use client";
 
-import { Button } from "@zentro/ui/shadcn/button";
+import { Button } from "@kyren/ui/shadcn/button";
 import { useState } from "react";
-import { useTrpcClient } from "@zentro/api/react";
+import { useTrpcClient } from "@kyren/api/react";
 import { useAsyncData } from "~/src/lib/use-async-data";
 
 import { ConfidenceBadge, when } from "./goal-types";

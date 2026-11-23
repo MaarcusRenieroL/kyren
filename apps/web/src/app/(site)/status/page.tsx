@@ -5,7 +5,7 @@ import { SitePage } from "~/src/components/site/site-page";
 
 export const metadata: Metadata = {
   title: "Status",
-  description: "Current status of Zentro services.",
+  description: "Current status of Kyren services.",
 };
 
 export default function Page(): JSX.Element {

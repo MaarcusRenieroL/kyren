@@ -1,13 +1,13 @@
 "use client";
 
-import { Input } from "@zentro/ui/shadcn/input";
+import { Input } from "@kyren/ui/shadcn/input";
 import { paths } from "~/src/lib/paths";
 import { FileTextIcon, SearchIcon } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
-import { useTrpcClient } from "@zentro/api/react";
-import { Kbd } from "@zentro/ui/components/kbd";
+import { useTrpcClient } from "@kyren/api/react";
+import { Kbd } from "@kyren/ui/components/kbd";
 
 import { ActorAvatar } from "~/src/components/actor-avatar";
 import { ModuleTabs } from "~/src/components/shell/module-section-nav";

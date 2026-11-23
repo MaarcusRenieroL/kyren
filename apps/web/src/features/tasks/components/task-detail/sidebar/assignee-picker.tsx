@@ -1,13 +1,13 @@
 import { useMemo, useState } from "react";
 import { CheckIcon, SearchIcon } from "lucide-react";
-import { cn } from "@zentro/ui/lib/utils";
-import { Button } from "@zentro/ui/shadcn/button";
-import { Input } from "@zentro/ui/shadcn/input";
+import { cn } from "@kyren/ui/lib/utils";
+import { Button } from "@kyren/ui/shadcn/button";
+import { Input } from "@kyren/ui/shadcn/input";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from "@zentro/ui/shadcn/popover";
+} from "@kyren/ui/shadcn/popover";
 import { AvatarInitials } from "../avatar-initials";
 import type { MemberOption } from "../types";
 

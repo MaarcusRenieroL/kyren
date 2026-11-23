@@ -1,4 +1,4 @@
-import { auth } from "@zentro/auth";
+import { auth } from "@kyren/auth";
 import { toNextJsHandler } from "better-auth/next-js";
 
 import {

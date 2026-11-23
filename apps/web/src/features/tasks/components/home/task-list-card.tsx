@@ -1,15 +1,15 @@
 import { FC } from "react";
 import Link from "next/link";
 
-import { Badge } from "@zentro/ui/shadcn/badge";
+import { Badge } from "@kyren/ui/shadcn/badge";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@zentro/ui/shadcn/card";
-import { cn } from "@zentro/ui/lib/utils";
+} from "@kyren/ui/shadcn/card";
+import { cn } from "@kyren/ui/lib/utils";
 
 import {
   priorityStyles,

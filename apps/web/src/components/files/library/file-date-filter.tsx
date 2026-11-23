@@ -2,13 +2,13 @@
 
 import { useState } from "react";
 import { CalendarIcon } from "lucide-react";
-import { Button } from "@zentro/ui/shadcn/button";
-import { Calendar } from "@zentro/ui/shadcn/calendar";
+import { Button } from "@kyren/ui/shadcn/button";
+import { Calendar } from "@kyren/ui/shadcn/calendar";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from "@zentro/ui/shadcn/popover";
+} from "@kyren/ui/shadcn/popover";
 import { dateFormat } from "./types";
 
 export function FileDateFilter({

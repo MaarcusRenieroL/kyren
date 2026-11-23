@@ -1,4 +1,4 @@
-import type { db as Database } from "@zentro/db";
+import type { db as Database } from "@kyren/db";
 
 import { clientIp } from "./client-ip";
 import { ipAllowed } from "./ip-policy";

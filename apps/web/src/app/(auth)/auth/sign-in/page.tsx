@@ -5,11 +5,11 @@ import { useRouter } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Controller, useForm } from "react-hook-form";
 
-import { authClient } from "@zentro/auth/client";
-import { toastError } from "@zentro/ui/lib/toast";
-import { cn } from "@zentro/ui/lib/utils";
-import { Button } from "@zentro/ui/shadcn/button";
-import { Input } from "@zentro/ui/shadcn/input";
+import { authClient } from "@kyren/auth/client";
+import { toastError } from "@kyren/ui/lib/toast";
+import { cn } from "@kyren/ui/lib/utils";
+import { Button } from "@kyren/ui/shadcn/button";
+import { Input } from "@kyren/ui/shadcn/input";
 
 import {
   AuthBanner,
@@ -111,7 +111,7 @@ export default function LoginPage() {
     <form method="post" noValidate onSubmit={handleSubmit(onSubmit)}>
       <div className="flex flex-col gap-5">
         <AuthHeading
-          title="Sign in to Zentro"
+          title="Sign in to Kyren"
           description="Welcome back. Use your work account."
         />
 

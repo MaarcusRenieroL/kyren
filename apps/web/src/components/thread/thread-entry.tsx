@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { cn } from "@zentro/ui/lib/utils";
+import { cn } from "@kyren/ui/lib/utils";
 
 export const itemLink =
   "block rounded-md px-2 py-1.5 outline-none hover:bg-hover focus-visible:ring-2 focus-visible:ring-ring";

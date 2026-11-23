@@ -1,6 +1,6 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
-import { db } from "@zentro/db";
+import { db } from "@kyren/db";
 
 import { publicForm, submitIntake } from "../src/server/intake-forms";
 import { receiveTicketMail } from "../src/server/ticket-inbound";

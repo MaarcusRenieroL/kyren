@@ -34,8 +34,8 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@zentro/ui/shadcn/table";
-import { cn } from "@zentro/ui/lib/utils";
+} from "@kyren/ui/shadcn/table";
+import { cn } from "@kyren/ui/lib/utils";
 
 interface DataTableProps<TData> extends React.ComponentProps<"div"> {
   table: TanstackTable<TData>;

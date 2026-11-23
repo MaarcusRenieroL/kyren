@@ -18,7 +18,7 @@ export function ModuleDocsScreenThree({ v }: { v: any }) {
             marginTop: "4px",
           }}
         >
-          Access follows Zentro Web unless you add people here
+          Access follows Kyren Web unless you add people here
         </div>
       </div>
       <div

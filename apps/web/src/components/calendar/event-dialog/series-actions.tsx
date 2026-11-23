@@ -1,5 +1,5 @@
 import type { FC } from "react";
-import { Button } from "@zentro/ui/shadcn/button";
+import { Button } from "@kyren/ui/shadcn/button";
 import type { Occurrence } from "./types";
 
 type SeriesActionsProps = {

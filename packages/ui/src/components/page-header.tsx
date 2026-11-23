@@ -1,6 +1,6 @@
 import type { ReactElement, ReactNode } from "react";
 
-import { cn } from "@zentro/ui/lib/utils";
+import { cn } from "@kyren/ui/lib/utils";
 
 type PageHeaderProps = {
   title: ReactNode;

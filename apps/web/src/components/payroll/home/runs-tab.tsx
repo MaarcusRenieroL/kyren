@@ -5,10 +5,10 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { PlusIcon } from "lucide-react";
 
-import { useTrpcClient } from "@zentro/api/react";
-import { EmptyState } from "@zentro/ui/components/empty-state";
-import { Button } from "@zentro/ui/shadcn/button";
-import { Dialog, DialogContent } from "@zentro/ui/shadcn/dialog";
+import { useTrpcClient } from "@kyren/api/react";
+import { EmptyState } from "@kyren/ui/components/empty-state";
+import { Button } from "@kyren/ui/shadcn/button";
+import { Dialog, DialogContent } from "@kyren/ui/shadcn/dialog";
 
 import { formatMoney, formatPeriod, runTone } from "../money";
 import { NewRunDialog } from "./new-run-dialog";

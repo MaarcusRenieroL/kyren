@@ -16,9 +16,9 @@ export const MD: Record<string, any> = {
     h1em: "came",
     h1b: " from.",
     lead: "Every task has a key, a state, an assignee, a due date and a timer. It links to its project, its doc and the people on it, and every change goes to the audit log.",
-    url1: "northwind.zentro.app / tasks",
-    url2: "northwind.zentro.app / tasks / ZEN-18",
-    url3: "northwind.zentro.app / today",
+    url1: "northwind.kyren.example / tasks",
+    url2: "northwind.kyren.example / tasks / ZEN-18",
+    url3: "northwind.kyren.example / today",
     s1t: "Task list",
     s1d: "Grouped by state. Filter by project or person, or switch to a board.",
     s2t: "Task detail",
@@ -69,9 +69,9 @@ export const MD: Record<string, any> = {
     h1em: "work",
     h1b: " they describe.",
     lead: "Write specs, decisions and notes next to the tasks they belong to. A doc shows its linked tasks, follows its project’s access, and every edit and share goes to the audit log.",
-    url1: "northwind.zentro.app / docs",
-    url2: "northwind.zentro.app / docs / session-handling-spec",
-    url3: "northwind.zentro.app / docs / share",
+    url1: "northwind.kyren.example / docs",
+    url2: "northwind.kyren.example / docs / session-handling-spec",
+    url3: "northwind.kyren.example / docs / share",
     s1t: "Docs home",
     s1d: "Every doc with its project, linked tasks and last edit.",
     s2t: "Doc editor",
@@ -147,7 +147,7 @@ export const TL = [
 ];
 
 export const PROJ: Record<string, string> = {
-  ZEN: "Zentro Web",
+  ZEN: "Kyren Web",
   BIL: "Billing",
   ONB: "Onboarding",
 };
@@ -159,7 +159,7 @@ export const PREV: Record<string, string[][]> = {
     ["Done per person", "Table"],
   ],
   Forms: [
-    ["Bug report", "Creates a task in Zentro Web"],
+    ["Bug report", "Creates a task in Kyren Web"],
     ["Access request", "Goes to Admins"],
     ["Time off request", "Goes to HR"],
   ],

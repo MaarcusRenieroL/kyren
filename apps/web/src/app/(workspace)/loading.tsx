@@ -1,4 +1,4 @@
-import { Skeleton } from "@zentro/ui/shadcn/skeleton";
+import { Skeleton } from "@kyren/ui/shadcn/skeleton";
 
 // The shell is already on screen; only the page content is pending.
 export default function Loading() {

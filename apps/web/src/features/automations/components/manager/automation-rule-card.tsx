@@ -1,9 +1,9 @@
 "use client";
 
-import { Button } from "@zentro/ui/shadcn/button";
+import { Button } from "@kyren/ui/shadcn/button";
 import { FC } from "react";
 import { PowerIcon, Trash2Icon, WorkflowIcon } from "lucide-react";
-import { cn } from "@zentro/ui/lib/utils";
+import { cn } from "@kyren/ui/lib/utils";
 
 import {
   ACTION_LABELS,

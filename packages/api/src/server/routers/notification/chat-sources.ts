@@ -10,7 +10,7 @@ import {
   ne,
   or,
   sql,
-} from "@zentro/db/drizzle";
+} from "@kyren/db/drizzle";
 import {
   chatChannels,
   chatMembers,
@@ -19,7 +19,7 @@ import {
   tasks,
   users,
   workLinks,
-} from "@zentro/db/schema";
+} from "@kyren/db/schema";
 import { LIMIT } from "./types";
 
 export async function fetchChatAndLinks({

@@ -2,8 +2,8 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { useTrpcClient } from "@zentro/api/react";
-import { EmptyState } from "@zentro/ui/components/empty-state";
+import { useTrpcClient } from "@kyren/api/react";
+import { EmptyState } from "@kyren/ui/components/empty-state";
 
 import { formatMoney, formatPeriod, runTone } from "../money";
 import type { Mine } from "./payroll-types";

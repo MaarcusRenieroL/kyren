@@ -11,7 +11,7 @@ import {
 import { usePathname } from "next/navigation";
 import { FC, ReactNode } from "react";
 import Link from "next/link";
-import { cn } from "@zentro/ui/index";
+import { cn } from "@kyren/ui/index";
 
 type Props = {
   project: {

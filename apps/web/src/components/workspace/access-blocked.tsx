@@ -2,9 +2,9 @@
 
 import Link from "next/link";
 
-import { authClient } from "@zentro/auth/client";
-import { toastError } from "@zentro/ui/index";
-import { Button } from "@zentro/ui/shadcn/button";
+import { authClient } from "@kyren/auth/client";
+import { toastError } from "@kyren/ui/index";
+import { Button } from "@kyren/ui/shadcn/button";
 
 import { apiPath, paths } from "~/src/lib/paths";
 

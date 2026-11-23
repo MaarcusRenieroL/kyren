@@ -1,10 +1,10 @@
-import { and, desc, eq, inArray, type SQL } from "@zentro/db/drizzle";
+import { and, desc, eq, inArray, type SQL } from "@kyren/db/drizzle";
 import {
   activityEvents,
   members,
   taskComments,
   users,
-} from "@zentro/db/schema";
+} from "@kyren/db/schema";
 import { z } from "zod";
 
 import { getTaskActivityEventsSchema } from "../../types/zod-schema";

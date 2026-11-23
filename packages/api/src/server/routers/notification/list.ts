@@ -1,5 +1,5 @@
-import { and, desc, eq, inArray, isNull } from "@zentro/db/drizzle";
-import { docs, tasks } from "@zentro/db/schema";
+import { and, desc, eq, inArray, isNull } from "@kyren/db/drizzle";
+import { docs, tasks } from "@kyren/db/schema";
 import { visibleDocsCondition } from "../../access";
 import { protectedProcedure } from "../../trpc";
 import { getCurrentMember } from "../task-helpers";

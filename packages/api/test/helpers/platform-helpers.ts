@@ -1,6 +1,6 @@
-import { db } from "@zentro/db";
-import { eq } from "@zentro/db/drizzle";
-import { platformAuditEvents, users } from "@zentro/db/schema";
+import { db } from "@kyren/db";
+import { eq } from "@kyren/db/drizzle";
+import { platformAuditEvents, users } from "@kyren/db/schema";
 import { World } from "./world";
 
 export async function createOperator(world: World) {

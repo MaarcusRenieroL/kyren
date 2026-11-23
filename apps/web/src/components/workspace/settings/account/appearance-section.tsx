@@ -1,13 +1,13 @@
 "use client";
 
-import { Button } from "@zentro/ui/shadcn/button";
+import { Button } from "@kyren/ui/shadcn/button";
 import { useEffect, useState, type ReactNode } from "react";
 import { useTheme } from "next-themes";
-import { useDensity } from "@zentro/ui/components/appearance";
-import { StatusGlyph } from "@zentro/ui/components/status-glyph";
-import { TaskKey } from "@zentro/ui/components/task-key";
-import { cn } from "@zentro/ui/lib/utils";
-import { parseDensity, type Density } from "@zentro/ui/lib/theme-colors";
+import { useDensity } from "@kyren/ui/components/appearance";
+import { StatusGlyph } from "@kyren/ui/components/status-glyph";
+import { TaskKey } from "@kyren/ui/components/task-key";
+import { cn } from "@kyren/ui/lib/utils";
+import { parseDensity, type Density } from "@kyren/ui/lib/theme-colors";
 
 import { SettingsHeader, SettingsRow, SettingsTile } from "../settings-kit";
 

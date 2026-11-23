@@ -1,8 +1,8 @@
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 
-import { db } from "@zentro/db";
-import { eq } from "@zentro/db/drizzle";
-import { webhookDeliveries, webhookEndpoints } from "@zentro/db/schema";
+import { db } from "@kyren/db";
+import { eq } from "@kyren/db/drizzle";
+import { webhookDeliveries, webhookEndpoints } from "@kyren/db/schema";
 
 vi.mock("../src/server/chat-unfurl", async (original) => ({
   ...(await original<typeof import("../src/server/chat-unfurl")>()),
@@ -45,7 +45,7 @@ describe("webhooks", () => {
 
   it("returns the secret once and refuses unsafe or unknown settings", async () => {
     const created = await owner.webhook.create({
-      url: "https://hooks.example.com/zentro",
+      url: "https://hooks.example.com/kyren",
       events: ["task.created"],
     });
 
@@ -59,12 +59,12 @@ describe("webhooks", () => {
     ).rejects.toMatchObject({ code: "BAD_REQUEST" });
     await expect(
       owner.webhook.create({
-        url: "https://hooks.example.com/zentro",
+        url: "https://hooks.example.com/kyren",
         events: ["not.an.event"],
       }),
     ).rejects.toMatchObject({ code: "BAD_REQUEST" });
     await expect(
-      member.webhook.create({ url: "https://hooks.example.com/zentro" }),
+      member.webhook.create({ url: "https://hooks.example.com/kyren" }),
     ).rejects.toMatchObject({ code: "FORBIDDEN" });
   });
 

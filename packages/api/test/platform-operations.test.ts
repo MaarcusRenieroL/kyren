@@ -1,7 +1,7 @@
 import { afterAll, afterEach, describe, expect, it } from "vitest";
 
-import { db } from "@zentro/db";
-import { eq } from "@zentro/db/drizzle";
+import { db } from "@kyren/db";
+import { eq } from "@kyren/db/drizzle";
 import {
   jobs,
   platformAnnouncements,
@@ -11,7 +11,7 @@ import {
   sessions,
   twoFactors,
   users,
-} from "@zentro/db/schema";
+} from "@kyren/db/schema";
 
 import {
   forgetMaintenance,

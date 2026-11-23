@@ -7,8 +7,8 @@ import {
   lte,
   ne,
   sql,
-} from "@zentro/db/drizzle";
-import { activityEvents, automations, tasks } from "@zentro/db/schema";
+} from "@kyren/db/drizzle";
+import { activityEvents, automations, tasks } from "@kyren/db/schema";
 
 import { taskPrioritySchema } from "../../types/zod-schema";
 import type { DbHandle } from "../access";

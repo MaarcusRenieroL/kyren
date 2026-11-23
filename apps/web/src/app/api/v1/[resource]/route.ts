@@ -2,9 +2,9 @@ import {
   apiKeyCaller,
   authenticateApiKey,
   bearerToken,
-} from "@zentro/api/server";
-import { db } from "@zentro/db";
-import { hit } from "@zentro/db/rate-limit";
+} from "@kyren/api/server";
+import { db } from "@kyren/db";
+import { hit } from "@kyren/db/rate-limit";
 import { TRPCError } from "@trpc/server";
 
 // Read-only public API. Each key acts as the person who made it.

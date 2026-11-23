@@ -1,6 +1,6 @@
 import { TRPCError } from "@trpc/server";
-import { and, eq } from "@zentro/db/drizzle";
-import { chatMessages } from "@zentro/db/schema";
+import { and, eq } from "@kyren/db/drizzle";
+import { chatMessages } from "@kyren/db/schema";
 import { z } from "zod";
 
 import { channelAccess, mentionedMemberIds } from "../../chat";

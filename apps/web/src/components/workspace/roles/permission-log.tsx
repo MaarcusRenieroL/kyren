@@ -4,22 +4,22 @@ import {
   Collapsible,
   CollapsibleTrigger,
   CollapsibleContent,
-} from "@zentro/ui/shadcn/collapsible";
-import { formatEventTime } from "@zentro/utils";
+} from "@kyren/ui/shadcn/collapsible";
+import { formatEventTime } from "@kyren/utils";
 import { FC, useCallback, useEffect, useState } from "react";
 
-import { useTrpcClient } from "@zentro/api/react";
-import { Button } from "@zentro/ui/shadcn/button";
-import { Card, CardContent } from "@zentro/ui/shadcn/card";
-import { Label } from "@zentro/ui/shadcn/label";
+import { useTrpcClient } from "@kyren/api/react";
+import { Button } from "@kyren/ui/shadcn/button";
+import { Card, CardContent } from "@kyren/ui/shadcn/card";
+import { Label } from "@kyren/ui/shadcn/label";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@zentro/ui/shadcn/select";
-import { Skeleton } from "@zentro/ui/shadcn/skeleton";
+} from "@kyren/ui/shadcn/select";
+import { Skeleton } from "@kyren/ui/shadcn/skeleton";
 import {
   Table,
   TableBody,
@@ -27,8 +27,8 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@zentro/ui/shadcn/table";
-import { toastError } from "@zentro/ui/index";
+} from "@kyren/ui/shadcn/table";
+import { toastError } from "@kyren/ui/index";
 
 import { trpcResult } from "~/src/lib/trpc-result";
 

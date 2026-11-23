@@ -3,9 +3,9 @@ import path from "node:path";
 
 import { ImageResponse } from "next/og";
 
-import { brandColors } from "@zentro/ui/lib/theme-colors";
+import { brandColors } from "@kyren/ui/lib/theme-colors";
 
-export const alt = "Zentro: projects, tasks and docs in one workspace";
+export const alt = "Kyren: projects, tasks and docs in one workspace";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
@@ -40,7 +40,7 @@ export default async function OpengraphImage() {
           <circle cx="24.5" cy="24" r="3.1" fill={brandColors.accent} />
         </svg>
         <div style={{ fontSize: 40, fontWeight: 600, letterSpacing: -1 }}>
-          Zentro
+          Kyren
         </div>
       </div>
       <div

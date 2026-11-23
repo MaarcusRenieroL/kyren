@@ -2,8 +2,8 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 
-import { useTrpcClient } from "@zentro/api/react";
-import { toastError } from "@zentro/ui/index";
+import { useTrpcClient } from "@kyren/api/react";
+import { toastError } from "@kyren/ui/index";
 
 export type FavoriteType = "project" | "doc" | "task";
 

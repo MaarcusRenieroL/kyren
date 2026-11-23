@@ -142,7 +142,7 @@ export function SiteCloseSection({ v }: { v: any }) {
                 textDecoration: "none",
               }}
             >
-              {v.signedIn ? "Open Zentro" : "Get started"}
+              {v.signedIn ? "Open Kyren" : "Get started"}
             </a>
             <a
               href={hrefOf(close2.go)}

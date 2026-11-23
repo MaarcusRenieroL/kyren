@@ -1,14 +1,14 @@
 "use client";
 
-import { Label } from "@zentro/ui/shadcn/label";
-import { Input } from "@zentro/ui/shadcn/input";
-import { Button } from "@zentro/ui/shadcn/button";
+import { Label } from "@kyren/ui/shadcn/label";
+import { Input } from "@kyren/ui/shadcn/input";
+import { Button } from "@kyren/ui/shadcn/button";
 import { useState } from "react";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from "@zentro/ui/shadcn/popover";
+} from "@kyren/ui/shadcn/popover";
 import { dueFromDateInput } from "../task-detail/task-detail-utils";
 import type { BulkChange, WorkspaceTask } from "~/src/features/tasks/lib/types";
 

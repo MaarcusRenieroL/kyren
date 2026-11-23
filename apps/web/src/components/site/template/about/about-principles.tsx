@@ -167,7 +167,7 @@ export function AboutPrinciples({ v }: { v: any }) {
               >
                 PLACEHOLDER
               </span>
-              Add who is behind Zentro, where you are based and when you started.
+              Add who is behind Kyren, where you are based and when you started.
             </span>
           </div>
         </div>

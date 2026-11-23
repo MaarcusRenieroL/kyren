@@ -1,7 +1,7 @@
-import { and, eq, ne } from "@zentro/db/drizzle";
-import { meetingAttendees, users } from "@zentro/db/schema";
+import { and, eq, ne } from "@kyren/db/drizzle";
+import { meetingAttendees, users } from "@kyren/db/schema";
 
-import type { db as database } from "@zentro/db";
+import type { db as database } from "@kyren/db";
 
 import type { DbHandle } from "./access";
 import { enqueueJob, registerJobHandler } from "./jobs";
@@ -30,7 +30,7 @@ async function realMailer(mail: MeetingMail) {
   // Reserved test addresses never receive real mail.
   if (mail.to.toLowerCase().endsWith(".test")) return;
 
-  const { sendMeetingEmail } = await import("@zentro/auth");
+  const { sendMeetingEmail } = await import("@kyren/auth");
 
   await sendMeetingEmail(mail);
 }

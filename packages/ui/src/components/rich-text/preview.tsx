@@ -1,6 +1,6 @@
 "use client";
 
-import { sanitizeRichText } from "@zentro/utils";
+import { sanitizeRichText } from "@kyren/utils";
 import { cn } from "../../lib/utils";
 import { richTextContentClassName, type RichTextPreviewProps } from "./styles";
 

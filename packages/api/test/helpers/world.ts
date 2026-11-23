@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
 
-import { db } from "@zentro/db";
+import { db } from "@kyren/db";
 import {
   docs,
   invitations,
@@ -11,7 +11,7 @@ import {
   tasks,
   teams,
   users,
-} from "@zentro/db/schema";
+} from "@kyren/db/schema";
 import { type AuditContext } from "../../src/server/audit";
 
 import {

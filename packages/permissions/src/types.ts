@@ -1,4 +1,4 @@
-import type { PermissionScope } from "@zentro/modules";
+import type { PermissionScope } from "@kyren/modules";
 
 export type BaseRole = "owner" | "admin" | "member";
 export type ProjectVisibility = "organization" | "team" | "private";

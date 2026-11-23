@@ -1,10 +1,10 @@
-import { auth } from "@zentro/auth";
+import { auth } from "@kyren/auth";
 import { headers } from "next/headers";
 import { JSX } from "react";
 
-import { db } from "@zentro/db";
-import { eq, max } from "@zentro/db/drizzle";
-import { members, sessions, teamMembers, teams } from "@zentro/db/schema";
+import { db } from "@kyren/db";
+import { eq, max } from "@kyren/db/drizzle";
+import { members, sessions, teamMembers, teams } from "@kyren/db/schema";
 
 import { AuthorizationBoundary } from "~/src/components/workspace/authorization/authorization-boundary";
 import { MembersSection } from "~/src/components/workspace/settings/members-section";

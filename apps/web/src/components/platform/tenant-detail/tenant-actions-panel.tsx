@@ -1,5 +1,5 @@
-import { Button } from "@zentro/ui/shadcn/button";
-import { Input } from "@zentro/ui/shadcn/input";
+import { Button } from "@kyren/ui/shadcn/button";
+import { Input } from "@kyren/ui/shadcn/input";
 import { Panel } from "./panel";
 
 export function TenantActionsPanel({

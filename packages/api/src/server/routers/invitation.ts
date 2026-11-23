@@ -1,7 +1,7 @@
 import { TRPCError } from "@trpc/server";
-import { auth } from "@zentro/auth";
-import { and, count, desc, eq } from "@zentro/db/drizzle";
-import { invitations, members, roles, users } from "@zentro/db/schema";
+import { auth } from "@kyren/auth";
+import { and, count, desc, eq } from "@kyren/db/drizzle";
+import { invitations, members, roles, users } from "@kyren/db/schema";
 import { z } from "zod";
 
 import { assertHoldsAll } from "../access";

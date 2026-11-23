@@ -2,7 +2,7 @@
 
 import { useReachable } from "~/src/components/permissions/permission-provider";
 import { paths } from "~/src/lib/paths";
-import { Button } from "@zentro/ui/shadcn/button";
+import { Button } from "@kyren/ui/shadcn/button";
 import {
   Dialog,
   DialogContent,
@@ -11,24 +11,24 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@zentro/ui/shadcn/dialog";
-import { Field, FieldGroup, FieldLabel } from "@zentro/ui/shadcn/field";
-import { Input } from "@zentro/ui/shadcn/input";
+} from "@kyren/ui/shadcn/dialog";
+import { Field, FieldGroup, FieldLabel } from "@kyren/ui/shadcn/field";
+import { Input } from "@kyren/ui/shadcn/input";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@zentro/ui/shadcn/select";
-import { Textarea } from "@zentro/ui/shadcn/textarea";
+} from "@kyren/ui/shadcn/select";
+import { Textarea } from "@kyren/ui/shadcn/textarea";
 import { PlusIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import type { ComponentProps, FormEvent } from "react";
 
-import { useTrpcClient } from "@zentro/api/react";
-import { toastError, toastSuccess } from "@zentro/ui/index";
+import { useTrpcClient } from "@kyren/api/react";
+import { toastError, toastSuccess } from "@kyren/ui/index";
 
 import { createDocSlug } from "../../../lib/docs";
 

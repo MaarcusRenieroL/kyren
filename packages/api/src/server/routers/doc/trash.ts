@@ -1,6 +1,6 @@
 import { TRPCError } from "@trpc/server";
-import { and, eq, isNotNull, isNull } from "@zentro/db/drizzle";
-import { docs } from "@zentro/db/schema";
+import { and, eq, isNotNull, isNull } from "@kyren/db/drizzle";
+import { docs } from "@kyren/db/schema";
 
 import { deleteDocSchema, restoreDocSchema } from "../../../types/zod-schema";
 import { docById } from "../../resources";

@@ -2,10 +2,10 @@
 
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { useTrpcClient } from "@zentro/api/react";
-import { toastError } from "@zentro/ui/index";
-import { type PulseItem } from "@zentro/ui/components/team-pulse";
-import { rankTasks } from "@zentro/utils";
+import { useTrpcClient } from "@kyren/api/react";
+import { toastError } from "@kyren/ui/index";
+import { type PulseItem } from "@kyren/ui/components/team-pulse";
+import { rankTasks } from "@kyren/utils";
 import type { TodayData, TodayTask } from "~/src/lib/today-data";
 import { everyWhileVisible } from "~/src/lib/poll";
 import { dayMs, shortAgo, startOfToday } from "../today-helpers";

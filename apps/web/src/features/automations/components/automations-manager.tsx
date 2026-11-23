@@ -1,11 +1,11 @@
 "use client";
 
-import { Button } from "@zentro/ui/shadcn/button";
+import { Button } from "@kyren/ui/shadcn/button";
 import { FC, useEffect, useState } from "react";
 import { ClockIcon, ZapIcon } from "lucide-react";
 
-import { useTrpcClient } from "@zentro/api/react";
-import { toastError, toastSuccess } from "@zentro/ui/index";
+import { useTrpcClient } from "@kyren/api/react";
+import { toastError, toastSuccess } from "@kyren/ui/index";
 
 import { usePermission } from "~/src/components/permissions/permission-provider";
 import { AutomationRuleCard } from "./manager/automation-rule-card";

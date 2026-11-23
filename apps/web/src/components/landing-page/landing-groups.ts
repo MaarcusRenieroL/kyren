@@ -1,4 +1,4 @@
-import { moduleRegistry } from "@zentro/modules";
+import { moduleRegistry } from "@kyren/modules";
 
 // name, monogram, line, live, desktop columns, desktop rows, mobile columns, preview, tint override
 export type ModuleTile = [

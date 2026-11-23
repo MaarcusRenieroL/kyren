@@ -3,9 +3,9 @@
 import { useEffect, useState } from "react";
 import { PlayIcon, SquareIcon, PlusIcon, TimerIcon } from "lucide-react";
 
-import { useTrpcClient } from "@zentro/api/react";
-import { toastError, toastSuccess } from "@zentro/ui/index";
-import { Button } from "@zentro/ui/shadcn/button";
+import { useTrpcClient } from "@kyren/api/react";
+import { toastError, toastSuccess } from "@kyren/ui/index";
+import { Button } from "@kyren/ui/shadcn/button";
 
 import type { TaskDetail, TaskTimeLogItem } from "./types";
 import { formatMinutes } from "./time-tracker/time-tracker-utils";

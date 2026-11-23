@@ -2,8 +2,8 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { useTrpcClient } from "@zentro/api/react";
-import { toast } from "@zentro/ui/index";
+import { useTrpcClient } from "@kyren/api/react";
+import { toast } from "@kyren/ui/index";
 
 import { addDays, addMonths, startOfDay, visibleDays, type ViewMode } from "../dates";
 import type { CalendarEventItem, EventDraft, Occurrence } from "../event-dialog";

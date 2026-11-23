@@ -1,15 +1,15 @@
 "use client";
 
-import { Button } from "@zentro/ui/shadcn/button";
+import { Button } from "@kyren/ui/shadcn/button";
 import Link from "next/link";
 import { useState } from "react";
 
-import { authClient } from "@zentro/auth/client";
+import { authClient } from "@kyren/auth/client";
 import {
   DensitySegments,
   ThemeSegments,
-} from "@zentro/ui/components/appearance";
-import { initialsOf } from "@zentro/ui/lib/tone";
+} from "@kyren/ui/components/appearance";
+import { initialsOf } from "@kyren/ui/lib/tone";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -17,7 +17,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@zentro/ui/shadcn/dropdown-menu";
+} from "@kyren/ui/shadcn/dropdown-menu";
 
 import { apiPath, paths } from "~/src/lib/paths";
 

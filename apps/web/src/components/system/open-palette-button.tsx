@@ -2,8 +2,8 @@
 
 import { SearchIcon } from "lucide-react";
 
-import { Kbd } from "@zentro/ui/components/kbd";
-import { Button } from "@zentro/ui/shadcn/button";
+import { Kbd } from "@kyren/ui/components/kbd";
+import { Button } from "@kyren/ui/shadcn/button";
 
 export const OPEN_PALETTE_EVENT = "zentro:open-palette";
 

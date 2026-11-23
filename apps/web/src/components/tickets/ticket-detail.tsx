@@ -5,12 +5,12 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowLeftIcon, Trash2Icon } from "lucide-react";
 
-import { useTrpcClient } from "@zentro/api/react";
+import { useTrpcClient } from "@kyren/api/react";
 import { SlaBadge } from "./sla-badge";
-import { EmptyState } from "@zentro/ui/components/empty-state";
-import { PageHeader } from "@zentro/ui/components/page-header";
-import { Button } from "@zentro/ui/shadcn/button";
-import { toast, toastError } from "@zentro/ui/index";
+import { EmptyState } from "@kyren/ui/components/empty-state";
+import { PageHeader } from "@kyren/ui/components/page-header";
+import { Button } from "@kyren/ui/shadcn/button";
+import { toast, toastError } from "@kyren/ui/index";
 
 import { usePageCrumb } from "~/src/components/shell/breadcrumb-context";
 import { useAsyncData } from "~/src/lib/use-async-data";

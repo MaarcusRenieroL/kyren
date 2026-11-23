@@ -1,6 +1,6 @@
 "use client";
 
-import { Label } from "@zentro/ui/shadcn/label";
+import { Label } from "@kyren/ui/shadcn/label";
 import {
   Dialog,
   DialogContent,
@@ -8,26 +8,26 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@zentro/ui/shadcn/dialog";
+} from "@kyren/ui/shadcn/dialog";
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
-} from "@zentro/ui/shadcn/collapsible";
+} from "@kyren/ui/shadcn/collapsible";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Checkbox } from "@zentro/ui/shadcn/checkbox";
+import { Checkbox } from "@kyren/ui/shadcn/checkbox";
 import { useState } from "react";
 import Link from "next/link";
 
-import { useTrpcClient } from "@zentro/api/react";
-import { EmptyState } from "@zentro/ui/components/empty-state";
-import { PageHeader } from "@zentro/ui/components/page-header";
-import { Button } from "@zentro/ui/shadcn/button";
-import { Input } from "@zentro/ui/shadcn/input";
-import { Textarea } from "@zentro/ui/shadcn/textarea";
-import { toastError } from "@zentro/ui/index";
+import { useTrpcClient } from "@kyren/api/react";
+import { EmptyState } from "@kyren/ui/components/empty-state";
+import { PageHeader } from "@kyren/ui/components/page-header";
+import { Button } from "@kyren/ui/shadcn/button";
+import { Input } from "@kyren/ui/shadcn/input";
+import { Textarea } from "@kyren/ui/shadcn/textarea";
+import { toastError } from "@kyren/ui/index";
 
 import { useAsyncData } from "~/src/lib/use-async-data";
 

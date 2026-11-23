@@ -1,4 +1,4 @@
-import { cn } from "@zentro/ui/lib/utils";
+import { cn } from "@kyren/ui/lib/utils";
 import type { TeamDetailData } from "./types";
 import { DAY } from "./types";
 

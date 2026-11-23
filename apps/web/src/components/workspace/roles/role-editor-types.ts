@@ -1,4 +1,4 @@
-import { listModules } from "@zentro/modules";
+import { listModules } from "@kyren/modules";
 
 export type Role = {
   id: string;

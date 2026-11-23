@@ -1,8 +1,8 @@
 "use client";
 
-import { Label } from "@zentro/ui/shadcn/label";
+import { Label } from "@kyren/ui/shadcn/label";
 import { SearchIcon } from "lucide-react";
-import { Input } from "@zentro/ui/components/shadcn/input";
+import { Input } from "@kyren/ui/components/shadcn/input";
 
 import { FilterSelect } from "./members-helpers";
 

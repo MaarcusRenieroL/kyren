@@ -1,4 +1,4 @@
-import { boardTheme } from "@zentro/ui/lib/theme-colors";
+import { boardTheme } from "@kyren/ui/lib/theme-colors";
 
 import { newId, stickyColors, type El, type Point } from "./model";
 

@@ -1,5 +1,5 @@
-import { and, asc, eq, notInArray } from "@zentro/db/drizzle";
-import { employees, members, users } from "@zentro/db/schema";
+import { and, asc, eq, notInArray } from "@kyren/db/drizzle";
+import { employees, members, users } from "@kyren/db/schema";
 import { currentEmployee, manager } from "./employees";
 import { procedure } from "./types";
 

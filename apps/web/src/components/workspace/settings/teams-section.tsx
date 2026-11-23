@@ -3,8 +3,8 @@
 import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { paths } from "~/src/lib/paths";
-import { useTrpcClient } from "@zentro/api/react";
-import { toastError, toastSuccess } from "@zentro/ui";
+import { useTrpcClient } from "@kyren/api/react";
+import { toastError, toastSuccess } from "@kyren/ui";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -14,8 +14,8 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from "@zentro/ui/components/shadcn/alert-dialog";
-import { Skeleton } from "@zentro/ui/components/shadcn/skeleton";
+} from "@kyren/ui/components/shadcn/alert-dialog";
+import { Skeleton } from "@kyren/ui/components/shadcn/skeleton";
 import { TeamCard } from "./teams/team-card";
 import { TeamDialog } from "./teams/team-dialog";
 import { TeamsEmptyState, TeamsStats } from "./teams/teams-stats";

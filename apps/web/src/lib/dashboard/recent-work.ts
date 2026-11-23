@@ -1,6 +1,6 @@
-import { db } from "@zentro/db";
-import { and, desc, eq, isNull } from "@zentro/db/drizzle";
-import { docs, projects, tasks } from "@zentro/db/schema";
+import { db } from "@kyren/db";
+import { and, desc, eq, isNull } from "@kyren/db/drizzle";
+import { docs, projects, tasks } from "@kyren/db/schema";
 import { paths } from "~/src/lib/paths";
 import {
   formatRelativeDate,

@@ -6,7 +6,7 @@
 #   backup.sh schedule   one backup a day at BACKUP_AT (UTC, HHMM)
 #
 # Needs: DATABASE_URL, BACKUP_AGE_RECIPIENT (an age public key),
-# BACKUP_REMOTE (an rclone path such as "b2:my-bucket/zentro", configured
+# BACKUP_REMOTE (an rclone path such as "b2:my-bucket/kyren", configured
 # with RCLONE_CONFIG_* variables). Optional: ALERT_WEBHOOK_URL, BACKUP_AT
 # (default 0230), BACKUP_KEEP_DAYS (default 14), UPLOADS_DIR (default
 # /data/uploads).
@@ -21,7 +21,7 @@ alert() {
   echo "backup: $1" >&2
   if [ -n "${ALERT_WEBHOOK_URL:-}" ]; then
     curl -fsS -m 20 -H "Content-Type: application/json" \
-      -d "{\"text\":\"Zentro backup: $1\"}" "$ALERT_WEBHOOK_URL" >/dev/null || true
+      -d "{\"text\":\"Kyren backup: $1\"}" "$ALERT_WEBHOOK_URL" >/dev/null || true
   fi
 }
 

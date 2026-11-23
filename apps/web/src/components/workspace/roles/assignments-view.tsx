@@ -3,10 +3,10 @@
 import { FC, useCallback, useEffect, useState } from "react";
 import { Trash2Icon } from "lucide-react";
 
-import { useTrpcClient } from "@zentro/api/react";
-import { Button } from "@zentro/ui/shadcn/button";
-import { Card, CardContent } from "@zentro/ui/shadcn/card";
-import { Skeleton } from "@zentro/ui/shadcn/skeleton";
+import { useTrpcClient } from "@kyren/api/react";
+import { Button } from "@kyren/ui/shadcn/button";
+import { Card, CardContent } from "@kyren/ui/shadcn/card";
+import { Skeleton } from "@kyren/ui/shadcn/skeleton";
 import {
   Table,
   TableBody,
@@ -14,8 +14,8 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@zentro/ui/shadcn/table";
-import { toastError, toastSuccess } from "@zentro/ui/index";
+} from "@kyren/ui/shadcn/table";
+import { toastError, toastSuccess } from "@kyren/ui/index";
 
 import { usePermission } from "~/src/components/permissions/permission-provider";
 import { trpcResult } from "~/src/lib/trpc-result";

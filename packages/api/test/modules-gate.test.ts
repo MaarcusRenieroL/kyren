@@ -1,4 +1,4 @@
-import { db } from "@zentro/db";
+import { db } from "@kyren/db";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 import { createEnabledModulesLoader } from "../src/server/modules";

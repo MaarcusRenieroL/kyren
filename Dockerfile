@@ -53,7 +53,7 @@ ENV NEXT_PUBLIC_BASE_URL=$NEXT_PUBLIC_BASE_URL \
     DATABASE_URL=postgres://build:build@build.invalid:5432/build \
     RESEND_API_KEY=re_build_placeholder
 COPY . .
-RUN pnpm --filter @zentro/web build
+RUN pnpm --filter @kyren/web build
 
 # ---- runtime: Next standalone output only ----
 FROM node:22-alpine AS runner

@@ -2,11 +2,11 @@
 
 import { useState, type FormEvent } from "react";
 
-import { useTrpcClient } from "@zentro/api/react";
-import { InlineAlert } from "@zentro/ui/components/inline-alert";
-import { toastError, toastSuccess } from "@zentro/ui/index";
-import { Button } from "@zentro/ui/shadcn/button";
-import { Input } from "@zentro/ui/shadcn/input";
+import { useTrpcClient } from "@kyren/api/react";
+import { InlineAlert } from "@kyren/ui/components/inline-alert";
+import { toastError, toastSuccess } from "@kyren/ui/index";
+import { Button } from "@kyren/ui/shadcn/button";
+import { Input } from "@kyren/ui/shadcn/input";
 
 import { useAsyncData } from "~/src/lib/use-async-data";
 import { Failed, Title } from "./common";
@@ -62,7 +62,7 @@ export function PlatformSettings() {
           </InlineAlert>
         ) : (
           <p className="text-sm text-ink-2">
-            Off. While on, every change anywhere in Zentro is refused with your
+            Off. While on, every change anywhere in Kyren is refused with your
             message; reads keep working.
           </p>
         )}

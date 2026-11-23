@@ -1,9 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { StatusGlyph } from "@zentro/ui/components/status-glyph";
-import type { PulseItem } from "@zentro/ui/components/team-pulse";
-import { cn } from "@zentro/ui/lib/utils";
+import { StatusGlyph } from "@kyren/ui/components/status-glyph";
+import type { PulseItem } from "@kyren/ui/components/team-pulse";
+import { cn } from "@kyren/ui/lib/utils";
 import { ActorAvatar } from "~/src/components/actor-avatar";
 import type { DashboardWorkItem } from "~/src/lib/dashboard-data";
 import { paths } from "~/src/lib/paths";

@@ -56,7 +56,7 @@ describe("meetings", () => {
     expect(
       meeting.attendees.find((a) => a.name === "Meet Guest")?.response,
     ).toBe("invited");
-    expect(meeting.joinUrl).toMatch(/^https:\/\/.+\/zentro-[0-9a-f]{24}$/);
+    expect(meeting.joinUrl).toMatch(/^https:\/\/.+\/kyren-[0-9a-f]{24}$/);
   });
 
   it("rejects invitees from other organisations, bad lengths and times in the past", async () => {

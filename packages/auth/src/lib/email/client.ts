@@ -1,8 +1,8 @@
 import { Resend } from "resend";
 import { authEnv } from "../env";
-import { db } from "@zentro/db";
-import { inArray } from "@zentro/db/drizzle";
-import { emailSuppressions } from "@zentro/db/schema";
+import { db } from "@kyren/db";
+import { inArray } from "@kyren/db/drizzle";
+import { emailSuppressions } from "@kyren/db/schema";
 
 export const resend = new Resend(authEnv.RESEND_API_KEY);
 

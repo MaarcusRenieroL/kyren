@@ -2,8 +2,8 @@
 
 import { StarIcon } from "lucide-react";
 
-import { cn } from "@zentro/ui/lib/utils";
-import { Button } from "@zentro/ui/shadcn/button";
+import { cn } from "@kyren/ui/lib/utils";
+import { Button } from "@kyren/ui/shadcn/button";
 
 import {
   useFavorites,

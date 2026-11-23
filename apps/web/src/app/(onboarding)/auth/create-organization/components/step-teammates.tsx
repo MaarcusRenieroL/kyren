@@ -1,16 +1,16 @@
 "use client";
 
 import { XIcon } from "lucide-react";
-import { Button } from "@zentro/ui/shadcn/button";
-import { Input } from "@zentro/ui/shadcn/input";
+import { Button } from "@kyren/ui/shadcn/button";
+import { Input } from "@kyren/ui/shadcn/input";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@zentro/ui/shadcn/select";
-import { Textarea } from "@zentro/ui/shadcn/textarea";
+} from "@kyren/ui/shadcn/select";
+import { Textarea } from "@kyren/ui/shadcn/textarea";
 import { emailError, type Invite } from "./create-org-types";
 
 type StepTeammatesProps = {

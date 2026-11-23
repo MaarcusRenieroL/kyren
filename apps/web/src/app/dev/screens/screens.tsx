@@ -1,6 +1,6 @@
 "use client";
 
-import { Button } from "@zentro/ui/shadcn/button";
+import { Button } from "@kyren/ui/shadcn/button";
 import { useMemo, useState, type ReactNode } from "react";
 
 import { InboxView } from "~/src/components/notifications/inbox-view";

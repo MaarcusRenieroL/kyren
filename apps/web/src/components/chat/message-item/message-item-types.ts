@@ -1,5 +1,5 @@
 import type { inferRouterOutputs } from "@trpc/server";
-import type { AppRouter } from "@zentro/api/server";
+import type { AppRouter } from "@kyren/api/server";
 
 type Outputs = inferRouterOutputs<AppRouter>;
 export type MessageView = Outputs["chat"]["messages"]["messages"][number];

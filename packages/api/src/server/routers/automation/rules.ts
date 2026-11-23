@@ -11,8 +11,8 @@ import {
   ne,
   or,
   sql,
-} from "@zentro/db/drizzle";
-import { automations, projects, tasks } from "@zentro/db/schema";
+} from "@kyren/db/drizzle";
+import { automations, projects, tasks } from "@kyren/db/schema";
 import { escalateDueTasks } from "../../automations/due-escalation";
 import { taskPrioritySchema, taskStatusSchema } from "../../../types/zod-schema";
 import { channelAccess } from "../../chat";

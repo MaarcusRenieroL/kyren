@@ -1,4 +1,4 @@
-import { db } from "@zentro/db";
+import { db } from "@kyren/db";
 import {
   and,
   asc,
@@ -8,7 +8,7 @@ import {
   isNull,
   lt,
   sql,
-} from "@zentro/db/drizzle";
+} from "@kyren/db/drizzle";
 import {
   docs,
   members,
@@ -16,8 +16,8 @@ import {
   sessions,
   tasks,
   teams,
-} from "@zentro/db/schema";
-import { can, type PermissionSnapshot } from "@zentro/permissions";
+} from "@kyren/db/schema";
+import { can, type PermissionSnapshot } from "@kyren/permissions";
 import { visibleScope } from "~/src/lib/dashboard-data";
 import { zonedDate, zonedMidnight } from "~/src/lib/time-zone";
 import {

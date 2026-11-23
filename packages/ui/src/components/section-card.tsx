@@ -1,6 +1,6 @@
 import type { ComponentProps, ReactElement, ReactNode } from "react";
 
-import { cn } from "@zentro/ui/lib/utils";
+import { cn } from "@kyren/ui/lib/utils";
 
 type SectionCardProps = Omit<ComponentProps<"section">, "title"> & {
   title?: ReactNode;

@@ -4,14 +4,14 @@ import {
   eq,
   isNull,
   sql,
-} from "@zentro/db/drizzle";
+} from "@kyren/db/drizzle";
 import {
   chatEmojis,
   chatMessages,
   chatAttachments,
   files,
   mailAttachments,
-} from "@zentro/db/schema";
+} from "@kyren/db/schema";
 import { z } from "zod";
 
 import { currentMemberId, readableChannelIds } from "../../chat";

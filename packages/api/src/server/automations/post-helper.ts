@@ -1,5 +1,5 @@
-import { and, eq } from "@zentro/db/drizzle";
-import { chatChannels } from "@zentro/db/schema";
+import { and, eq } from "@kyren/db/drizzle";
+import { chatChannels } from "@kyren/db/schema";
 import { postChatMessage } from "../chat-post";
 import type { Db } from "./types";
 

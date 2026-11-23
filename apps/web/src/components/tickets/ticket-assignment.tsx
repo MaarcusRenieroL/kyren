@@ -4,16 +4,16 @@ import {
   Collapsible,
   CollapsibleTrigger,
   CollapsibleContent,
-} from "@zentro/ui/shadcn/collapsible";
-import { FieldSet, FieldLegend } from "@zentro/ui/shadcn/field";
-import { Label } from "@zentro/ui/shadcn/label";
-import { Checkbox } from "@zentro/ui/shadcn/checkbox";
-import { RadioGroup, RadioGroupItem } from "@zentro/ui/shadcn/radio-group";
+} from "@kyren/ui/shadcn/collapsible";
+import { FieldSet, FieldLegend } from "@kyren/ui/shadcn/field";
+import { Label } from "@kyren/ui/shadcn/label";
+import { Checkbox } from "@kyren/ui/shadcn/checkbox";
+import { RadioGroup, RadioGroupItem } from "@kyren/ui/shadcn/radio-group";
 import { useCallback, useEffect, useState } from "react";
 
-import { useTrpcClient } from "@zentro/api/react";
-import { toastError, toastSuccess } from "@zentro/ui/index";
-import { Button } from "@zentro/ui/shadcn/button";
+import { useTrpcClient } from "@kyren/api/react";
+import { toastError, toastSuccess } from "@kyren/ui/index";
+import { Button } from "@kyren/ui/shadcn/button";
 
 type Person = { id: string; name: string; awayUntil: string | null };
 type Mode = "round_robin" | "least_open";

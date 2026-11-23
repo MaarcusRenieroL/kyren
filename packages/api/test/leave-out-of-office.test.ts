@@ -1,7 +1,7 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
-import { db } from "@zentro/db";
-import { employees, leaveRequests } from "@zentro/db/schema";
+import { db } from "@kyren/db";
+import { employees, leaveRequests } from "@kyren/db/schema";
 
 import { World } from "./helpers";
 

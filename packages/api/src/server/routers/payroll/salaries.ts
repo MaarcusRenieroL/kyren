@@ -1,12 +1,12 @@
 import { TRPCError } from "@trpc/server";
-import { and, asc, desc, eq, sql } from "@zentro/db/drizzle";
+import { and, asc, desc, eq, sql } from "@kyren/db/drizzle";
 import {
   compensationChanges,
   compensations,
   employees,
   members,
   users,
-} from "@zentro/db/schema";
+} from "@kyren/db/schema";
 import { z } from "zod";
 
 import { currentMemberId } from "../../chat";

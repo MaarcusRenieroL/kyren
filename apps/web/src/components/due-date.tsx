@@ -1,12 +1,12 @@
 "use client";
 
-import { formatDueDate, type DueTone } from "@zentro/utils";
-import { cn } from "@zentro/ui/lib/utils";
+import { formatDueDate, type DueTone } from "@kyren/utils";
+import { cn } from "@kyren/ui/lib/utils";
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
-} from "@zentro/ui/shadcn/tooltip";
+} from "@kyren/ui/shadcn/tooltip";
 
 const tones: Record<DueTone, string> = {
   overdue: "text-danger-text",

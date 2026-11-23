@@ -1,9 +1,9 @@
 "use client";
 
 import type { FC } from "react";
-import { Button } from "@zentro/ui/shadcn/button";
-import { Input } from "@zentro/ui/shadcn/input";
-import { toastSuccess } from "@zentro/ui/index";
+import { Button } from "@kyren/ui/shadcn/button";
+import { Input } from "@kyren/ui/shadcn/input";
+import { toastSuccess } from "@kyren/ui/index";
 import { copyText } from "~/src/lib/clipboard";
 import { dateFormat, type Ticket } from "./types";
 

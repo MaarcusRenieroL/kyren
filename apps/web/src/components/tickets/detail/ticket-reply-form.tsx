@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, type FC, type FormEvent } from "react";
-import { Button } from "@zentro/ui/shadcn/button";
-import { Textarea } from "@zentro/ui/shadcn/textarea";
+import { Button } from "@kyren/ui/shadcn/button";
+import { Textarea } from "@kyren/ui/shadcn/textarea";
 import { SavedReplyPicker } from "./../saved-replies";
 import { SuggestedArticles } from "./../suggested-articles";
 import type { Ticket } from "./types";

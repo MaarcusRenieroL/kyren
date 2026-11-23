@@ -32,7 +32,7 @@ describe("productionWarnings", () => {
   it("is quiet when everything is set", () => {
     expect(
       productionWarnings({
-        EMAIL_FROM: "Zentro <hello@example.com>",
+        EMAIL_FROM: "Kyren <hello@example.com>",
         CRON_SECRET: "x".repeat(32),
         FILE_STORAGE: "s3",
       }),

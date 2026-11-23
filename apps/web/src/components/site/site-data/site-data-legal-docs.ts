@@ -1,5 +1,5 @@
 /**
- * The legal documents shown on the site. "We" is whoever operates this Zentro
+ * The legal documents shown on the site. "We" is whoever operates this Kyren
  * installation; "the workspace owner" is the organization that signed up.
  * Have them reviewed by a lawyer for your jurisdiction before charging.
  */
@@ -22,7 +22,7 @@ export const LEGAL: Record<
       {
         t: "Who we are",
         paras: [
-          "This policy covers the Zentro service run by the operator named on our About page (“we”). For the work an organization puts into its workspace — projects, tasks, docs, messages, files, HR and payroll records — the organization is the controller and we process that data on its behalf under our Data Processing Agreement. For your account itself (name, email, sign-in), we are the controller.",
+          "This policy covers the Kyren service run by the operator named on our About page (“we”). For the work an organization puts into its workspace — projects, tasks, docs, messages, files, HR and payroll records — the organization is the controller and we process that data on its behalf under our Data Processing Agreement. For your account itself (name, email, sign-in), we are the controller.",
         ],
       },
       {
@@ -52,7 +52,7 @@ export const LEGAL: Record<
       {
         t: "How long we keep it",
         paras: [
-          "Workspace content is kept while the organization uses Zentro and according to the retention settings its administrators choose. Items moved to the trash can be restored until they are deleted for good.",
+          "Workspace content is kept while the organization uses Kyren and according to the retention settings its administrators choose. Items moved to the trash can be restored until they are deleted for good.",
           "When an organization is deleted, its data is removed after a short grace period. Encrypted backups are kept for 14 days and then deleted, so deleted data leaves the backups within that time.",
         ],
       },
@@ -86,7 +86,7 @@ export const LEGAL: Record<
       {
         t: "Agreement",
         paras: [
-          "By creating an account or using Zentro you agree to these terms. If you use it for an organization, you confirm you may accept them on its behalf; the organization is then responsible for how its members use the service.",
+          "By creating an account or using Kyren you agree to these terms. If you use it for an organization, you confirm you may accept them on its behalf; the organization is then responsible for how its members use the service.",
         ],
       },
       {
@@ -99,32 +99,32 @@ export const LEGAL: Record<
       {
         t: "Acceptable use",
         paras: [
-          "Do not use Zentro to break the law, to send spam or malware, to harass anyone, to infringe others' rights, or to try to reach data that is not yours, including by probing or overloading the service. We may suspend an account or workspace that does, and will tell the owner why unless the law forbids it.",
+          "Do not use Kyren to break the law, to send spam or malware, to harass anyone, to infringe others' rights, or to try to reach data that is not yours, including by probing or overloading the service. We may suspend an account or workspace that does, and will tell the owner why unless the law forbids it.",
         ],
       },
       {
         t: "Plans and payment",
         paras: [
-          "Plans, prices and any limits are the ones shown when you sign up or in your agreement with us. If we change them for an existing workspace we will give at least 30 days' notice. The content you put in Zentro stays yours; you give us only the rights needed to run the service for you.",
+          "Plans, prices and any limits are the ones shown when you sign up or in your agreement with us. If we change them for an existing workspace we will give at least 30 days' notice. The content you put in Kyren stays yours; you give us only the rights needed to run the service for you.",
         ],
       },
       {
         t: "Ending the agreement",
         paras: [
-          "You can stop using Zentro and delete your organization at any time from its settings, after exporting what you need. We may end the service for a workspace with 30 days' notice, or at once for serious breaches of these terms. After an organization is deleted its data is removed as described in the Privacy policy.",
+          "You can stop using Kyren and delete your organization at any time from its settings, after exporting what you need. We may end the service for a workspace with 30 days' notice, or at once for serious breaches of these terms. After an organization is deleted its data is removed as described in the Privacy policy.",
         ],
       },
       {
         t: "Liability",
         paras: [
-          "We work to keep Zentro available, secure and backed up, but the service is provided as it is, without a promise that it will never be interrupted or error-free. To the extent the law allows, we are not liable for indirect or consequential losses, and our total liability is limited to the amount the organization paid us in the twelve months before the claim. Nothing here limits liability that cannot be limited by law.",
+          "We work to keep Kyren available, secure and backed up, but the service is provided as it is, without a promise that it will never be interrupted or error-free. To the extent the law allows, we are not liable for indirect or consequential losses, and our total liability is limited to the amount the organization paid us in the twelve months before the claim. Nothing here limits liability that cannot be limited by law.",
           "Payroll and HR features help you keep records; they are not tax, legal or accounting advice, and you remain responsible for the figures you pay and report.",
         ],
       },
       {
         t: "Changes to these terms",
         paras: [
-          "We may update these terms. We will announce material changes in the product or by email at least 30 days before they apply; continuing to use Zentro after that means you accept them.",
+          "We may update these terms. We will announce material changes in the product or by email at least 30 days before they apply; continuing to use Kyren after that means you accept them.",
         ],
       },
       {
@@ -150,7 +150,7 @@ export const LEGAL: Record<
       {
         t: "Cookies we use",
         paras: [
-          "Sign-in: a session cookie that keeps you signed in and the active organization you chose. It is essential; Zentro cannot work without it.",
+          "Sign-in: a session cookie that keeps you signed in and the active organization you chose. It is essential; Kyren cannot work without it.",
           "Security: short-lived cookies for two-factor sign-in and protection against forged requests.",
           "Preferences: your theme and a few interface choices, kept in your browser.",
           "We use no advertising, analytics or third-party tracking cookies.",
@@ -159,7 +159,7 @@ export const LEGAL: Record<
       {
         t: "Managing cookies",
         paras: [
-          "You can delete or block cookies in your browser settings. Blocking the essential ones signs you out and stops Zentro from working.",
+          "You can delete or block cookies in your browser settings. Blocking the essential ones signs you out and stops Kyren from working.",
         ],
       },
       {
@@ -183,13 +183,13 @@ export const LEGAL: Record<
       {
         t: "Roles",
         paras: [
-          "This agreement applies when an organization (the controller) uses Zentro and we process personal data in its workspace on its behalf (as processor). It forms part of the Terms of service.",
+          "This agreement applies when an organization (the controller) uses Kyren and we process personal data in its workspace on its behalf (as processor). It forms part of the Terms of service.",
         ],
       },
       {
         t: "What we process and why",
         paras: [
-          "Subject matter: the data the organization and its members put into Zentro — names, contact details, work content, messages, files, and where the HR and Payroll modules are used, employment and pay records. Purpose: providing the service as the organization configures it. Duration: as long as the organization uses Zentro, then deletion as below.",
+          "Subject matter: the data the organization and its members put into Kyren — names, contact details, work content, messages, files, and where the HR and Payroll modules are used, employment and pay records. Purpose: providing the service as the organization configures it. Duration: as long as the organization uses Kyren, then deletion as below.",
         ],
       },
       {
@@ -214,7 +214,7 @@ export const LEGAL: Record<
       {
         t: "Helping the controller",
         paras: [
-          "Zentro's export, erase, retention and audit tools let the organization answer data subject requests itself; we assist where they are not enough. We help with impact assessments and consultations where reasonably needed.",
+          "Kyren's export, erase, retention and audit tools let the organization answer data subject requests itself; we assist where they are not enough. We help with impact assessments and consultations where reasonably needed.",
         ],
       },
       {

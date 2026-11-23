@@ -1,8 +1,8 @@
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 
-import { db } from "@zentro/db";
-import { eq, like } from "@zentro/db/drizzle";
-import { jobs } from "@zentro/db/schema";
+import { db } from "@kyren/db";
+import { eq, like } from "@kyren/db/drizzle";
+import { jobs } from "@kyren/db/schema";
 
 import {
   enqueueJob,

@@ -1,1 +1,1 @@
-export { default } from "@zentro/ui/postcss.config";
+export { default } from "@kyren/ui/postcss.config";

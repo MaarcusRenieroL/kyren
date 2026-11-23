@@ -1,9 +1,9 @@
-import { FieldSet, FieldLegend } from "@zentro/ui/shadcn/field";
-import { Label } from "@zentro/ui/shadcn/label";
-import { Checkbox } from "@zentro/ui/shadcn/checkbox";
-import { Input } from "@zentro/ui/shadcn/input";
-import { Button } from "@zentro/ui/shadcn/button";
-import { boardTheme } from "@zentro/ui/lib/theme-colors";
+import { FieldSet, FieldLegend } from "@kyren/ui/shadcn/field";
+import { Label } from "@kyren/ui/shadcn/label";
+import { Checkbox } from "@kyren/ui/shadcn/checkbox";
+import { Input } from "@kyren/ui/shadcn/input";
+import { Button } from "@kyren/ui/shadcn/button";
+import { boardTheme } from "@kyren/ui/lib/theme-colors";
 import { fills, palette, stickyColors, type El } from "../canvas/model";
 import type { BoardStyle } from "./editor-types";
 

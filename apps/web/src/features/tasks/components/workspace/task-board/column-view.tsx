@@ -1,9 +1,9 @@
 "use client";
 
-import { Button } from "@zentro/ui/shadcn/button";
+import { Button } from "@kyren/ui/shadcn/button";
 import type { DragEvent, FC } from "react";
 import { PlusIcon } from "lucide-react";
-import { StatusGlyph } from "@zentro/ui/components/status-glyph";
+import { StatusGlyph } from "@kyren/ui/components/status-glyph";
 import { statusLabels } from "~/src/features/tasks/lib/constants";
 import type { TaskStatus, WorkspaceTask } from "~/src/features/tasks/lib/types";
 import { CreateTaskModal } from "../../create-task-modal";

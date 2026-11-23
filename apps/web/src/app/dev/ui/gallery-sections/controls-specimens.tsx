@@ -2,32 +2,32 @@
 
 import Link from "next/link";
 import { PlusIcon, SearchIcon, Trash2Icon } from "lucide-react";
-import { Breadcrumbs } from "@zentro/ui/components/breadcrumbs";
-import { Chip } from "@zentro/ui/components/chip";
-import { Combobox } from "@zentro/ui/components/combobox";
-import { DayRing } from "@zentro/ui/components/day-ring";
-import { DotMatrix } from "@zentro/ui/components/dot-matrix";
-import { PageHeader } from "@zentro/ui/components/page-header";
-import { SegmentedControl } from "@zentro/ui/components/segmented-control";
-import { Stat } from "@zentro/ui/components/stat";
-import { StatusGlyph } from "@zentro/ui/components/status-glyph";
-import { TaskKey } from "@zentro/ui/components/task-key";
-import { TeamPulse } from "@zentro/ui/components/team-pulse";
-import { Tile } from "@zentro/ui/components/tile";
-import { Button } from "@zentro/ui/shadcn/button";
-import { Checkbox } from "@zentro/ui/shadcn/checkbox";
-import { Input } from "@zentro/ui/shadcn/input";
-import { Progress } from "@zentro/ui/shadcn/progress";
-import { RadioGroup, RadioGroupItem } from "@zentro/ui/shadcn/radio-group";
+import { Breadcrumbs } from "@kyren/ui/components/breadcrumbs";
+import { Chip } from "@kyren/ui/components/chip";
+import { Combobox } from "@kyren/ui/components/combobox";
+import { DayRing } from "@kyren/ui/components/day-ring";
+import { DotMatrix } from "@kyren/ui/components/dot-matrix";
+import { PageHeader } from "@kyren/ui/components/page-header";
+import { SegmentedControl } from "@kyren/ui/components/segmented-control";
+import { Stat } from "@kyren/ui/components/stat";
+import { StatusGlyph } from "@kyren/ui/components/status-glyph";
+import { TaskKey } from "@kyren/ui/components/task-key";
+import { TeamPulse } from "@kyren/ui/components/team-pulse";
+import { Tile } from "@kyren/ui/components/tile";
+import { Button } from "@kyren/ui/shadcn/button";
+import { Checkbox } from "@kyren/ui/shadcn/checkbox";
+import { Input } from "@kyren/ui/shadcn/input";
+import { Progress } from "@kyren/ui/shadcn/progress";
+import { RadioGroup, RadioGroupItem } from "@kyren/ui/shadcn/radio-group";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@zentro/ui/shadcn/select";
-import { Switch } from "@zentro/ui/shadcn/switch";
-import { Textarea } from "@zentro/ui/shadcn/textarea";
+} from "@kyren/ui/shadcn/select";
+import { Switch } from "@kyren/ui/shadcn/switch";
+import { Textarea } from "@kyren/ui/shadcn/textarea";
 import { Block } from "./block";
 
 const statuses = ["backlog", "todo", "in-progress", "review", "done"];

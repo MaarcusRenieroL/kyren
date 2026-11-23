@@ -1,6 +1,6 @@
-import { db } from "@zentro/db";
-import { and, asc, eq } from "@zentro/db/drizzle";
-import { activityEvents } from "@zentro/db/schema";
+import { db } from "@kyren/db";
+import { and, asc, eq } from "@kyren/db/drizzle";
+import { activityEvents } from "@kyren/db/schema";
 import { type TestOrg } from "./world";
 
 export async function fetchEvents(org: TestOrg, action?: string) {

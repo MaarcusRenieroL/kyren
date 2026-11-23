@@ -1,7 +1,7 @@
 import { TRPCError } from "@trpc/server";
-import { and, asc, eq } from "@zentro/db/drizzle";
-import { members, taskRecurrences } from "@zentro/db/schema";
-import { sanitizeRichText } from "@zentro/utils";
+import { and, asc, eq } from "@kyren/db/drizzle";
+import { members, taskRecurrences } from "@kyren/db/schema";
+import { sanitizeRichText } from "@kyren/utils";
 import { z } from "zod";
 
 import { currentMemberId } from "../chat";

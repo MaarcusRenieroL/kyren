@@ -1,6 +1,6 @@
 "use client";
 
-import { Button } from "@zentro/ui/shadcn/button";
+import { Button } from "@kyren/ui/shadcn/button";
 import type { FC } from "react";
 import Link from "next/link";
 import { ArrowRightIcon, CheckCircle2Icon, ClockIcon } from "lucide-react";

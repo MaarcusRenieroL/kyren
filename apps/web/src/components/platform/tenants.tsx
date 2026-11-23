@@ -7,13 +7,13 @@ import {
   TableHead,
   TableBody,
   TableCell,
-} from "@zentro/ui/shadcn/table";
+} from "@kyren/ui/shadcn/table";
 import { useState } from "react";
 import Link from "next/link";
 
-import { useTrpcClient } from "@zentro/api/react";
-import { Button } from "@zentro/ui/shadcn/button";
-import { Input } from "@zentro/ui/shadcn/input";
+import { useTrpcClient } from "@kyren/api/react";
+import { Button } from "@kyren/ui/shadcn/button";
+import { Input } from "@kyren/ui/shadcn/input";
 
 import { useAsyncData } from "~/src/lib/use-async-data";
 import { useDebounced } from "~/src/lib/use-debounced";
@@ -49,7 +49,7 @@ export function Tenants() {
     <>
       <Title
         title="Tenants"
-        description="Every organization on Zentro. Open one to suspend it, set limits, look inside or schedule its deletion."
+        description="Every organization on Kyren. Open one to suspend it, set limits, look inside or schedule its deletion."
       />
       <div className="flex flex-wrap items-center gap-2">
         <Input

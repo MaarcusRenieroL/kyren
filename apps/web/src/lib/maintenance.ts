@@ -1,5 +1,5 @@
-import { maintenanceState } from "@zentro/api/server";
-import { db } from "@zentro/db";
+import { maintenanceState } from "@kyren/api/server";
+import { db } from "@kyren/db";
 
 /**
  * While the platform is in maintenance mode, routes that accept changes answer
@@ -15,7 +15,7 @@ export async function maintenanceResponse() {
     {
       error:
         state.message ||
-        "Zentro is in maintenance and read-only for now. Try again soon.",
+        "Kyren is in maintenance and read-only for now. Try again soon.",
     },
     { status: 503, headers: { "retry-after": "300" } },
   );

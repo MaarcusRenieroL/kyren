@@ -1,12 +1,12 @@
 import {
   createPermissionContext,
   visibleActivityCondition,
-} from "@zentro/api/server";
-import { actorName, describeEvent } from "@zentro/audit";
-import { db } from "@zentro/db";
-import { and, desc, eq } from "@zentro/db/drizzle";
-import { activityEvents, users } from "@zentro/db/schema";
-import type { ModuleId } from "@zentro/modules";
+} from "@kyren/api/server";
+import { actorName, describeEvent } from "@kyren/audit";
+import { db } from "@kyren/db";
+import { and, desc, eq } from "@kyren/db/drizzle";
+import { activityEvents, users } from "@kyren/db/schema";
+import type { ModuleId } from "@kyren/modules";
 import { paths } from "~/src/lib/paths";
 import {
   formatRelativeDate,

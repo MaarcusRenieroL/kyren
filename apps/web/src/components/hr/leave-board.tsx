@@ -3,13 +3,13 @@
 import { useCallback, useEffect, useState } from "react";
 import { PlusIcon } from "lucide-react";
 
-import { useTrpcClient } from "@zentro/api/react";
-import type { AppRouter } from "@zentro/api/server";
+import { useTrpcClient } from "@kyren/api/react";
+import type { AppRouter } from "@kyren/api/server";
 import type { inferRouterOutputs } from "@trpc/server";
-import { EmptyState } from "@zentro/ui/components/empty-state";
-import { PageHeader } from "@zentro/ui/components/page-header";
-import { Button } from "@zentro/ui/shadcn/button";
-import { toast, toastError } from "@zentro/ui/index";
+import { EmptyState } from "@kyren/ui/components/empty-state";
+import { PageHeader } from "@kyren/ui/components/page-header";
+import { Button } from "@kyren/ui/shadcn/button";
+import { toast, toastError } from "@kyren/ui/index";
 
 import { messageOf } from "../tickets/labels";
 import { HrTabs } from "./hr-tabs";

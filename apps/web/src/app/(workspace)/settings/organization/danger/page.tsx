@@ -1,10 +1,10 @@
 import { headers } from "next/headers";
 import { JSX } from "react";
 
-import { auth } from "@zentro/auth";
-import { db } from "@zentro/db";
-import { and, count, eq, isNull } from "@zentro/db/drizzle";
-import { docs, projects, tasks } from "@zentro/db/schema";
+import { auth } from "@kyren/auth";
+import { db } from "@kyren/db";
+import { and, count, eq, isNull } from "@kyren/db/drizzle";
+import { docs, projects, tasks } from "@kyren/db/schema";
 
 import { AuthorizationBoundary } from "~/src/components/workspace/authorization/authorization-boundary";
 import { DangerZoneSection } from "~/src/components/workspace/settings/danger-zone-section";

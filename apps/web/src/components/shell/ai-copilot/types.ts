@@ -1,4 +1,4 @@
-import type { AppRouter } from "@zentro/api/server";
+import type { AppRouter } from "@kyren/api/server";
 import type { inferRouterOutputs } from "@trpc/server";
 
 export type Outputs = inferRouterOutputs<AppRouter>;

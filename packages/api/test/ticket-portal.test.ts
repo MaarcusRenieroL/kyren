@@ -1,6 +1,6 @@
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 
-import { db } from "@zentro/db";
+import { db } from "@kyren/db";
 
 import { portalReply, portalView } from "../src/server/ticket-portal";
 import { setTicketMailer, type TicketMail } from "../src/server/ticket-mail";

@@ -32,7 +32,7 @@ export function validateProductionEnv() {
   }
 
   for (const warning of productionWarnings(process.env)) {
-    console.warn(`[zentro] ${warning}`);
+    console.warn(`[kyren] ${warning}`);
   }
 }
 
@@ -66,7 +66,7 @@ export function productionWarnings(env: Record<string, string | undefined>) {
 
 // Resend only delivers from its own address to the account owner. Set
 // EMAIL_FROM to a sender on a domain verified in Resend to reach everyone.
-const defaultEmailFrom = "Zentro <onboarding@resend.dev>";
+const defaultEmailFrom = "Kyren <onboarding@resend.dev>";
 
 export const authEnv = {
   get RESEND_API_KEY() {

@@ -1,18 +1,18 @@
 "use client";
 
-import { Input } from "@zentro/ui/shadcn/input";
-import { Button } from "@zentro/ui/shadcn/button";
+import { Input } from "@kyren/ui/shadcn/input";
+import { Button } from "@kyren/ui/shadcn/button";
 import { ArrowDownUpIcon, SearchIcon, StarIcon } from "lucide-react";
 import type { ReactNode } from "react";
 
-import { cn } from "@zentro/ui/lib/utils";
+import { cn } from "@kyren/ui/lib/utils";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@zentro/ui/shadcn/select";
+} from "@kyren/ui/shadcn/select";
 
 import { ModuleTabs } from "~/src/components/shell/module-section-nav";
 import { paths } from "~/src/lib/paths";

@@ -1,4 +1,4 @@
-import { db } from "@zentro/db";
+import { db } from "@kyren/db";
 import {
   and,
   asc,
@@ -10,14 +10,14 @@ import {
   lte,
   ne,
   or,
-} from "@zentro/db/drizzle";
+} from "@kyren/db/drizzle";
 import {
   docs,
   members,
   projects,
   tasks,
   teams,
-} from "@zentro/db/schema";
+} from "@kyren/db/schema";
 import { paths } from "~/src/lib/paths";
 import { zonedMidnight } from "~/src/lib/time-zone";
 

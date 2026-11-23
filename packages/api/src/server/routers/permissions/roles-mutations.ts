@@ -1,10 +1,10 @@
 import { TRPCError } from "@trpc/server";
-import { and, eq } from "@zentro/db/drizzle";
-import { roles } from "@zentro/db/schema";
-import { getPermission, getSystemRoleDefinition } from "@zentro/permissions";
+import { and, eq } from "@kyren/db/drizzle";
+import { roles } from "@kyren/db/schema";
+import { getPermission, getSystemRoleDefinition } from "@kyren/permissions";
 import { z } from "zod";
 
-import { buildChanges } from "@zentro/audit";
+import { buildChanges } from "@kyren/audit";
 
 import { assertHoldsAll } from "../../access";
 import { permissionProcedure } from "../../trpc";

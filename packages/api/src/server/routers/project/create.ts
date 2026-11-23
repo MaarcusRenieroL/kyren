@@ -1,6 +1,6 @@
 import { TRPCError } from "@trpc/server";
-import { and, eq } from "@zentro/db/drizzle";
-import { projects, teams } from "@zentro/db/schema";
+import { and, eq } from "@kyren/db/drizzle";
+import { projects, teams } from "@kyren/db/schema";
 
 import {
   checkSlugSchema,

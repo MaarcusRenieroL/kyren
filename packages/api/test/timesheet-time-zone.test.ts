@@ -1,8 +1,8 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
-import { db } from "@zentro/db";
-import { eq } from "@zentro/db/drizzle";
-import { taskTimeLogs, tasks } from "@zentro/db/schema";
+import { db } from "@kyren/db";
+import { eq } from "@kyren/db/drizzle";
+import { taskTimeLogs, tasks } from "@kyren/db/schema";
 
 import { safeTimeZone, zonedDayStart } from "../src/time-zone";
 import { World } from "./helpers";

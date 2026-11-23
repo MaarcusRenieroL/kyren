@@ -7,9 +7,9 @@ import {
   TableHead,
   TableBody,
   TableCell,
-} from "@zentro/ui/shadcn/table";
+} from "@kyren/ui/shadcn/table";
 import type { ReactNode } from "react";
-import { cn } from "@zentro/ui/lib/utils";
+import { cn } from "@kyren/ui/lib/utils";
 import { useCustomEmoji } from "./custom-emoji";
 import { CodeBlock } from "./message-body/code-block";
 import { parseBlocks, callouts } from "./message-body/parse-blocks";

@@ -1,6 +1,6 @@
 "use client";
 
-import { Button } from "@zentro/ui/shadcn/button";
+import { Button } from "@kyren/ui/shadcn/button";
 import {
   AtSignIcon,
   CheckSquareIcon,
@@ -8,7 +8,7 @@ import {
   FolderKanbanIcon,
   SlashIcon,
 } from "lucide-react";
-import { cn } from "@zentro/ui/lib/utils";
+import { cn } from "@kyren/ui/lib/utils";
 import { ActorAvatar } from "~/src/components/actor-avatar";
 import type { Option, Trigger } from "./composer-types";
 

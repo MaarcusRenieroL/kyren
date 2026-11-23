@@ -9,14 +9,14 @@ import {
   isNull,
   or,
   type SQL,
-} from "@zentro/db/drizzle";
+} from "@kyren/db/drizzle";
 import {
   kbArticleRevisions,
   kbArticles,
   members,
   users,
-} from "@zentro/db/schema";
-import { slugify } from "@zentro/utils";
+} from "@kyren/db/schema";
+import { slugify } from "@kyren/utils";
 import { z } from "zod";
 
 import { currentMemberId } from "../../chat";

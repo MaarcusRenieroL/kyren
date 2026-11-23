@@ -1,8 +1,8 @@
-import { db } from "@zentro/db";
-import { eq } from "@zentro/db/drizzle";
+import { db } from "@kyren/db";
+import { eq } from "@kyren/db/drizzle";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
-import { tasks } from "@zentro/db/schema";
+import { tasks } from "@kyren/db/schema";
 
 import { World, type TestOrg, type TestUser } from "./helpers";
 

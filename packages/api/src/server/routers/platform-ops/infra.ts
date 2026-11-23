@@ -10,7 +10,7 @@ import {
   lte,
   or,
   sql,
-} from "@zentro/db/drizzle";
+} from "@kyren/db/drizzle";
 import {
   jobs,
   organizations,
@@ -19,7 +19,7 @@ import {
   platformIpAllowlist,
   platformSettings,
   users,
-} from "@zentro/db/schema";
+} from "@kyren/db/schema";
 import { z } from "zod";
 
 import { clientIp } from "../../client-ip";
@@ -39,7 +39,7 @@ const idInput = z.object({ id: z.string().uuid() });
 export const platformMaintenanceRouter = router({
   get: platformProcedure.query(({ ctx }) => maintenanceState(ctx.db)),
 
-  /** While on, every change anywhere in Zentro is refused; reads keep working. */
+  /** While on, every change anywhere in Kyren is refused; reads keep working. */
   set: platformProcedure
     .input(
       z.object({

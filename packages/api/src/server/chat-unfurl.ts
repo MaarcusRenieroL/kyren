@@ -178,7 +178,7 @@ export async function fetchPreview(value: string): Promise<Preview | null> {
         signal: controller.signal,
         redirect: "manual",
         headers: {
-          "user-agent": "ZentroLinkPreview/1.0",
+          "user-agent": "KyrenLinkPreview/1.0",
           accept: "text/html",
         },
       });

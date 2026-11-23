@@ -6,8 +6,8 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@zentro/ui/shadcn/card";
-import { cn } from "@zentro/ui/lib/utils";
+} from "@kyren/ui/shadcn/card";
+import { cn } from "@kyren/ui/lib/utils";
 
 import { priorityBars } from "~/src/features/tasks/lib/constants";
 import { PrioritySummary } from "~/src/features/tasks/lib/types";

@@ -1,4 +1,4 @@
-import { auditCatalog, getAuditEvent } from "@zentro/audit";
+import { auditCatalog, getAuditEvent } from "@kyren/audit";
 import { describe, expect, it } from "vitest";
 
 import { appRouter } from "../src/server/root";

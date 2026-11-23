@@ -1,6 +1,6 @@
 import type { ReactElement } from "react";
 
-import { cn } from "@zentro/ui/lib/utils";
+import { cn } from "@kyren/ui/lib/utils";
 import { Skeleton } from "./shadcn/skeleton";
 
 /**

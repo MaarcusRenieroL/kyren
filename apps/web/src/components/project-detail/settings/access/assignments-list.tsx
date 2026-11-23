@@ -1,13 +1,13 @@
 import type { FC } from "react";
 import { PlusIcon, XIcon } from "lucide-react";
-import { Button } from "@zentro/ui/shadcn/button";
+import { Button } from "@kyren/ui/shadcn/button";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@zentro/ui/shadcn/select";
+} from "@kyren/ui/shadcn/select";
 import { ActorAvatar } from "~/src/components/actor-avatar";
 import { field, type Access, type Option } from "./types";
 

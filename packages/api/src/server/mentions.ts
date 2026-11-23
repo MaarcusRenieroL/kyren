@@ -1,5 +1,5 @@
-import { and, eq, inArray, isNull, notInArray } from "@zentro/db/drizzle";
-import { tasks, workLinks } from "@zentro/db/schema";
+import { and, eq, inArray, isNull, notInArray } from "@kyren/db/drizzle";
+import { tasks, workLinks } from "@kyren/db/schema";
 
 import type { DbHandle } from "./access";
 

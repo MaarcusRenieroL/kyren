@@ -1,5 +1,5 @@
-import { desc } from "@zentro/db/drizzle";
-import { platformAnnouncements } from "@zentro/db/schema";
+import { desc } from "@kyren/db/drizzle";
+import { platformAnnouncements } from "@kyren/db/schema";
 
 import { authenticatedProcedure, router } from "../trpc";
 import { liveAnnouncementsCondition } from "./platform-ops";

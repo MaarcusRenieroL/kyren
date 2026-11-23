@@ -1,8 +1,8 @@
 import { afterAll, describe, expect, it } from "vitest";
 
-import { db } from "@zentro/db";
-import { eq } from "@zentro/db/drizzle";
-import { organizations } from "@zentro/db/schema";
+import { db } from "@kyren/db";
+import { eq } from "@kyren/db/drizzle";
+import { organizations } from "@kyren/db/schema";
 
 import { forgetIpPolicy } from "../src/server/ip-policy";
 import { forgetOrganizationStatus } from "../src/server/platform-policy";

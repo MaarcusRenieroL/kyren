@@ -1,10 +1,10 @@
 import { readdirSync, readFileSync, statSync } from "node:fs";
 import path from "node:path";
 
-import { insertActivityEvent } from "@zentro/audit/server";
-import { db } from "@zentro/db";
-import { eq } from "@zentro/db/drizzle";
-import { activityEvents } from "@zentro/db/schema";
+import { insertActivityEvent } from "@kyren/audit/server";
+import { db } from "@kyren/db";
+import { eq } from "@kyren/db/drizzle";
+import { activityEvents } from "@kyren/db/schema";
 import { afterAll, describe, expect, it } from "vitest";
 
 import { World } from "./helpers";
@@ -152,7 +152,7 @@ describe("what is stored", () => {
       target: { id: "t", label: "KEY-1" },
     });
 
-    const { users } = await import("@zentro/db/schema");
+    const { users } = await import("@kyren/db/schema");
 
     await db.delete(users).where(eq(users.id, user.id));
 
@@ -174,7 +174,7 @@ describe("what is stored", () => {
       target: { id: "t" },
     });
 
-    const { organizations } = await import("@zentro/db/schema");
+    const { organizations } = await import("@kyren/db/schema");
 
     await db.delete(organizations).where(eq(organizations.id, org.id));
     expect(

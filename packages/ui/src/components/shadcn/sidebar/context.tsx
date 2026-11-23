@@ -4,24 +4,24 @@ import * as React from "react";
 import { cva, type VariantProps } from "class-variance-authority";
 import { Slot } from "radix-ui";
 
-import { useIsMobile } from "@zentro/ui/hooks/use-mobile";
-import { cn } from "@zentro/ui/lib/utils";
-import { Button } from "@zentro/ui/components/shadcn/button";
-import { Input } from "@zentro/ui/components/shadcn/input";
-import { Separator } from "@zentro/ui/components/shadcn/separator";
+import { useIsMobile } from "@kyren/ui/hooks/use-mobile";
+import { cn } from "@kyren/ui/lib/utils";
+import { Button } from "@kyren/ui/components/shadcn/button";
+import { Input } from "@kyren/ui/components/shadcn/input";
+import { Separator } from "@kyren/ui/components/shadcn/separator";
 import {
   Sheet,
   SheetContent,
   SheetDescription,
   SheetHeader,
   SheetTitle,
-} from "@zentro/ui/components/shadcn/sheet";
-import { Skeleton } from "@zentro/ui/components/shadcn/skeleton";
+} from "@kyren/ui/components/shadcn/sheet";
+import { Skeleton } from "@kyren/ui/components/shadcn/skeleton";
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
-} from "@zentro/ui/components/shadcn/tooltip";
+} from "@kyren/ui/components/shadcn/tooltip";
 import { PanelLeftIcon } from "lucide-react";
 
 const SIDEBAR_COOKIE_NAME = "sidebar_state";

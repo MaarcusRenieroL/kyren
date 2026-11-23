@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import { createDatabaseAtMigration } from "@zentro/test-utils";
+import { createDatabaseAtMigration } from "@kyren/test-utils";
 
 const beforeActivityMigration = 13;
 
@@ -40,7 +40,7 @@ export async function setupBackfillDatabase(): Promise<{
   };
 
   const db = await createDatabaseAtMigration(
-    "zentro_backfill_test",
+    "kyren_backfill_test",
     beforeActivityMigration,
   );
 

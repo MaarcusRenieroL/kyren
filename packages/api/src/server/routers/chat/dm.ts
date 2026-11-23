@@ -1,11 +1,11 @@
 import { TRPCError } from "@trpc/server";
-import { and, asc, desc, eq, isNull, sql } from "@zentro/db/drizzle";
+import { and, asc, desc, eq, isNull, sql } from "@kyren/db/drizzle";
 import {
   chatChannels,
   chatMembers,
   chatMessages,
   members,
-} from "@zentro/db/schema";
+} from "@kyren/db/schema";
 import { z } from "zod";
 
 import {

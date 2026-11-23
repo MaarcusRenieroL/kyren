@@ -6,7 +6,7 @@ import { SitePage } from "~/src/components/site/site-page";
 export const metadata: Metadata = {
   title: "Security",
   description:
-    "How roles, project access and the audit log work together in Zentro.",
+    "How roles, project access and the audit log work together in Kyren.",
 };
 
 export default function Page(): JSX.Element {

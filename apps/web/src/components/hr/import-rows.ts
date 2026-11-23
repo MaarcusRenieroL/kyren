@@ -1,4 +1,4 @@
-import { parseCsv } from "@zentro/audit";
+import { parseCsv } from "@kyren/audit";
 
 export const MAX_IMPORT_PEOPLE = 200;
 

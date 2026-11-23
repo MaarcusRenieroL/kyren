@@ -1,6 +1,6 @@
-import { and, asc, desc, eq, lte } from "@zentro/db/drizzle";
-import { members, projects, taskRecurrences, tasks } from "@zentro/db/schema";
-import { sql } from "@zentro/db/drizzle";
+import { and, asc, desc, eq, lte } from "@kyren/db/drizzle";
+import { members, projects, taskRecurrences, tasks } from "@kyren/db/schema";
+import { sql } from "@kyren/db/drizzle";
 
 import type { DbHandle } from "./access";
 

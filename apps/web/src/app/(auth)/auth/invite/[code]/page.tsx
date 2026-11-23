@@ -1,12 +1,12 @@
 "use client";
 
-import { useTrpcClient } from "@zentro/api/react";
-import { authClient } from "@zentro/auth/client";
-import { OrgAvatar } from "@zentro/ui/components/org-avatar";
-import { Button } from "@zentro/ui/components/shadcn/button";
-import { Skeleton } from "@zentro/ui/components/shadcn/skeleton";
+import { useTrpcClient } from "@kyren/api/react";
+import { authClient } from "@kyren/auth/client";
+import { OrgAvatar } from "@kyren/ui/components/org-avatar";
+import { Button } from "@kyren/ui/components/shadcn/button";
+import { Skeleton } from "@kyren/ui/components/shadcn/skeleton";
 import { AuthHeading } from "~/src/features/auth/components/kit/auth-kit";
-import { toastError, toastSuccess } from "@zentro/ui/index";
+import { toastError, toastSuccess } from "@kyren/ui/index";
 import { paths } from "~/src/lib/paths";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";

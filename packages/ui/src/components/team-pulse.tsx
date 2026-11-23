@@ -1,8 +1,8 @@
 import type { ComponentType, ReactElement, ReactNode } from "react";
 
-import { cn } from "@zentro/ui/lib/utils";
-import { StatusGlyph } from "@zentro/ui/components/status-glyph";
-import { TaskKey } from "@zentro/ui/components/task-key";
+import { cn } from "@kyren/ui/lib/utils";
+import { StatusGlyph } from "@kyren/ui/components/status-glyph";
+import { TaskKey } from "@kyren/ui/components/task-key";
 
 export type PulseVerb = "started" | "moved" | "finished" | "created";
 

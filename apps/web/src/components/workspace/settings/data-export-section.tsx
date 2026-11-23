@@ -3,9 +3,9 @@
 import { useState } from "react";
 import { DownloadIcon } from "lucide-react";
 
-import { useTrpcClient } from "@zentro/api/react";
-import { toastError } from "@zentro/ui/index";
-import { Button } from "@zentro/ui/shadcn/button";
+import { useTrpcClient } from "@kyren/api/react";
+import { toastError } from "@kyren/ui/index";
+import { Button } from "@kyren/ui/shadcn/button";
 
 import { SettingsRow, SettingsTile } from "./settings-kit";
 

@@ -1,6 +1,6 @@
 import type { useRouter } from "next/navigation";
-import { toastError, toastSuccess } from "@zentro/ui/index";
-import type { useTrpcClient } from "@zentro/api/react";
+import { toastError, toastSuccess } from "@kyren/ui/index";
+import type { useTrpcClient } from "@kyren/api/react";
 import type { Draft, SlashCommand } from "../composer";
 import { untilLabel } from "../message-body";
 import type { MessageView } from "../message-item";

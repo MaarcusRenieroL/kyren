@@ -1,4 +1,4 @@
-import { auditCatalog } from "@zentro/audit";
+import { auditCatalog } from "@kyren/audit";
 import type { sentenceFor } from "../activity-feed";
 
 export type Row = Parameters<typeof sentenceFor>[0] & {

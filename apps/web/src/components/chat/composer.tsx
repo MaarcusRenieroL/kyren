@@ -1,7 +1,7 @@
 "use client";
 
-import { Textarea } from "@zentro/ui/shadcn/textarea";
-import { cn } from "@zentro/ui/lib/utils";
+import { Textarea } from "@kyren/ui/shadcn/textarea";
+import { cn } from "@kyren/ui/lib/utils";
 import { ComposerAttachments } from "./composer/composer-attachments";
 import { ComposerAutocomplete } from "./composer/composer-autocomplete";
 import { ComposerToolbar } from "./composer/composer-toolbar";

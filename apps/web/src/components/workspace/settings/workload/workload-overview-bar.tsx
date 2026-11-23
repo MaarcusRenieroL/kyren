@@ -5,7 +5,7 @@ import {
   GaugeIcon,
   ScaleIcon,
 } from "lucide-react";
-import { cn } from "@zentro/ui/lib/utils";
+import { cn } from "@kyren/ui/lib/utils";
 
 type WorkloadOverviewBarProps = {
   avgUtilization: number;

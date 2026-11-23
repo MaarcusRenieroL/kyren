@@ -1,4 +1,4 @@
-# Zentro
+# Kyren
 
 Multi-tenant work platform. Turborepo: `apps/web` (Next.js) + `packages/*` (tRPC api, Drizzle db, events).
 14 modules in the module registry (`packages/modules/src/registry.ts`). Postgres (Neon), Vercel.

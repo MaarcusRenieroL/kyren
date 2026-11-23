@@ -63,7 +63,7 @@ export async function sendForgotPasswordEmail(email: string, resetUrl: string) {
               </h1>
 
               <p style="margin:0 0 24px;color:#d1d5db;line-height:1.5;">
-                We received a request to reset your Zentro password.
+                We received a request to reset your Kyren password.
                 Click the button below to create a new password.
               </p>
 

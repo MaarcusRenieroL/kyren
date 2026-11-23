@@ -2,9 +2,9 @@ import type { Metadata } from "next";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 
-import { workspaceAccessBlock } from "@zentro/api/server";
-import { auth } from "@zentro/auth";
-import { db } from "@zentro/db";
+import { workspaceAccessBlock } from "@kyren/api/server";
+import { auth } from "@kyren/auth";
+import { db } from "@kyren/db";
 
 import { AccessBlocked } from "~/src/components/workspace/access-blocked";
 import { paths } from "~/src/lib/paths";

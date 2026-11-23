@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { RefreshCwIcon } from "lucide-react";
 
-import { Button } from "@zentro/ui/shadcn/button";
+import { Button } from "@kyren/ui/shadcn/button";
 
 import { paths } from "~/src/lib/paths";
 
@@ -41,7 +41,7 @@ export function ServerErrorContent({
     <SystemPage
       eyebrow="ERROR 500"
       title="Something broke on our side."
-      description="Zentro couldn’t finish loading this page. Your work is safe. This is usually fixed within a few minutes."
+      description="Kyren couldn’t finish loading this page. Your work is safe. This is usually fixed within a few minutes."
       requestId={
         requestId
           ? `Request ID ${requestId}${stamp ? ` · ${stamp}` : ""}`

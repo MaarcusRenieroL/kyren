@@ -12,8 +12,8 @@ import {
   SunIcon,
 } from "lucide-react";
 
-import { StatusGlyph } from "@zentro/ui/components/status-glyph";
-import { formatDueDate } from "@zentro/utils";
+import { StatusGlyph } from "@kyren/ui/components/status-glyph";
+import { formatDueDate } from "@kyren/utils";
 import { getModuleIcon } from "~/src/lib/module-icons";
 import { paths } from "~/src/lib/paths";
 import type { ShellModule } from "../app-sidebar";

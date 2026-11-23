@@ -1,4 +1,4 @@
-import { toastError } from "@zentro/ui/index";
+import { toastError } from "@kyren/ui/index";
 
 /**
  * Copies text, and says so when the browser refuses (no permission, or an

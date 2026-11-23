@@ -1,6 +1,6 @@
-import { db } from "@zentro/db";
-import { and, eq } from "@zentro/db/drizzle";
-import { verifications } from "@zentro/db/schema";
+import { db } from "@kyren/db";
+import { and, eq } from "@kyren/db/drizzle";
+import { verifications } from "@kyren/db/schema";
 import { handleAuthAfter } from "./audit/handlers";
 import { recordForUser, recordInOrganization } from "./audit/recorder";
 import { resetTokenUsers, type HookContext } from "./audit/types";

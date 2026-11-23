@@ -6,7 +6,7 @@ import {
   type ClipboardEvent,
   type DragEvent,
 } from "react";
-import { toastError } from "@zentro/ui/index";
+import { toastError } from "@kyren/ui/index";
 import { uploadFile } from "./composer-upload";
 import type { PendingFile } from "./composer-types";
 

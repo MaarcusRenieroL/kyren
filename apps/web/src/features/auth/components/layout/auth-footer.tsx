@@ -8,7 +8,7 @@ const linkClass =
 export const AuthFooter = () => {
   return (
     <footer className="flex gap-4 text-xs text-ink-3">
-      <span>&copy; {new Date().getFullYear()} Zentro</span>
+      <span>&copy; {new Date().getFullYear()} Kyren</span>
       <Link href="/privacy" className={linkClass}>
         Privacy
       </Link>

@@ -1,5 +1,5 @@
 {
-  "name": "@zentro/audit",
+  "name": "@kyren/audit",
   "version": "0.0.0",
   "private": true,
   "exports": {
@@ -11,10 +11,10 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@zentro/db": "workspace:*",
-    "@zentro/modules": "workspace:*"
+    "@kyren/db": "workspace:*",
+    "@kyren/modules": "workspace:*"
   },
   "devDependencies": {
-    "@zentro/typescript-config": "workspace:*"
+    "@kyren/typescript-config": "workspace:*"
   }
 }

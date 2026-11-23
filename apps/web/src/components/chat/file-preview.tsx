@@ -11,10 +11,10 @@ import {
   XIcon,
 } from "lucide-react";
 
-import { useTrpcClient } from "@zentro/api/react";
-import { toastSuccess } from "@zentro/ui/index";
-import { Button } from "@zentro/ui/shadcn/button";
-import { Dialog, DialogContent, DialogTitle } from "@zentro/ui/shadcn/dialog";
+import { useTrpcClient } from "@kyren/api/react";
+import { toastSuccess } from "@kyren/ui/index";
+import { Button } from "@kyren/ui/shadcn/button";
+import { Dialog, DialogContent, DialogTitle } from "@kyren/ui/shadcn/dialog";
 
 import { fileSize } from "./message-body";
 import type { AttachmentView } from "./message-item";

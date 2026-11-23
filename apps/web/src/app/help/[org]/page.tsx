@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
-import { publicArticles } from "@zentro/api/server";
-import { db } from "@zentro/db";
+import { publicArticles } from "@kyren/api/server";
+import { db } from "@kyren/db";
 
 export const dynamic = "force-dynamic";
 

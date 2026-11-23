@@ -1,10 +1,10 @@
 import { TRPCError } from "@trpc/server";
-import { and, eq, gt, inArray, isNull, ne } from "@zentro/db/drizzle";
+import { and, eq, gt, inArray, isNull, ne } from "@kyren/db/drizzle";
 import {
   chatMembers,
   chatMessages,
   chatThreadFollows,
-} from "@zentro/db/schema";
+} from "@kyren/db/schema";
 import { z } from "zod";
 import {
   currentMemberId,

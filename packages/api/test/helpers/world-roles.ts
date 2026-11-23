@@ -1,7 +1,7 @@
-import { db } from "@zentro/db";
-import { eq } from "@zentro/db/drizzle";
-import { permissionOverrides, roleAssignments, roles } from "@zentro/db/schema";
-import { ensureSystemRoles } from "@zentro/auth";
+import { db } from "@kyren/db";
+import { eq } from "@kyren/db/drizzle";
+import { permissionOverrides, roleAssignments, roles } from "@kyren/db/schema";
+import { ensureSystemRoles } from "@kyren/auth";
 import type { TestOrg, TestUser } from "./world-types";
 
 export async function getSystemRoleId(org: TestOrg, systemKey: string) {

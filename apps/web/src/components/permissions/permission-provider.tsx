@@ -8,12 +8,12 @@ import {
   type ReactNode,
 } from "react";
 
-import { useTrpcClient } from "@zentro/api/react";
+import { useTrpcClient } from "@kyren/api/react";
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
-} from "@zentro/ui/shadcn/tooltip";
+} from "@kyren/ui/shadcn/tooltip";
 
 export type PermissionMap = Record<string, boolean>;
 

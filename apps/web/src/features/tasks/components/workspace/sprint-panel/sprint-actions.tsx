@@ -1,7 +1,7 @@
-import { Label } from "@zentro/ui/shadcn/label";
-import { Button } from "@zentro/ui/shadcn/button";
-import { NativeSelect } from "@zentro/ui/shadcn/native-select";
-import type { AppRouter } from "@zentro/api/server";
+import { Label } from "@kyren/ui/shadcn/label";
+import { Button } from "@kyren/ui/shadcn/button";
+import { NativeSelect } from "@kyren/ui/shadcn/native-select";
+import type { AppRouter } from "@kyren/api/server";
 import type { inferRouterOutputs } from "@trpc/server";
 
 type Sprint = inferRouterOutputs<AppRouter>["sprint"]["list"][number];

@@ -1,5 +1,5 @@
 {
-  "name": "@zentro/ui",
+  "name": "@kyren/ui",
   "version": "0.0.0",
   "private": true,
   "description": "",
@@ -28,7 +28,7 @@
     "@tiptap/pm": "^3.32.2",
     "@tiptap/react": "^3.32.2",
     "@tiptap/starter-kit": "^3.32.2",
-    "@zentro/utils": "workspace:*",
+    "@kyren/utils": "workspace:*",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "input-otp": "^1.4.2",
@@ -46,8 +46,8 @@
     "react-dom": "19.2.4"
   },
   "devDependencies": {
-    "@zentro/eslint-config": "workspace:*",
-    "@zentro/typescript-config": "workspace:*",
+    "@kyren/eslint-config": "workspace:*",
+    "@kyren/typescript-config": "workspace:*",
     "react": "19.2.4",
     "react-dom": "19.2.4",
     "shadcn": "^4.4.0"

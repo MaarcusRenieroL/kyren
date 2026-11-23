@@ -1,4 +1,4 @@
-import type { db as database } from "@zentro/db";
+import type { db as database } from "@kyren/db";
 
 export type Db = any;
 

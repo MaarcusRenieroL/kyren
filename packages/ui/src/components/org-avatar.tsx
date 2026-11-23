@@ -1,7 +1,7 @@
 import type { ReactElement } from "react";
 
-import { cn } from "@zentro/ui/lib/utils";
-import { initialsOf, toneClass } from "@zentro/ui/lib/tone";
+import { cn } from "@kyren/ui/lib/utils";
+import { initialsOf, toneClass } from "@kyren/ui/lib/tone";
 
 const sizes = {
   sm: "size-6 text-[0.625rem]",

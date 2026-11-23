@@ -1,4 +1,4 @@
-import type { BreadcrumbEntry } from "@zentro/ui/components/breadcrumbs";
+import type { BreadcrumbEntry } from "@kyren/ui/components/breadcrumbs";
 
 type Crumb = { label: string; mono?: boolean };
 

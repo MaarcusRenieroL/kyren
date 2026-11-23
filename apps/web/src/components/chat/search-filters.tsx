@@ -1,6 +1,6 @@
-import { Label } from "@zentro/ui/shadcn/label";
-import { cn } from "@zentro/ui/lib/utils";
-import { NativeSelect } from "@zentro/ui/shadcn/native-select";
+import { Label } from "@kyren/ui/shadcn/label";
+import { cn } from "@kyren/ui/lib/utils";
+import { NativeSelect } from "@kyren/ui/shadcn/native-select";
 
 export const ranges = [
   ["any", "Any time", 0],

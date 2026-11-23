@@ -1,6 +1,6 @@
-import { clientIpFrom } from "@zentro/audit/server";
-import { hit, publicArticle, publicArticles } from "@zentro/api/server";
-import { db } from "@zentro/db";
+import { clientIpFrom } from "@kyren/audit/server";
+import { hit, publicArticle, publicArticles } from "@kyren/api/server";
+import { db } from "@kyren/db";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";

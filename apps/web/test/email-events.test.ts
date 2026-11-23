@@ -5,7 +5,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 const values = vi.fn();
 const onConflictDoNothing = vi.fn();
 
-vi.mock("@zentro/db", () => ({
+vi.mock("@kyren/db", () => ({
   db: {
     insert: () => ({
       values: (rows: unknown) => {
@@ -15,7 +15,7 @@ vi.mock("@zentro/db", () => ({
     }),
   },
 }));
-vi.mock("@zentro/db/schema", () => ({ emailSuppressions: {} }));
+vi.mock("@kyren/db/schema", () => ({ emailSuppressions: {} }));
 
 const { POST } = await import("../src/app/api/email/events/route");
 

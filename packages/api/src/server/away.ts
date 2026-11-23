@@ -1,6 +1,6 @@
-import type { db as database } from "@zentro/db";
-import { and, desc, eq, gte, lte } from "@zentro/db/drizzle";
-import { activityEvents, employees, leaveRequests } from "@zentro/db/schema";
+import type { db as database } from "@kyren/db";
+import { and, desc, eq, gte, lte } from "@kyren/db/drizzle";
+import { activityEvents, employees, leaveRequests } from "@kyren/db/schema";
 
 type Database = Pick<typeof database, "select">;
 

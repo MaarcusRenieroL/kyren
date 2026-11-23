@@ -1,4 +1,4 @@
-import type { db as Database } from "@zentro/db";
+import type { db as Database } from "@kyren/db";
 
 import { loadEnabledModules } from "./modules";
 import { organizationStatus } from "./platform-policy";

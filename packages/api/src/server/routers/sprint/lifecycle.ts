@@ -8,8 +8,8 @@ import {
   isNull,
   ne,
   sql,
-} from "@zentro/db/drizzle";
-import { projects, sprints, tasks } from "@zentro/db/schema";
+} from "@kyren/db/drizzle";
+import { projects, sprints, tasks } from "@kyren/db/schema";
 import { z } from "zod";
 
 import { projectFromInput } from "../../resources";

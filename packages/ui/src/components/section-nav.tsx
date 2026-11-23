@@ -7,8 +7,8 @@ import {
   type ReactNode,
 } from "react";
 
-import { cn } from "@zentro/ui/lib/utils";
-import { useActiveBox } from "@zentro/ui/lib/use-active-box";
+import { cn } from "@kyren/ui/lib/utils";
+import { useActiveBox } from "@kyren/ui/lib/use-active-box";
 
 export type SectionNavItem = {
   href: string;

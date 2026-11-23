@@ -33,7 +33,7 @@ export async function seedWhiteboards(ctx: SeedContext) {
       w: 220,
       h: 120,
       color: "#10b981",
-      text: "tRPC API Router\n(@zentro/api)",
+      text: "tRPC API Router\n(@kyren/api)",
     },
     { id: "b4", type: "arrow", x: 640, y: 210, w: 100, h: 0, color: "#9ca3af" },
     {
@@ -44,7 +44,7 @@ export async function seedWhiteboards(ctx: SeedContext) {
       w: 220,
       h: 120,
       color: "#8b5cf6",
-      text: "PostgreSQL (Neon)\n(@zentro/db)",
+      text: "PostgreSQL (Neon)\n(@kyren/db)",
     },
     {
       id: "b6",

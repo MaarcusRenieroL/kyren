@@ -1,10 +1,10 @@
 "use client";
 
-import { Button } from "@zentro/ui/shadcn/button";
+import { Button } from "@kyren/ui/shadcn/button";
 import Link from "next/link";
 import { FC, useState, type ReactNode } from "react";
 
-import { cn } from "@zentro/ui/lib/utils";
+import { cn } from "@kyren/ui/lib/utils";
 
 import { ActivityFeed } from "~/src/components/workspace/activity/activity-feed";
 import type { WorkspaceTask } from "~/src/features/tasks/lib/types";

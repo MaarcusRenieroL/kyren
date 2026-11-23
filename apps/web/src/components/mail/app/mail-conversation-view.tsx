@@ -11,7 +11,7 @@ import {
   StarIcon,
   Trash2Icon,
 } from "lucide-react";
-import { Button } from "@zentro/ui/shadcn/button";
+import { Button } from "@kyren/ui/shadcn/button";
 
 import { fileSize } from "~/src/components/chat/message-body";
 import { apiPath } from "~/src/lib/paths";

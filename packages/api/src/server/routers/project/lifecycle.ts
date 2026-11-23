@@ -1,6 +1,6 @@
 import { TRPCError } from "@trpc/server";
-import { and, eq, inArray, or } from "@zentro/db/drizzle";
-import { docs, projects, tasks, workLinks } from "@zentro/db/schema";
+import { and, eq, inArray, or } from "@kyren/db/drizzle";
+import { docs, projects, tasks, workLinks } from "@kyren/db/schema";
 
 import {
   archiveProjectBySlugSchema,

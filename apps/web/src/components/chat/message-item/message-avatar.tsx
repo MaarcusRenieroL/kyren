@@ -1,7 +1,7 @@
 "use client";
 
 import { ActorAvatar } from "~/src/components/actor-avatar";
-import { cn } from "@zentro/ui/lib/utils";
+import { cn } from "@kyren/ui/lib/utils";
 import { presenceDot } from "./message-item-types";
 
 export function Avatar({

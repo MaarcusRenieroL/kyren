@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 
-import { auth } from "@zentro/auth";
+import { auth } from "@kyren/auth";
 
 import { TwoFactorGate } from "~/src/components/workspace/settings/two-factor-gate";
 import { paths } from "~/src/lib/paths";

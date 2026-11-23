@@ -1,5 +1,5 @@
 {
-  "name": "@zentro/test-utils",
+  "name": "@kyren/test-utils",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -15,6 +15,6 @@
   },
   "devDependencies": {
     "@types/pg": "^8.20.0",
-    "@zentro/typescript-config": "workspace:*"
+    "@kyren/typescript-config": "workspace:*"
   }
 }

@@ -1,12 +1,12 @@
 "use client";
 
-import { Input } from "@zentro/ui/shadcn/input";
+import { Input } from "@kyren/ui/shadcn/input";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { SearchIcon } from "lucide-react";
 
-import { useTrpcClient } from "@zentro/api/react";
-import { Skeleton } from "@zentro/ui/shadcn/skeleton";
+import { useTrpcClient } from "@kyren/api/react";
+import { Skeleton } from "@kyren/ui/shadcn/skeleton";
 
 import { DocTable } from "~/src/features/docs/components/doc-rows";
 import type { DocsListItem } from "~/src/features/docs/lib/docs";

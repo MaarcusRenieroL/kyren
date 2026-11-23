@@ -1,4 +1,4 @@
-import { boardColors, boardTheme } from "@zentro/ui/lib/theme-colors";
+import { boardColors, boardTheme } from "@kyren/ui/lib/theme-colors";
 
 export type Kind =
   | "pen"

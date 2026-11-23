@@ -8,15 +8,15 @@ import {
   lt,
   notInArray,
   sql,
-} from "@zentro/db/drizzle";
-import type { db as Database } from "@zentro/db";
+} from "@kyren/db/drizzle";
+import type { db as Database } from "@kyren/db";
 import {
   chatAttachments,
   chatEmojis,
   chatMessages,
   files,
   mailAttachments,
-} from "@zentro/db/schema";
+} from "@kyren/db/schema";
 
 import { reportError } from "./error-report";
 import { heldOrganizationIds } from "./retention";

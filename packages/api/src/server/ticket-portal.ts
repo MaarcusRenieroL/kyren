@@ -1,5 +1,5 @@
-import { and, asc, eq, inArray, sql } from "@zentro/db/drizzle";
-import { ticketMessages, tickets } from "@zentro/db/schema";
+import { and, asc, eq, inArray, sql } from "@kyren/db/drizzle";
+import { ticketMessages, tickets } from "@kyren/db/schema";
 
 import type { DbHandle } from "./access";
 import { ticketsOpenToPublic } from "./tickets-public";

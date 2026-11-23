@@ -10,11 +10,11 @@ import {
   or,
   sql,
   type SQL,
-} from "@zentro/db/drizzle";
-import { activityEvents } from "@zentro/db/schema";
+} from "@kyren/db/drizzle";
+import { activityEvents } from "@kyren/db/schema";
 import { z } from "zod";
 
-import type { ModuleId } from "@zentro/modules";
+import type { ModuleId } from "@kyren/modules";
 
 import type { PermissionContext } from "./permissions";
 

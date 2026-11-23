@@ -2,7 +2,7 @@ import {
   listModules,
   platformPermissions,
   type PermissionDefinition,
-} from "@zentro/modules";
+} from "@kyren/modules";
 
 export type CatalogEntry = PermissionDefinition & {
   /** Owning module id, or "platform" for permissions no module owns. */

@@ -1,9 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { Button } from "@zentro/ui/shadcn/button";
-import { Input } from "@zentro/ui/shadcn/input";
-import { NativeSelect } from "@zentro/ui/shadcn/native-select";
+import { Button } from "@kyren/ui/shadcn/button";
+import { Input } from "@kyren/ui/shadcn/input";
+import { NativeSelect } from "@kyren/ui/shadcn/native-select";
 
 import { confidenceLabel, type Confidence } from "./goal-types";
 

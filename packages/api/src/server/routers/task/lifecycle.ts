@@ -9,13 +9,13 @@ import {
   ne,
   or,
   sql,
-} from "@zentro/db/drizzle";
+} from "@kyren/db/drizzle";
 import {
   activityEvents,
   members,
   projects,
   tasks,
-} from "@zentro/db/schema";
+} from "@kyren/db/schema";
 
 import {
   deleteTaskByKeySchema,

@@ -1,5 +1,5 @@
 import { HashIcon } from "lucide-react";
-import { Button } from "@zentro/ui/shadcn/button";
+import { Button } from "@kyren/ui/shadcn/button";
 import { Avatar } from "../message-item";
 import type { ChannelData } from "./channel-view-types";
 

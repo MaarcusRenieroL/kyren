@@ -4,10 +4,10 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm, useWatch } from "react-hook-form";
-import { useTrpcClient } from "@zentro/api/react";
-import { authClient } from "@zentro/auth/client";
-import { toastError } from "@zentro/ui/lib/toast";
-import { slugify } from "@zentro/utils";
+import { useTrpcClient } from "@kyren/api/react";
+import { authClient } from "@kyren/auth/client";
+import { toastError } from "@kyren/ui/lib/toast";
+import { slugify } from "@kyren/utils";
 import {
   CreateOrganizationFormValues,
   createOrganizationSchema,

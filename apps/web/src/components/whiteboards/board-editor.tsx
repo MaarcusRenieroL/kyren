@@ -1,13 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { Button } from "@zentro/ui/shadcn/button";
+import { Button } from "@kyren/ui/shadcn/button";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
-} from "@zentro/ui/shadcn/dialog";
+} from "@kyren/ui/shadcn/dialog";
 import { TaskPicker } from "./canvas/task-picker";
 import { route } from "./canvas/geometry";
 import { touch } from "./canvas/model";

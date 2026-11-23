@@ -1,4 +1,4 @@
-# Zentro — what is built today
+# Kyren — what is built today
 
 A self-hosted, multi-tenant work platform: one workspace per organization, 14 modules that share the same
 people, roles, search and audit log. Everything below exists in the code with tests. Status as of 2026-11-20.

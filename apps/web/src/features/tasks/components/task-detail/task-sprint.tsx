@@ -1,9 +1,9 @@
 "use client";
 
-import { Label } from "@zentro/ui/shadcn/label";
-import { useTrpcClient } from "@zentro/api/react";
-import { toastError } from "@zentro/ui/index";
-import { NativeSelect } from "@zentro/ui/shadcn/native-select";
+import { Label } from "@kyren/ui/shadcn/label";
+import { useTrpcClient } from "@kyren/api/react";
+import { toastError } from "@kyren/ui/index";
+import { NativeSelect } from "@kyren/ui/shadcn/native-select";
 
 import { useAsyncData } from "~/src/lib/use-async-data";
 

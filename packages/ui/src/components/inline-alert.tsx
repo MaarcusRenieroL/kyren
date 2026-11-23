@@ -6,7 +6,7 @@ import {
   TriangleAlertIcon,
 } from "lucide-react";
 
-import { cn } from "@zentro/ui/lib/utils";
+import { cn } from "@kyren/ui/lib/utils";
 
 const tones = {
   info: { box: "bg-info-subtle text-info-text", icon: InfoIcon },

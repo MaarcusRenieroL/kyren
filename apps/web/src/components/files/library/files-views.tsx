@@ -7,7 +7,7 @@ import {
   type ColumnDef,
 } from "@tanstack/react-table";
 import { ArrowDownIcon, ArrowUpIcon, ArrowUpDownIcon } from "lucide-react";
-import { Button } from "@zentro/ui/shadcn/button";
+import { Button } from "@kyren/ui/shadcn/button";
 import type { FileSort, Folder, LibraryFile } from "./types";
 import { formatSize, dateFormat } from "./types";
 import { FileThumb } from "./file-thumb";

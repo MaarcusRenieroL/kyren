@@ -7,7 +7,7 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@zentro/ui/components/shadcn/select";
+} from "@kyren/ui/components/shadcn/select";
 import type { Role } from "./invitations-helpers";
 
 export const RoleSelect: FC<{

@@ -1,11 +1,11 @@
 import type { ReactNode } from "react";
-import { cn } from "@zentro/ui/lib/utils";
+import { cn } from "@kyren/ui/lib/utils";
 import {
   Select,
   SelectContent,
   SelectTrigger,
   SelectValue,
-} from "@zentro/ui/shadcn/select";
+} from "@kyren/ui/shadcn/select";
 
 /** One filter as a 32px chip: its name, then its value once it is set. */
 export function FilterChip({

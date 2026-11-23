@@ -1,6 +1,6 @@
-import { and, eq, isNotNull, lte } from "@zentro/db/drizzle";
-import type { db as Database } from "@zentro/db";
-import { files, organizations, platformAuditEvents } from "@zentro/db/schema";
+import { and, eq, isNotNull, lte } from "@kyren/db/drizzle";
+import type { db as Database } from "@kyren/db";
+import { files, organizations, platformAuditEvents } from "@kyren/db/schema";
 
 import { reportError } from "./error-report";
 import { SYSTEM_ACTOR_ID } from "./platform-audit";

@@ -9,8 +9,8 @@ import {
 } from "react";
 import { usePathname } from "next/navigation";
 
-import { SidebarInset, SidebarProvider } from "@zentro/ui/shadcn/sidebar";
-import { TooltipProvider } from "@zentro/ui/shadcn/tooltip";
+import { SidebarInset, SidebarProvider } from "@kyren/ui/shadcn/sidebar";
+import { TooltipProvider } from "@kyren/ui/shadcn/tooltip";
 
 import { AppSidebar, type ShellModule } from "./app-sidebar";
 import { OfflineBanner } from "./offline-banner";

@@ -1,5 +1,5 @@
 import { TRPCError } from "@trpc/server";
-import type { Decision, ResourceContext } from "@zentro/permissions";
+import type { Decision, ResourceContext } from "@kyren/permissions";
 import type { OrganizationContext } from "./trpc";
 
 /** Hidden things look like missing things, so ids cannot be probed. */

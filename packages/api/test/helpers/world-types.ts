@@ -1,4 +1,4 @@
-import { members, organizations, users } from "@zentro/db/schema";
+import { members, organizations, users } from "@kyren/db/schema";
 
 export type Role = "owner" | "admin" | "member";
 

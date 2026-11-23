@@ -1,12 +1,12 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
-import { db } from "@zentro/db";
+import { db } from "@kyren/db";
 import {
   chatAttachments,
   chatChannels,
   chatMessages,
   files,
-} from "@zentro/db/schema";
+} from "@kyren/db/schema";
 
 import { World } from "./helpers";
 

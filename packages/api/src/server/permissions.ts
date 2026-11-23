@@ -1,6 +1,6 @@
-import { ensureSystemRoles } from "@zentro/auth";
-import type { db as database } from "@zentro/db";
-import { and, eq, isNull } from "@zentro/db/drizzle";
+import { ensureSystemRoles } from "@kyren/auth";
+import type { db as database } from "@kyren/db";
+import { and, eq, isNull } from "@kyren/db/drizzle";
 import {
   members,
   permissionOverrides,
@@ -8,7 +8,7 @@ import {
   roleAssignments,
   roles,
   teamMembers,
-} from "@zentro/db/schema";
+} from "@kyren/db/schema";
 import {
   can as engineCan,
   check as engineCheck,
@@ -18,7 +18,7 @@ import {
   type PermissionSnapshot,
   type ProjectAccessInfo,
   type ResourceContext,
-} from "@zentro/permissions";
+} from "@kyren/permissions";
 
 type Database = typeof database;
 

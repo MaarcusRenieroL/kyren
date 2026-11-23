@@ -1,4 +1,4 @@
-import { Card } from "@zentro/ui/shadcn/card";
+import { Card } from "@kyren/ui/shadcn/card";
 import {
   CalendarIcon,
   CheckCheckIcon,

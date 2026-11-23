@@ -1,6 +1,6 @@
 "use client";
 
-import { Input } from "@zentro/ui/shadcn/input";
+import { Input } from "@kyren/ui/shadcn/input";
 import Link from "next/link";
 import { useState } from "react";
 import { SearchIcon } from "lucide-react";

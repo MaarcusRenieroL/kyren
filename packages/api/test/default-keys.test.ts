@@ -1,8 +1,8 @@
-import { ensureSystemRoles } from "@zentro/auth";
-import { db } from "@zentro/db";
-import { and, eq } from "@zentro/db/drizzle";
-import { roles } from "@zentro/db/schema";
-import { getSystemRoleDefinition } from "@zentro/permissions";
+import { ensureSystemRoles } from "@kyren/auth";
+import { db } from "@kyren/db";
+import { and, eq } from "@kyren/db/drizzle";
+import { roles } from "@kyren/db/schema";
+import { getSystemRoleDefinition } from "@kyren/permissions";
 import { afterAll, describe, expect, it } from "vitest";
 
 import { World, type TestOrg } from "./helpers";

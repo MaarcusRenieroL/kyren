@@ -1,5 +1,5 @@
 import { TRPCError } from "@trpc/server";
-import { and, count, eq } from "@zentro/db/drizzle";
+import { and, count, eq } from "@kyren/db/drizzle";
 import {
   members,
   projects,
@@ -7,14 +7,14 @@ import {
   roles,
   teams,
   users,
-} from "@zentro/db/schema";
+} from "@kyren/db/schema";
 import {
   getCatalog,
   getPermission,
   check as engineCheck,
   type PermissionSnapshot,
   type ResourceContext,
-} from "@zentro/permissions";
+} from "@kyren/permissions";
 import { z } from "zod";
 
 import { loadProjectById } from "../../resources";

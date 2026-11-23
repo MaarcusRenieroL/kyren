@@ -2,9 +2,9 @@ import { randomUUID } from "node:crypto";
 
 import { afterAll, describe, expect, it } from "vitest";
 
-import { db } from "@zentro/db";
-import { rateLimits } from "@zentro/db/schema";
-import { like } from "@zentro/db/drizzle";
+import { db } from "@kyren/db";
+import { rateLimits } from "@kyren/db/schema";
+import { like } from "@kyren/db/drizzle";
 
 import { hit } from "../src/server/rate-limit";
 

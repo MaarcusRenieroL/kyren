@@ -1,5 +1,5 @@
-import { db } from "@zentro/db";
-import { calendarEvents } from "@zentro/db/schema";
+import { db } from "@kyren/db";
+import { calendarEvents } from "@kyren/db/schema";
 import { afterAll, describe, expect, it } from "vitest";
 
 import { calendarBase as base } from "./helpers/calendar-helpers";

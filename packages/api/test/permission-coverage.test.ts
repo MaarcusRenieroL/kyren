@@ -1,4 +1,4 @@
-import { getCatalog, engineEnforcedKeys } from "@zentro/permissions";
+import { getCatalog, engineEnforcedKeys } from "@kyren/permissions";
 import { describe, expect, it } from "vitest";
 
 import { appRouter } from "../src/server/root";

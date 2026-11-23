@@ -1,8 +1,8 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
-import { db } from "@zentro/db";
-import { activityEvents, tasks } from "@zentro/db/schema";
-import { eq } from "@zentro/db/drizzle";
+import { db } from "@kyren/db";
+import { activityEvents, tasks } from "@kyren/db/schema";
+import { eq } from "@kyren/db/drizzle";
 
 import { World } from "./helpers";
 

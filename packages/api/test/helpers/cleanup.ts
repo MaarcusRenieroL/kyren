@@ -1,5 +1,5 @@
-import { db } from "@zentro/db";
-import { inArray } from "@zentro/db/drizzle";
+import { db } from "@kyren/db";
+import { inArray } from "@kyren/db/drizzle";
 import {
   organizations,
   taskActivityEvents,
@@ -7,7 +7,7 @@ import {
   tasks,
   teamMembers,
   users,
-} from "@zentro/db/schema";
+} from "@kyren/db/schema";
 
 export async function cleanupWorld(orgIds: string[], userIds: string[]) {
   if (orgIds.length) {

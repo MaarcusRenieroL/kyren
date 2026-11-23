@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { Button } from "@zentro/ui/shadcn/button";
+import { Button } from "@kyren/ui/shadcn/button";
 export function RoadmapHero({ v }: { v: any }) {
   const { nd, rv, notifyAll, ico, notifyAllT } = v;
 
@@ -134,7 +134,7 @@ export function RoadmapHero({ v }: { v: any }) {
                   textDecoration: "none",
                 }}
               >
-                {v.signedIn ? "Open Zentro" : "Get started"}
+                {v.signedIn ? "Open Kyren" : "Get started"}
               </a>
               <Button
                 variant="custom"

@@ -1,9 +1,9 @@
 "use client";
 
-import { useTrpcClient } from "@zentro/api/react";
-import { ErrorState } from "@zentro/ui/components/error-state";
-import { ListSkeleton, PageSkeleton } from "@zentro/ui/components/skeletons";
-import { toastError, toastSuccess } from "@zentro/ui/index";
+import { useTrpcClient } from "@kyren/api/react";
+import { ErrorState } from "@kyren/ui/components/error-state";
+import { ListSkeleton, PageSkeleton } from "@kyren/ui/components/skeletons";
+import { toastError, toastSuccess } from "@kyren/ui/index";
 import { useCallback, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 

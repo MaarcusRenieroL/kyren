@@ -1,6 +1,6 @@
 "use client";
 
-import { Button } from "@zentro/ui/shadcn/button";
+import { Button } from "@kyren/ui/shadcn/button";
 import { sameDay, startOfDay } from "../dates";
 import type { CalendarEventItem } from "../event-dialog";
 import { colorClass, eventsOn, HOUR, timeFormat } from "./calendar-helpers";

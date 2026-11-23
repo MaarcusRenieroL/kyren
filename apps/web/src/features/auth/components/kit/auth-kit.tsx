@@ -1,14 +1,14 @@
 "use client";
 
-import { Label } from "@zentro/ui/shadcn/label";
-import { Button } from "@zentro/ui/shadcn/button";
-import { Checkbox } from "@zentro/ui/shadcn/checkbox";
+import { Label } from "@kyren/ui/shadcn/label";
+import { Button } from "@kyren/ui/shadcn/button";
+import { Checkbox } from "@kyren/ui/shadcn/checkbox";
 import { useState, type ComponentProps, type ReactNode } from "react";
 import Link from "next/link";
 import { EyeIcon, EyeOffIcon } from "lucide-react";
 
-import { cn } from "@zentro/ui/lib/utils";
-import { Input } from "@zentro/ui/shadcn/input";
+import { cn } from "@kyren/ui/lib/utils";
+import { Input } from "@kyren/ui/shadcn/input";
 
 /** The page title and the sentence under it. Left aligned, no card. */
 export function AuthHeading({

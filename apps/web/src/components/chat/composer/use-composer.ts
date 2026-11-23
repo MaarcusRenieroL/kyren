@@ -9,7 +9,7 @@ import {
   type KeyboardEvent,
   type RefObject,
 } from "react";
-import { toastError } from "@zentro/ui/index";
+import { toastError } from "@kyren/ui/index";
 import type {
   Draft,
   Option,

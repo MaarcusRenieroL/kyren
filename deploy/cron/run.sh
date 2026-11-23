@@ -1,5 +1,5 @@
 #!/bin/sh
-# Every minute: Zentro's light background work. At 03:00 UTC: the heavy
+# Every minute: Kyren's light background work. At 03:00 UTC: the heavy
 # sweeps too (retention, purges, overdue notices, escalations).
 #
 # It also watches the app and alerts ALERT_WEBHOOK_URL once when something
@@ -19,7 +19,7 @@ alert() {
   echo "monitor: $1"
   if [ -n "${ALERT_WEBHOOK_URL:-}" ]; then
     curl -fsS -m 20 -H "Content-Type: application/json" \
-      -d "{\"text\":\"Zentro: $1\"}" "$ALERT_WEBHOOK_URL" >/dev/null || true
+      -d "{\"text\":\"Kyren: $1\"}" "$ALERT_WEBHOOK_URL" >/dev/null || true
   fi
 }
 

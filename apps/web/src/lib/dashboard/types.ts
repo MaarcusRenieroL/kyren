@@ -1,4 +1,4 @@
-import type { PermissionSnapshot } from "@zentro/permissions";
+import type { PermissionSnapshot } from "@kyren/permissions";
 
 export type DashboardStat = {
   value: number;

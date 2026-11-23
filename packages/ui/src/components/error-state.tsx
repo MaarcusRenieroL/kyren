@@ -1,5 +1,5 @@
 import type { ReactElement, ReactNode } from "react";
-import { cn } from "@zentro/ui/lib/utils";
+import { cn } from "@kyren/ui/lib/utils";
 import { Button } from "./shadcn/button";
 
 type ErrorStateProps = {

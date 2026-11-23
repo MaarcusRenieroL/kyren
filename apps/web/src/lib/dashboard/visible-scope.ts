@@ -1,9 +1,9 @@
-import { db } from "@zentro/db";
+import { db } from "@kyren/db";
 import {
   can,
   reachablePermissions,
   type PermissionSnapshot,
-} from "@zentro/permissions";
+} from "@kyren/permissions";
 import {
   and,
   eq,
@@ -11,12 +11,12 @@ import {
   isNull,
   or,
   sql,
-} from "@zentro/db/drizzle";
+} from "@kyren/db/drizzle";
 import {
   docs,
   projects,
   tasks,
-} from "@zentro/db/schema";
+} from "@kyren/db/schema";
 
 /**
  * What the caller may see: projects hidden from them, and the tasks and docs

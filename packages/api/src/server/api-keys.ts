@@ -1,8 +1,8 @@
 import { createHash, randomBytes } from "node:crypto";
 
-import { and, eq, isNull, or, gt, sql } from "@zentro/db/drizzle";
-import type { db as Database } from "@zentro/db";
-import { apiKeys, members, users } from "@zentro/db/schema";
+import { and, eq, isNull, or, gt, sql } from "@kyren/db/drizzle";
+import type { db as Database } from "@kyren/db";
+import { apiKeys, members, users } from "@kyren/db/schema";
 
 const prefix = "zk_live_";
 

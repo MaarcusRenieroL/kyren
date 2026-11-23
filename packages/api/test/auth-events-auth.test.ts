@@ -1,7 +1,7 @@
 import { randomUUID } from "node:crypto";
-import { db } from "@zentro/db";
-import { eq } from "@zentro/db/drizzle";
-import { activityEvents, users, verifications } from "@zentro/db/schema";
+import { db } from "@kyren/db";
+import { eq } from "@kyren/db/drizzle";
+import { activityEvents, users, verifications } from "@kyren/db/schema";
 import { afterAll, describe, expect, it } from "vitest";
 
 import {

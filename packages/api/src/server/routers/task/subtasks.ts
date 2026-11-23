@@ -1,7 +1,7 @@
 import { TRPCError } from "@trpc/server";
-import { and, desc, eq, sql } from "@zentro/db/drizzle";
-import { members, projects, tasks } from "@zentro/db/schema";
-import { sanitizeRichText } from "@zentro/utils";
+import { and, desc, eq, sql } from "@kyren/db/drizzle";
+import { members, projects, tasks } from "@kyren/db/schema";
+import { sanitizeRichText } from "@kyren/utils";
 
 import {
   createSubtaskSchema,

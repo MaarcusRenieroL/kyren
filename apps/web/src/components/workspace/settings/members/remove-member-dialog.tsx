@@ -10,7 +10,7 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from "@zentro/ui/components/shadcn/alert-dialog";
+} from "@kyren/ui/components/shadcn/alert-dialog";
 import type { Member } from "~/src/lib/types";
 
 type RemoveMemberDialogProps = {

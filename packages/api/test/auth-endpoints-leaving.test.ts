@@ -1,5 +1,5 @@
-import { db } from "@zentro/db";
-import { eq } from "@zentro/db/drizzle";
+import { db } from "@kyren/db";
+import { eq } from "@kyren/db/drizzle";
 import {
   members,
   organizations,
@@ -7,7 +7,7 @@ import {
   roleAssignments,
   sessions,
   teamMembers,
-} from "@zentro/db/schema";
+} from "@kyren/db/schema";
 import { afterAll, describe, expect, it } from "vitest";
 
 import { callAuth as call } from "./helpers/auth-call";

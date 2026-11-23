@@ -1,6 +1,6 @@
 import { TRPCError } from "@trpc/server";
-import { and, eq } from "@zentro/db/drizzle";
-import { docs, members, projects, teams, workLinks } from "@zentro/db/schema";
+import { and, eq } from "@kyren/db/drizzle";
+import { docs, members, projects, teams, workLinks } from "@kyren/db/schema";
 
 import { createDocSchema } from "../../../types/zod-schema";
 import { recordDocVersion } from "../../access";

@@ -1,15 +1,15 @@
-import { Label } from "@zentro/ui/shadcn/label";
-import { Checkbox } from "@zentro/ui/shadcn/checkbox";
+import { Label } from "@kyren/ui/shadcn/label";
+import { Checkbox } from "@kyren/ui/shadcn/checkbox";
 import {
   Select,
   SelectTrigger,
   SelectValue,
   SelectContent,
   SelectItem,
-} from "@zentro/ui/shadcn/select";
+} from "@kyren/ui/shadcn/select";
 import Link from "next/link";
 import { useState } from "react";
-import { moduleRegistry } from "@zentro/modules";
+import { moduleRegistry } from "@kyren/modules";
 import { Check } from "lucide-react";
 import { workspaceAnnualRate, workspaceRate } from "../../workspace-pricing";
 import s from "./pricing.module.css";
@@ -48,13 +48,13 @@ export function PricingPage() {
       <header className={s.hero}>
         <h1>Self-hosted pricing</h1>
         <p>
-          One subscription covers your whole workspace. Run Zentro on your own
+          One subscription covers your whole workspace. Run Kyren on your own
           infrastructure and choose the modules your team uses.
         </p>
       </header>
       <div className={s.columns}>
         <section className={s.plan} aria-labelledby="workspace-plan">
-          <h2 id="workspace-plan">Zentro workspace</h2>
+          <h2 id="workspace-plan">Kyren workspace</h2>
           <Select
             value={annual ? "annual" : "monthly"}
             onValueChange={(value) => setAnnual(value === "annual")}
@@ -107,7 +107,7 @@ export function PricingPage() {
           <dl className={s.lines}>
             <div>
               <dt>
-                Zentro subscription
+                Kyren subscription
                 {annual && <small>Monthly equivalent of annual billing</small>}
               </dt>
               <dd>{dollars(licenseMonthly)}</dd>

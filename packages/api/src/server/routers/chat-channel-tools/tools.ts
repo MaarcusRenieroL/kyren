@@ -1,11 +1,11 @@
 import { TRPCError } from "@trpc/server";
-import { and, asc, eq, isNull, sql } from "@zentro/db/drizzle";
+import { and, asc, eq, isNull, sql } from "@kyren/db/drizzle";
 import {
   chatBookmarks,
   chatChannels,
   chatMessages,
   chatStatuses,
-} from "@zentro/db/schema";
+} from "@kyren/db/schema";
 import { z } from "zod";
 import { postChatMessage } from "../../chat-post";
 import {
@@ -70,7 +70,7 @@ export const chatChannelToolsProcedures = {
           .max(500)
           .refine(
             (value) => /^https?:\/\//.test(value) || value.startsWith("/"),
-            "Use a web address or a page in Zentro.",
+            "Use a web address or a page in Kyren.",
           ),
       }),
     )
@@ -162,7 +162,7 @@ export const chatChannelToolsProcedures = {
     .input(z.object({ channelId: uuid }))
     .mutation(async ({ ctx, input }) => {
       const access = await postableChannel(ctx, input.channelId);
-      const room = `zentro-${input.channelId.slice(0, 8)}-${Date.now().toString(36)}`;
+      const room = `kyren-${input.channelId.slice(0, 8)}-${Date.now().toString(36)}`;
       const url = `https://meet.jit.si/${room}`;
       const message = await ctx.db.transaction((tx) =>
         postChatMessage(tx, {

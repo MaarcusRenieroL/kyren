@@ -1,6 +1,6 @@
 "use client";
 
-import { Label } from "@zentro/ui/shadcn/label";
+import { Label } from "@kyren/ui/shadcn/label";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -10,8 +10,8 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from "@zentro/ui/components/shadcn/alert-dialog";
-import { Input } from "@zentro/ui/components/shadcn/input";
+} from "@kyren/ui/components/shadcn/alert-dialog";
+import { Input } from "@kyren/ui/components/shadcn/input";
 
 type ArchiveDialogProps = {
   open: boolean;

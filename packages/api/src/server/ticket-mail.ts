@@ -11,9 +11,9 @@ export type TicketMail = {
   autoSubmitted?: "auto-replied" | "auto-generated";
 };
 
-import type { db as database } from "@zentro/db";
+import type { db as database } from "@kyren/db";
 
-import { hit } from "@zentro/db/rate-limit";
+import { hit } from "@kyren/db/rate-limit";
 
 import { enqueueJob, registerJobHandler } from "./jobs";
 
@@ -36,7 +36,7 @@ async function deliver(mail: TicketMail) {
   // Reserved test addresses never receive real mail.
   if (mail.to.toLowerCase().endsWith(".test")) return;
 
-  const { sendTicketReplyEmail } = await import("@zentro/auth");
+  const { sendTicketReplyEmail } = await import("@kyren/auth");
 
   await sendTicketReplyEmail(mail);
 }

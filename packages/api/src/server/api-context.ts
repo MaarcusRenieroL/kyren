@@ -1,8 +1,8 @@
 import { randomUUID } from "node:crypto";
 
-import { db } from "@zentro/db";
-import { eq } from "@zentro/db/drizzle";
-import { members, organizations, users } from "@zentro/db/schema";
+import { db } from "@kyren/db";
+import { eq } from "@kyren/db/drizzle";
+import { members, organizations, users } from "@kyren/db/schema";
 
 import type { TRPCContext } from "../types";
 import type { ApiKeyOwner } from "./api-keys";

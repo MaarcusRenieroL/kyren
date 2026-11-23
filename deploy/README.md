@@ -1,4 +1,4 @@
-# Deploying Zentro on a VM
+# Deploying Kyren on a VM
 
 One machine runs everything with Docker Compose: Postgres (optional), the
 database migrations, the app, a background-job runner and Caddy, which gets
@@ -17,7 +17,7 @@ and renews the HTTPS certificate.
 ## 2. Get the code
 
 ```bash
-git clone <your repository> zentro && cd zentro
+git clone <your repository> kyren && cd kyren
 ```
 
 ## 3. Write `deploy/.env`
@@ -28,14 +28,14 @@ optional.
 
 | Variable                                                                            | What to put                                                                                                          |
 | ----------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
-| `DOMAIN`                                                                            | Your domain, e.g. `zentro.example.com` (no `https://`)                                                               |
+| `DOMAIN`                                                                            | Your domain, e.g. `kyren.example.com` (no `https://`)                                                               |
 | `POSTGRES_PASSWORD`                                                                 | A long random password (`openssl rand -hex 24`) — for the bundled database                                           |
 | `DATABASE_URL`                                                                      | _Optional._ Only to use an outside database such as Neon instead of the bundled one                                  |
 | `BETTER_AUTH_SECRET`                                                                | `openssl rand -base64 48`                                                                                            |
 | `FIELD_ENCRYPTION_KEY`                                                              | `openssl rand -base64 32` (must be exactly 32 bytes). **Keep it safe: losing it makes encrypted fields unreadable.** |
 | `CRON_SECRET`                                                                       | `openssl rand -hex 32`                                                                                               |
 | `RESEND_API_KEY`                                                                    | Your Resend API key (sign-in codes, invitations and notification emails)                                             |
-| `EMAIL_FROM`                                                                        | _Optional._ The sender, e.g. `Zentro <no-reply@example.com>` (a domain verified in Resend)                           |
+| `EMAIL_FROM`                                                                        | _Optional._ The sender, e.g. `Kyren <no-reply@example.com>` (a domain verified in Resend)                           |
 | `ORGANIZATIONS_PER_PERSON`                                                          | _Optional._ Defaults to 10                                                                                           |
 | `ANTHROPIC_API_KEY`                                                                 | _Optional._ Turns on the AI features                                                                                 |
 | `ERROR_WEBHOOK_URL`                                                                 | _Optional._ Where server errors are posted                                                                           |
@@ -92,7 +92,7 @@ go through Resend. Without these records, mail lands in spam or is refused.
      `v=DMARC1; p=none; rua=mailto:dmarc@your-domain` and moving to
      `p=quarantine` once reports look clean.
 2. Wait until Resend shows the domain as verified, then set `EMAIL_FROM` to an
-   address on it, e.g. `Zentro <no-reply@mail.example.com>`.
+   address on it, e.g. `Kyren <no-reply@mail.example.com>`.
 3. **Bounces and spam complaints:** in Resend → Webhooks, add
    `https://$DOMAIN/api/email/events` for the `email.bounced` and
    `email.complained` events and put its signing secret in
@@ -100,7 +100,7 @@ go through Resend. Without these records, mail lands in spam or is refused.
    never emailed again, which keeps your sending reputation (and Resend's
    limits) intact.
 4. Invitations are capped at 100 per organization per hour and 3 per address
-   per day, so no one can use Zentro to flood an inbox.
+   per day, so no one can use Kyren to flood an inbox.
 
 ## 6. Backups (encrypted, off this machine)
 
@@ -122,7 +122,7 @@ Add to `deploy/.env`:
 | Variable                                                       | What to put                                          |
 | -------------------------------------------------------------- | ---------------------------------------------------- |
 | `BACKUP_AGE_RECIPIENT`                                         | The `age1…` public key printed above                 |
-| `BACKUP_REMOTE`                                                | `remote:your-bucket/zentro`                          |
+| `BACKUP_REMOTE`                                                | `remote:your-bucket/kyren`                          |
 | `RCLONE_CONFIG_REMOTE_TYPE`                                    | `s3` (or `b2`, `sftp`, …)                            |
 | `RCLONE_CONFIG_REMOTE_PROVIDER`                                | e.g. `Backblaze`, `Wasabi`, `Other`                  |
 | `RCLONE_CONFIG_REMOTE_ENDPOINT`                                | the provider's S3 endpoint                           |
@@ -190,12 +190,12 @@ release without a recorded backup, select and verify the restore point manually.
 
 ## 9. Capacity and load testing
 
-`deploy/loadtest/zentro.js` is a k6 script: each virtual user signs in once,
+`deploy/loadtest/kyren.js` is a k6 script: each virtual user signs in once,
 opens a page, then polls notifications and chat every 3 seconds, the way an
 open browser tab does. Run it from any machine with Docker:
 
 ```bash
-docker run --rm -i -e BASE_URL=https://your.domain -e USERS=a@x.com,b@x.com -e PASSWORD='...' -e VUS=100 grafana/k6:0.54.0 run - < deploy/loadtest/zentro.js
+docker run --rm -i -e BASE_URL=https://your.domain -e USERS=a@x.com,b@x.com -e PASSWORD='...' -e VUS=100 grafana/k6:0.54.0 run - < deploy/loadtest/kyren.js
 ```
 
 Use test accounts, never real people's. Measured on 2026-11-20, one Node
@@ -206,7 +206,7 @@ process on an Apple M-series laptop with Postgres on the same machine:
 | 50        | ~45        | 0%       | 0.1 s     | 0.1 s     |
 | 300       | ~136       | 0%       | 0.46 s    | 1.26 s    |
 
-So one web container is comfortable up to roughly 150 people with Zentro open
+So one web container is comfortable up to roughly 150 people with Kyren open
 at once; at 300 it still works but feels slow. Raising `DATABASE_POOL_MAX`
 from 10 to 20 changed nothing at 300, so the limit is the single Node
 process, not the database. Past that, the simplest step is a VM with faster
@@ -237,7 +237,7 @@ holds real people's data, so give staging the same care as production and
 wipe it afterwards.
 
 Running staging on the production VM is possible (`docker compose -p
-zentro-staging` with its own env file) but its Caddy would fight production
+kyren-staging` with its own env file) but its Caddy would fight production
 for ports 80 and 443, so it needs a shared Caddy in front; the separate VM
 is simpler.
 

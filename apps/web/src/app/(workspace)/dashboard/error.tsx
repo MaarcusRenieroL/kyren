@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 
-import { ErrorState } from "@zentro/ui/components/error-state";
+import { ErrorState } from "@kyren/ui/components/error-state";
 
 type Props = {
   error: Error & { digest?: string };

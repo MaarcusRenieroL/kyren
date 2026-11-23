@@ -1,5 +1,5 @@
-import { db } from "@zentro/db";
-import { teamMembers } from "@zentro/db/schema";
+import { db } from "@kyren/db";
+import { teamMembers } from "@kyren/db/schema";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 import { getDashboardData } from "../../../apps/web/src/lib/dashboard-data";

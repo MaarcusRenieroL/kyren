@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { Button } from "@zentro/ui/shadcn/button";
+import { Button } from "@kyren/ui/shadcn/button";
 import Link from "next/link";
 import { Fragment } from "react";
 import { hrefOf } from "./common";
@@ -74,7 +74,7 @@ export function SiteHeader({ v }: { v: any }) {
             letterSpacing: "-0.03em",
           }}
         >
-          zentro
+          kyren
         </span>
       </Link>
       {!m && (
@@ -167,7 +167,7 @@ export function SiteHeader({ v }: { v: any }) {
           whiteSpace: "nowrap",
         }}
       >
-        {v.signedIn ? "Open Zentro" : "Get started"}
+        {v.signedIn ? "Open Kyren" : "Get started"}
       </a>
       {m ? (
         <>

@@ -1,8 +1,8 @@
 "use client";
 
-import { Button } from "@zentro/ui/shadcn/button";
+import { Button } from "@kyren/ui/shadcn/button";
 import { useState } from "react";
-import { PageHeader } from "@zentro/ui/components/page-header";
+import { PageHeader } from "@kyren/ui/components/page-header";
 
 import { MineTab } from "./home/mine-tab";
 import type { Tab } from "./home/payroll-types";

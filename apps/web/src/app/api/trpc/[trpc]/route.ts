@@ -5,9 +5,9 @@ import {
   createEnabledModulesLoader,
   createPermissionContext,
   reportError,
-} from "@zentro/api/server";
-import { auth } from "@zentro/auth";
-import { db } from "@zentro/db";
+} from "@kyren/api/server";
+import { auth } from "@kyren/auth";
+import { db } from "@kyren/db";
 
 const handler = (request: Request) => {
   return fetchRequestHandler({

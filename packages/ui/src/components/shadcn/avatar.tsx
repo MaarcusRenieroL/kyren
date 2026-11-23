@@ -3,8 +3,8 @@
 import * as React from "react";
 import { Avatar as AvatarPrimitive } from "radix-ui";
 
-import { cn } from "@zentro/ui/lib/utils";
-import { toneClass } from "@zentro/ui/lib/tone";
+import { cn } from "@kyren/ui/lib/utils";
+import { toneClass } from "@kyren/ui/lib/tone";
 
 function Avatar({
   className,

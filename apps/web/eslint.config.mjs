@@ -1,3 +1,3 @@
-import { nextJsConfig } from "@zentro/eslint-config/next-js";
+import { nextJsConfig } from "@kyren/eslint-config/next-js";
 
 export default nextJsConfig;

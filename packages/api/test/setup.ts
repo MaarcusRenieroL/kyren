@@ -1,4 +1,4 @@
-import { assertTestDatabaseUrl } from "@zentro/test-utils";
+import { assertTestDatabaseUrl } from "@kyren/test-utils";
 
 // Last line of defence: every worker must be pointed at the test database.
 const databaseUrl = process.env.DATABASE_URL ?? "";

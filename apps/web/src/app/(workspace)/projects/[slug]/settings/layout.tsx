@@ -1,6 +1,6 @@
 "use client";
 
-import { useTrpcClient } from "@zentro/api/react";
+import { useTrpcClient } from "@kyren/api/react";
 import { useParams } from "next/navigation";
 import { ReactNode, useEffect, useState } from "react";
 import { SettingsShell } from "~/src/components/project-detail/settings/settings-shell";

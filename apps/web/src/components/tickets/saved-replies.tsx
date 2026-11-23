@@ -4,16 +4,16 @@ import {
   Collapsible,
   CollapsibleTrigger,
   CollapsibleContent,
-} from "@zentro/ui/shadcn/collapsible";
+} from "@kyren/ui/shadcn/collapsible";
 import { useEffect, useState } from "react";
 
-import { authClient } from "@zentro/auth/client";
-import { useTrpcClient } from "@zentro/api/react";
-import { toastError, toastSuccess } from "@zentro/ui/index";
-import { Button } from "@zentro/ui/shadcn/button";
-import { Input } from "@zentro/ui/shadcn/input";
-import { NativeSelect } from "@zentro/ui/shadcn/native-select";
-import { Textarea } from "@zentro/ui/shadcn/textarea";
+import { authClient } from "@kyren/auth/client";
+import { useTrpcClient } from "@kyren/api/react";
+import { toastError, toastSuccess } from "@kyren/ui/index";
+import { Button } from "@kyren/ui/shadcn/button";
+import { Input } from "@kyren/ui/shadcn/input";
+import { NativeSelect } from "@kyren/ui/shadcn/native-select";
+import { Textarea } from "@kyren/ui/shadcn/textarea";
 
 import { useAsyncData } from "~/src/lib/use-async-data";
 

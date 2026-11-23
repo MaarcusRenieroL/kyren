@@ -3,7 +3,7 @@ import {
   getAuditEvent,
   describeEvent,
   actorName,
-} from "@zentro/audit";
+} from "@kyren/audit";
 import {
   and,
   desc,
@@ -14,8 +14,8 @@ import {
   lte,
   or,
   type SQL,
-} from "@zentro/db/drizzle";
-import { activityEvents, users } from "@zentro/db/schema";
+} from "@kyren/db/drizzle";
+import { activityEvents, users } from "@kyren/db/schema";
 import { z } from "zod";
 
 import { cursorCondition, cursorSchema, encodeCursor } from "../activity";

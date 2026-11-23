@@ -10,7 +10,7 @@ import {
   lte,
   or,
   sql,
-} from "@zentro/db/drizzle";
+} from "@kyren/db/drizzle";
 import {
   jobs,
   organizations,
@@ -19,7 +19,7 @@ import {
   platformIpAllowlist,
   platformSettings,
   users,
-} from "@zentro/db/schema";
+} from "@kyren/db/schema";
 import { z } from "zod";
 
 import { clientIp } from "../../client-ip";

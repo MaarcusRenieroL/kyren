@@ -1,5 +1,5 @@
-import { db } from "@zentro/db";
-import { and, count, eq, isNull } from "@zentro/db/drizzle";
+import { db } from "@kyren/db";
+import { and, count, eq, isNull } from "@kyren/db/drizzle";
 import {
   docs,
   invitations,
@@ -7,7 +7,7 @@ import {
   projects,
   tasks,
   whiteboards,
-} from "@zentro/db/schema";
+} from "@kyren/db/schema";
 
 export type StarterProgress = {
   project: boolean;

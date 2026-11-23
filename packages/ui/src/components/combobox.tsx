@@ -1,16 +1,16 @@
 "use client";
 
-import { Button } from "@zentro/ui/shadcn/button";
-import { Input } from "@zentro/ui/shadcn/input";
+import { Button } from "@kyren/ui/shadcn/button";
+import { Input } from "@kyren/ui/shadcn/input";
 import { useId, useMemo, useState, type ReactElement } from "react";
 import { CheckIcon, ChevronsUpDownIcon } from "lucide-react";
 
-import { cn } from "@zentro/ui/lib/utils";
+import { cn } from "@kyren/ui/lib/utils";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from "@zentro/ui/shadcn/popover";
+} from "@kyren/ui/shadcn/popover";
 
 type ComboboxProps = {
   options: ReadonlyArray<{ value: string; label: string; hint?: string }>;

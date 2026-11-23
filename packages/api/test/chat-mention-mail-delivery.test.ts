@@ -1,10 +1,10 @@
-import { db } from "@zentro/db";
-import { and, eq, sql } from "@zentro/db/drizzle";
+import { db } from "@kyren/db";
+import { and, eq, sql } from "@kyren/db/drizzle";
 import {
   chatMessages,
   chatScheduled,
   organizationModules,
-} from "@zentro/db/schema";
+} from "@kyren/db/schema";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 import { runChatJobs } from "../src/server/chat-jobs";

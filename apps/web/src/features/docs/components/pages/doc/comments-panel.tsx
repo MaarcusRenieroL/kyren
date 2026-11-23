@@ -2,11 +2,11 @@
 
 import { useEffect, useState } from "react";
 import { SendIcon, XIcon } from "lucide-react";
-import { Button } from "@zentro/ui/shadcn/button";
-import { Skeleton } from "@zentro/ui/shadcn/skeleton";
-import { Textarea } from "@zentro/ui/shadcn/textarea";
-import { useTrpcClient } from "@zentro/api/react";
-import { toastError, toastSuccess } from "@zentro/ui/index";
+import { Button } from "@kyren/ui/shadcn/button";
+import { Skeleton } from "@kyren/ui/shadcn/skeleton";
+import { Textarea } from "@kyren/ui/shadcn/textarea";
+import { useTrpcClient } from "@kyren/api/react";
+import { toastError, toastSuccess } from "@kyren/ui/index";
 import { type DocComment, openOnly } from "./comments/types";
 import { CommentItem } from "./comments/comment-item";
 import { ThreadReplyForm } from "./comments/thread-reply-form";

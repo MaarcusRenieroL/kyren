@@ -1,5 +1,5 @@
 {
-  "name": "@zentro/web",
+  "name": "@kyren/web",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -27,14 +27,14 @@
     "@tiptap/starter-kit": "^3.32.2",
     "@trpc/client": "^11.17.0",
     "@trpc/server": "^11.17.0",
-    "@zentro/api": "workspace:*",
-    "@zentro/audit": "workspace:*",
-    "@zentro/auth": "workspace:*",
-    "@zentro/db": "workspace:*",
-    "@zentro/modules": "workspace:*",
-    "@zentro/permissions": "workspace:*",
-    "@zentro/ui": "workspace:*",
-    "@zentro/utils": "workspace:*",
+    "@kyren/api": "workspace:*",
+    "@kyren/audit": "workspace:*",
+    "@kyren/auth": "workspace:*",
+    "@kyren/db": "workspace:*",
+    "@kyren/modules": "workspace:*",
+    "@kyren/permissions": "workspace:*",
+    "@kyren/ui": "workspace:*",
+    "@kyren/utils": "workspace:*",
     "better-auth": "^1.7.15",
     "cmdk": "^1.1.1",
     "lucide-react": "^1.8.0",
@@ -48,7 +48,7 @@
     "zod": "^4.3.6"
   },
   "devDependencies": {
-    "@zentro/eslint-config": "workspace:*",
-    "@zentro/typescript-config": "workspace:*"
+    "@kyren/eslint-config": "workspace:*",
+    "@kyren/typescript-config": "workspace:*"
   }
 }

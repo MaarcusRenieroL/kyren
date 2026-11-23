@@ -1,5 +1,5 @@
-import { eq, sql } from "@zentro/db/drizzle";
-import { employees } from "@zentro/db/schema";
+import { eq, sql } from "@kyren/db/drizzle";
+import { employees } from "@kyren/db/schema";
 import { z } from "zod";
 
 import { enforceRateLimit } from "../../rate-limit";

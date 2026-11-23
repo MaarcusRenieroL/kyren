@@ -1,5 +1,5 @@
 {
-  "name": "@zentro/auth",
+  "name": "@kyren/auth",
   "version": "0.0.0",
   "private": true,
   "description": "",
@@ -13,13 +13,13 @@
   },
   "dependencies": {
     "@better-auth/drizzle-adapter": "^1.6.9",
-    "@zentro/db": "workspace:*",
-    "@zentro/audit": "workspace:*",
-    "@zentro/permissions": "workspace:*",
+    "@kyren/db": "workspace:*",
+    "@kyren/audit": "workspace:*",
+    "@kyren/permissions": "workspace:*",
     "better-auth": "^1.7.15",
     "resend": "^6.12.2"
   },
   "devDependencies": {
-    "@zentro/typescript-config": "workspace:*"
+    "@kyren/typescript-config": "workspace:*"
   }
 }

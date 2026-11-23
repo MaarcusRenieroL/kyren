@@ -1,4 +1,4 @@
-import { db } from "@zentro/db";
+import { db } from "@kyren/db";
 import { afterAll, describe, expect, it } from "vitest";
 
 import { getDashboardData } from "../../../apps/web/src/lib/dashboard-data";

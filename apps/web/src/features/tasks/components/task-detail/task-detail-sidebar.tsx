@@ -11,16 +11,16 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogTrigger,
-} from "@zentro/ui/components/shadcn/alert-dialog";
-import { PriorityMeter, StatusGlyph } from "@zentro/ui/components/status-glyph";
-import { Button } from "@zentro/ui/shadcn/button";
+} from "@kyren/ui/components/shadcn/alert-dialog";
+import { PriorityMeter, StatusGlyph } from "@kyren/ui/components/status-glyph";
+import { Button } from "@kyren/ui/shadcn/button";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@zentro/ui/shadcn/select";
+} from "@kyren/ui/shadcn/select";
 
 import type { TaskPriority, TaskStatus } from "~/src/features/tasks/lib/types";
 

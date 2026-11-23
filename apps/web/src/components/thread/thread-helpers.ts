@@ -1,4 +1,4 @@
-import { formatDueDate } from "@zentro/utils";
+import { formatDueDate } from "@kyren/utils";
 
 export type Related = {
   kind: "task" | "doc";

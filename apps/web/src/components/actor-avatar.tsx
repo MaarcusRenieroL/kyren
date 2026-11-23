@@ -1,5 +1,5 @@
-import { cn } from "@zentro/ui/lib/utils";
-import { initialsOf } from "@zentro/ui/lib/tone";
+import { cn } from "@kyren/ui/lib/utils";
+import { initialsOf } from "@kyren/ui/lib/tone";
 
 const tints = [
   "bg-tint-tasks",

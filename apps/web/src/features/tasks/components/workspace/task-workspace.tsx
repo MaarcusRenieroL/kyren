@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, type FC } from "react";
-import { useSidebar } from "@zentro/ui/shadcn/sidebar";
+import { useSidebar } from "@kyren/ui/shadcn/sidebar";
 import { CalendarView } from "./calendar-view";
 import { EmptyTasks } from "./empty-tasks";
 import { ListView } from "./list-view";

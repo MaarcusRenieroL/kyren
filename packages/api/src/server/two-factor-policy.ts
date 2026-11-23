@@ -1,6 +1,6 @@
-import { eq } from "@zentro/db/drizzle";
-import type { db as Database } from "@zentro/db";
-import { organizations } from "@zentro/db/schema";
+import { eq } from "@kyren/db/drizzle";
+import type { db as Database } from "@kyren/db";
+import { organizations } from "@kyren/db/schema";
 
 const ttlMs = 30_000;
 const cache = new Map<string, { required: boolean; until: number }>();
