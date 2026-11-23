@@ -1,30 +1,17 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import {
-  ClockIcon,
-  PlayIcon,
-  SquareIcon,
-  PlusIcon,
-  TimerIcon,
-  HashIcon,
-} from "lucide-react";
+import { PlayIcon, SquareIcon, PlusIcon, TimerIcon } from "lucide-react";
 
 import { useTrpcClient } from "@zentro/api/react";
 import { toastError, toastSuccess } from "@zentro/ui/index";
-import { cn } from "@zentro/ui/lib/utils";
 import { Button } from "@zentro/ui/shadcn/button";
 
 import type { TaskDetail, TaskTimeLogItem } from "./types";
-
-function formatMinutes(totalMinutes: number): string {
-  if (totalMinutes <= 0) return "0m";
-  const hours = Math.floor(totalMinutes / 60);
-  const mins = totalMinutes % 60;
-  if (hours > 0 && mins > 0) return `${hours}h ${mins}m`;
-  if (hours > 0) return `${hours}h`;
-  return `${mins}m`;
-}
+import { formatMinutes } from "./time-tracker/time-tracker-utils";
+import { EstimateSelector } from "./time-tracker/estimate-selector";
+import { ManualTimeForm } from "./time-tracker/manual-time-form";
+import { TimeLogHistory } from "./time-tracker/time-log-history";
 
 export function TaskTimeTracker({
   task,
@@ -37,8 +24,6 @@ export function TaskTimeTracker({
 }) {
   const trpc = useTrpcClient();
   const [seconds, setSeconds] = useState(0);
-  const [manualMinutes, setManualMinutes] = useState("");
-  const [manualNote, setManualNote] = useState("");
   const [isLogging, setIsLogging] = useState(false);
   const [showManualForm, setShowManualForm] = useState(false);
   const [timeLogs, setTimeLogs] = useState<TaskTimeLogItem[]>(
@@ -81,7 +66,6 @@ export function TaskTimeTracker({
   useEffect(() => {
     if (startedAt === null) {
       setSeconds(0);
-
       return;
     }
 
@@ -89,7 +73,6 @@ export function TaskTimeTracker({
       setSeconds(Math.max(0, Math.floor((Date.now() - startedAt) / 1000)));
 
     tick();
-
     const interval = setInterval(tick, 1000);
 
     return () => clearInterval(interval);
@@ -110,7 +93,6 @@ export function TaskTimeTracker({
   async function handleStop() {
     try {
       const stopped = await trpc.timesheet.stop.mutate();
-
       setStartedAt(null);
 
       if (stopped) {
@@ -146,8 +128,6 @@ export function TaskTimeTracker({
           ...prev,
         ]);
       }
-      setManualMinutes("");
-      setManualNote("");
       setShowManualForm(false);
       toastSuccess(`Logged ${formatMinutes(duration)}`);
       onTaskUpdated?.();
@@ -172,8 +152,6 @@ export function TaskTimeTracker({
       setEstimatePoints(task.estimatePoints ?? null);
     }
   }
-
-  const pointOptions = [1, 2, 3, 5, 8, 13];
 
   return (
     <section aria-label="Time & Estimation" className="tile p-5">
@@ -227,109 +205,17 @@ export function TaskTimeTracker({
         </Button>
       </div>
 
-      {/* Manual Time Logging Form */}
       {showManualForm && (
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            const mins = parseInt(manualMinutes, 10);
-            if (!isNaN(mins) && mins > 0) {
-              void logTime(mins, manualNote);
-            }
-          }}
-          className="mb-4 flex flex-col gap-2 rounded-lg border border-hairline bg-surface-subtle p-3"
-        >
-          <div className="flex items-center gap-2">
-            <input
-              type="number"
-              min="1"
-              max="1440"
-              value={manualMinutes}
-              onChange={(e) => setManualMinutes(e.target.value)}
-              placeholder="Minutes (e.g. 45)"
-              className="h-8 w-36 rounded-md border border-hairline bg-surface px-2.5 font-mono text-xs outline-none focus-visible:border-ring"
-              autoFocus
-            />
-            <input
-              type="text"
-              value={manualNote}
-              onChange={(e) => setManualNote(e.target.value)}
-              placeholder="Optional note"
-              className="h-8 flex-1 rounded-md border border-hairline bg-surface px-2.5 text-xs outline-none focus-visible:border-ring"
-            />
-            <Button
-              size="sm"
-              type="submit"
-              disabled={isLogging || !manualMinutes}
-              className="h-8 text-xs"
-            >
-              Log
-            </Button>
-          </div>
-        </form>
+        <ManualTimeForm isLogging={isLogging} onLog={logTime} />
       )}
 
-      {/* Story Points Estimation Selector */}
-      <div className="mt-2 flex flex-col gap-1.5 border-t border-hairline pt-3">
-        <span className="flex items-center gap-1.5 font-mono text-[11px] text-ink-3 uppercase tracking-wider">
-          <HashIcon className="size-3" />
-          Story Points Estimate
-        </span>
-        <div className="flex flex-wrap items-center gap-1.5">
-          {pointOptions.map((pts) => {
-            const isSelected = estimatePoints === pts;
-            return (
-              <button
-                key={pts}
-                type="button"
-                disabled={!canEdit}
-                onClick={() => handleEstimateChange(isSelected ? null : pts)}
-                className={cn(
-                  "flex size-7 items-center justify-center rounded border font-mono text-xs transition-colors",
-                  isSelected
-                    ? "border-primary bg-primary text-primary-foreground font-semibold"
-                    : "border-hairline bg-surface hover:bg-hover text-ink-2",
-                )}
-              >
-                {pts}
-              </button>
-            );
-          })}
-          {estimatePoints !== null &&
-            !pointOptions.includes(estimatePoints) && (
-              <span className="rounded border border-primary bg-primary px-2 py-1 font-mono text-xs text-primary-foreground">
-                {estimatePoints} pts
-              </span>
-            )}
-        </div>
-      </div>
+      <EstimateSelector
+        estimatePoints={estimatePoints}
+        canEdit={canEdit}
+        onEstimateChange={handleEstimateChange}
+      />
 
-      {/* Recent Time Logs */}
-      {timeLogs.length > 0 && (
-        <div className="mt-4 flex flex-col gap-1.5 border-t border-hairline pt-3">
-          <span className="font-mono text-[11px] text-ink-3 uppercase tracking-wider">
-            History ({timeLogs.length})
-          </span>
-          <div className="flex flex-col divide-y divide-hairline/60">
-            {timeLogs.slice(0, 5).map((log) => (
-              <div
-                key={log.id}
-                className="flex items-center justify-between py-1.5 text-xs"
-              >
-                <div className="flex min-w-0 items-center gap-2">
-                  <ClockIcon className="size-3 text-ink-3 shrink-0" />
-                  <span className="truncate text-ink-2">
-                    {log.note || "Logged work"}
-                  </span>
-                </div>
-                <span className="font-mono text-[11px] font-medium text-ink shrink-0">
-                  {formatMinutes(log.durationMinutes)}
-                </span>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
+      <TimeLogHistory timeLogs={timeLogs} />
     </section>
   );
 }

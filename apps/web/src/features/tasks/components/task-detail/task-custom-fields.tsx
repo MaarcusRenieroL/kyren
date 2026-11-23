@@ -1,5 +1,7 @@
 "use client";
 
+import { Button } from "@zentro/ui/shadcn/button";
+import { Label } from "@zentro/ui/shadcn/label";
 import { useCallback, useEffect, useState } from "react";
 
 import { useTrpcClient } from "@zentro/api/react";
@@ -58,9 +60,14 @@ export function TaskCustomFields({
     return (
       <p role="status" className="tile px-[22px] py-[18px] text-sm text-ink-2">
         This task’s details did not load.{" "}
-        <button type="button" className="underline" onClick={() => void load()}>
+        <Button
+          variant="custom"
+          type="button"
+          className="underline"
+          onClick={() => void load()}
+        >
           Retry
-        </button>
+        </Button>
       </p>
     );
   }
@@ -74,7 +81,7 @@ export function TaskCustomFields({
         {fields.map((field) => (
           <div key={field.fieldId} className="flex flex-col gap-1">
             <dt className="text-xs text-ink-3">
-              <label htmlFor={`field-${field.fieldId}`}>{field.name}</label>
+              <Label htmlFor={`field-${field.fieldId}`}>{field.name}</Label>
             </dt>
             <dd>
               {field.type === "select" ? (

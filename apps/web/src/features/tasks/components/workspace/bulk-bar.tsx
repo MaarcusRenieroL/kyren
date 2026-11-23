@@ -1,5 +1,6 @@
 "use client";
 
+import { Button } from "@zentro/ui/shadcn/button";
 import { useEffect, useState, type FC, type ReactNode } from "react";
 import { XIcon } from "lucide-react";
 
@@ -7,28 +8,12 @@ import { useTrpcClient } from "@zentro/api/react";
 import { PriorityMeter, StatusGlyph } from "@zentro/ui/components/status-glyph";
 import { cn } from "@zentro/ui/lib/utils";
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@zentro/ui/shadcn/alert-dialog";
-import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@zentro/ui/shadcn/dropdown-menu";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@zentro/ui/shadcn/popover";
 
 import { ActorAvatar } from "~/src/components/actor-avatar";
 import { useReachable } from "~/src/components/permissions/permission-provider";
@@ -39,7 +24,7 @@ import type {
   TaskStatus,
   WorkspaceTask,
 } from "~/src/features/tasks/lib/types";
-import { dueFromDateInput } from "../task-detail/task-detail-utils";
+import { BulkDeleteDialog, BulkDueDatePopover } from "./bulk-bar-actions";
 
 const statuses: TaskStatus[] = [
   "todo",
@@ -61,11 +46,6 @@ type Props = {
 const action =
   "h-[34px] rounded-[10px] px-3 text-[13px] text-ink-inverse outline-none hover:bg-ink-inverse/10 focus-visible:ring-2 focus-visible:ring-ink-inverse/60 aria-expanded:bg-ink-inverse/10";
 
-function toISODate(value: string) {
-  // A date picked in the browser means the end of that local day.
-  return dueFromDateInput(value)?.toISOString() ?? null;
-}
-
 /** What you can do to the selected tasks: one dark bar under the list. */
 export const BulkBar: FC<Props> = ({
   selected,
@@ -77,11 +57,8 @@ export const BulkBar: FC<Props> = ({
   const canAssign = useReachable("tasks.assign");
   const canDeleteOwn = useReachable("tasks.delete_own");
   const canDeleteAny = useReachable("tasks.delete_any");
-  // The server checks each task; tasks you may not delete stay.
   const canDelete = canDeleteOwn || canDeleteAny;
   const [members, setMembers] = useState<Member[] | null>(null);
-  const [date, setDate] = useState("");
-  const [dateOpen, setDateOpen] = useState(false);
   const count = selected.length;
 
   useEffect(() => {
@@ -89,7 +66,6 @@ export const BulkBar: FC<Props> = ({
 
     let live = true;
 
-    // Needs members.view; without it the menu offers only "Unassigned".
     trpc.member.getMembers
       .query()
       .then((rows) => {
@@ -215,97 +191,32 @@ export const BulkBar: FC<Props> = ({
           )
         : null}
 
-      <Popover open={dateOpen} onOpenChange={setDateOpen}>
-        <PopoverTrigger className={action}>Due date</PopoverTrigger>
-        <PopoverContent
-          side="top"
-          sideOffset={10}
-          className="w-64 gap-3 rounded-2xl p-3"
-        >
-          <form
-            className="flex flex-col gap-3"
-            onSubmit={(event) => {
-              event.preventDefault();
-              if (!date) return;
-              onChange?.(selected, { dueAt: toISODate(date) });
-              setDateOpen(false);
-            }}
-          >
-            <label className="flex flex-col gap-1.5 text-[13px] font-medium">
-              Due date for {count} {count === 1 ? "task" : "tasks"}
-              <input
-                type="date"
-                value={date}
-                onChange={(event) => setDate(event.target.value)}
-                className="h-10 rounded-md border border-hairline bg-surface px-3 font-mono text-sm outline-none focus-visible:border-ring focus-visible:ring-4 focus-visible:ring-ring/22"
-              />
-            </label>
-            <div className="flex justify-between gap-2">
-              <button
-                type="button"
-                onClick={() => {
-                  onChange?.(selected, { dueAt: null });
-                  setDateOpen(false);
-                }}
-                className="h-8 rounded-md px-2 text-[13px] text-ink-2 outline-none hover:text-ink focus-visible:ring-2 focus-visible:ring-ring"
-              >
-                Clear date
-              </button>
-              <button
-                type="submit"
-                className="h-8 rounded-md bg-signal px-3 text-[13px] font-semibold text-on-signal outline-none hover:bg-signal-hover focus-visible:ring-2 focus-visible:ring-ring"
-              >
-                Set date
-              </button>
-            </div>
-          </form>
-        </PopoverContent>
-      </Popover>
+      <BulkDueDatePopover
+        count={count}
+        selected={selected}
+        actionClassName={action}
+        onChange={onChange}
+      />
 
       {canDelete && onDelete ? (
-        <AlertDialog>
-          <AlertDialogTrigger className={cn(action, "text-danger-on-ink")}>
-            Delete
-          </AlertDialogTrigger>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>
-                Delete {count} {count === 1 ? "task" : "tasks"}?
-              </AlertDialogTitle>
-              <AlertDialogDescription>
-                {selected
-                  .slice(0, 3)
-                  .map((task) => task.key)
-                  .join(", ")}
-                {count > 3 ? ` and ${count - 3} more` : ""} will be removed for
-                everyone. Tasks you are not allowed to delete stay where they
-                are.
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>Cancel</AlertDialogCancel>
-              <AlertDialogAction
-                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                onClick={() => {
-                  onDelete(selected);
-                  onClear();
-                }}
-              >
-                Delete {count === 1 ? "task" : "tasks"}
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
+        <BulkDeleteDialog
+          count={count}
+          selected={selected}
+          actionClassName={action}
+          onDelete={onDelete}
+          onClear={onClear}
+        />
       ) : null}
 
-      <button
+      <Button
+        variant="custom"
         type="button"
         onClick={onClear}
         aria-label="Clear selection"
         className={cn(action, "flex w-[34px] items-center justify-center px-0")}
       >
         <XIcon className="size-3.5" aria-hidden="true" />
-      </button>
+      </Button>
     </div>
   );
 };

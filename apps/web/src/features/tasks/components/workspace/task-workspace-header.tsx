@@ -1,13 +1,6 @@
-import {
-  ArrowDownUpIcon,
-  ChevronDownIcon,
-  LayersIcon,
-  SearchIcon,
-} from "lucide-react";
+import { ChevronDownIcon } from "lucide-react";
 import Link from "next/link";
-import { FC, type ReactNode } from "react";
-
-import { cn } from "@zentro/ui/lib/utils";
+import type { FC } from "react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -15,134 +8,26 @@ import {
   DropdownMenuRadioItem,
   DropdownMenuTrigger,
 } from "@zentro/ui/shadcn/dropdown-menu";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@zentro/ui/shadcn/select";
-
 import { ModuleTabs } from "~/src/components/shell/module-section-nav";
-import type { TaskPriority, TaskStatus } from "~/src/features/tasks/lib/types";
 import { paths } from "~/src/lib/paths";
-
 import { CreateTaskModal } from "../create-task-modal";
+import {
+  savedViewLabels,
+  groupLabels,
+  sortLabels,
+  statusNames,
+  type TaskGroup,
+  type TaskSort,
+  type TaskView,
+  type SavedView,
+  type TaskWorkspaceHeaderProps,
+} from "./task-workspace-header/types";
+import { FilterBar } from "./task-workspace-header/filter-bar";
 
-const allValue = "__all__";
+export type { TaskGroup, TaskSort, TaskView, SavedView };
+export { savedViewLabels, groupLabels, sortLabels, statusNames };
 
-export type TaskGroup = "state" | "priority" | "project" | "assignee" | "none";
-export type TaskSort = "due" | "priority" | "key" | "title";
-export type TaskView = "list" | "board" | "calendar";
-export type SavedView = "all" | "mine" | "week";
-
-export const savedViewLabels: Record<SavedView, string> = {
-  all: "All tasks",
-  mine: "My open tasks",
-  week: "Due this week",
-};
-
-export const groupLabels: Record<TaskGroup, string> = {
-  state: "State",
-  priority: "Priority",
-  project: "Project",
-  assignee: "Assignee",
-  none: "None",
-};
-
-export const sortLabels: Record<TaskSort, string> = {
-  due: "Due date",
-  priority: "Priority",
-  key: "Newest",
-  title: "Title",
-};
-
-const statusNames: Record<string, string> = {
-  backlog: "Backlog",
-  todo: "To do",
-  "in-progress": "In progress",
-  review: "Review",
-  done: "Done",
-};
-
-type Props = {
-  title: string;
-  taskCount: number;
-  totalCount: number;
-  projectScoped?: boolean;
-  assigneeOptions: string[];
-  teamOptions: Array<{ id: string; name: string }>;
-  filtersActive: boolean;
-  searchQuery: string;
-  statusFilter: TaskStatus | "all";
-  priorityFilter: TaskPriority | "all";
-  assigneeFilter: string;
-  teamFilter: string;
-  group: TaskGroup;
-  sort: TaskSort;
-  view: TaskView;
-  viewControl: ReactNode;
-  savedView: SavedView;
-  onSavedViewChange: (value: SavedView) => void;
-  /** Phones: no grouping, sorting or view switch, and the filters scroll. */
-  compact?: boolean;
-  onSearchQueryChange: (value: string) => void;
-  onStatusFilterChange: (value: TaskStatus | "all") => void;
-  onPriorityFilterChange: (value: TaskPriority | "all") => void;
-  onAssigneeFilterChange: (value: string) => void;
-  onTeamFilterChange: (value: string) => void;
-  onGroupChange: (value: TaskGroup) => void;
-  onSortChange: (value: TaskSort) => void;
-  onClearFilters: () => void;
-  onTaskCreated?: () => void | Promise<void>;
-};
-
-/** One filter as a 32px chip: its name, then its value once it is set. */
-function FilterChip({
-  label,
-  active,
-  value,
-  onValueChange,
-  display,
-  children,
-  icon,
-  ariaLabel,
-  showValue = false,
-}: {
-  label: string;
-  active: boolean;
-  value: string;
-  onValueChange: (value: string) => void;
-  display: string;
-  children: ReactNode;
-  icon?: ReactNode;
-  ariaLabel?: string;
-  showValue?: boolean;
-}) {
-  return (
-    <Select value={value} onValueChange={onValueChange}>
-      <SelectTrigger
-        aria-label={ariaLabel ?? label}
-        className={cn(
-          "h-8 shrink-0 gap-1.5 rounded-xl border-hairline bg-transparent px-2.5 text-[13px] shadow-none data-[size=default]:h-8",
-          active && "bg-surface",
-        )}
-      >
-        {icon}
-        <span className="text-ink-3">{label}</span>
-        <SelectValue>
-          {/* A filter shows its value only once it is set. */}
-          {active || showValue ? (
-            <span className="font-medium text-ink">{display}</span>
-          ) : null}
-        </SelectValue>
-      </SelectTrigger>
-      <SelectContent>{children}</SelectContent>
-    </Select>
-  );
-}
-
-export const TaskWorkspaceHeader: FC<Props> = ({
+export const TaskWorkspaceHeader: FC<TaskWorkspaceHeaderProps> = ({
   title,
   taskCount,
   totalCount,
@@ -171,13 +56,6 @@ export const TaskWorkspaceHeader: FC<Props> = ({
   onClearFilters,
   onTaskCreated,
 }) => {
-  const teamName =
-    teamFilter === "all"
-      ? "All"
-      : teamFilter === "workspace"
-        ? "Workspace"
-        : (teamOptions.find((team) => team.id === teamFilter)?.name ?? "All");
-
   return (
     <div className="flex flex-col">
       <div className="flex flex-wrap items-center gap-3">
@@ -220,154 +98,30 @@ export const TaskWorkspaceHeader: FC<Props> = ({
 
       <ModuleTabs className="mt-4" counts={{ [paths.tasks()]: totalCount }} />
 
-      <div
-        className={cn(
-          "mt-3.5 mb-3 flex items-center gap-2",
-          compact ? "tab-scroll -mx-4 px-4" : "flex-wrap",
-        )}
-      >
-        <div
-          className={cn(
-            "relative h-8 min-w-0 shrink-0",
-            compact ? "w-[200px]" : "w-60",
-          )}
-        >
-          <SearchIcon
-            aria-hidden="true"
-            className="absolute top-1/2 left-2.5 size-3.5 -translate-y-1/2 text-ink-3"
-          />
-          <input
-            value={searchQuery}
-            onChange={(event) => onSearchQueryChange(event.target.value)}
-            placeholder="Filter by title or key"
-            aria-label="Filter tasks"
-            className="h-full w-full rounded-xl border border-hairline bg-surface pr-2.5 pl-8 text-[13px] outline-none placeholder:text-ink-3 focus-visible:border-ring focus-visible:ring-4 focus-visible:ring-ring/22"
-          />
-        </div>
-
-        <FilterChip
-          label="Status"
-          active={statusFilter !== "all"}
-          value={statusFilter}
-          display={statusFilter === "all" ? "All" : statusNames[statusFilter]!}
-          onValueChange={(value) =>
-            onStatusFilterChange(value as TaskStatus | "all")
-          }
-        >
-          <SelectItem value="all">All statuses</SelectItem>
-          {Object.entries(statusNames).map(([value, label]) => (
-            <SelectItem key={value} value={value}>
-              {label}
-            </SelectItem>
-          ))}
-        </FilterChip>
-
-        <FilterChip
-          label="Priority"
-          active={priorityFilter !== "all"}
-          value={priorityFilter}
-          display={
-            priorityFilter === "all"
-              ? "All"
-              : priorityFilter.charAt(0).toUpperCase() + priorityFilter.slice(1)
-          }
-          onValueChange={(value) =>
-            onPriorityFilterChange(value as TaskPriority | "all")
-          }
-        >
-          <SelectItem value="all">All priorities</SelectItem>
-          <SelectItem value="low">Low</SelectItem>
-          <SelectItem value="medium">Medium</SelectItem>
-          <SelectItem value="high">High</SelectItem>
-        </FilterChip>
-
-        <FilterChip
-          label="Assignee"
-          active={assigneeFilter !== "all"}
-          value={assigneeFilter === "all" ? allValue : assigneeFilter}
-          display={assigneeFilter === "all" ? "All" : assigneeFilter}
-          onValueChange={(value) =>
-            onAssigneeFilterChange(value === allValue ? "all" : value)
-          }
-        >
-          <SelectItem value={allValue}>All assignees</SelectItem>
-          {assigneeOptions.map((assignee) => (
-            <SelectItem key={assignee} value={assignee}>
-              {assignee}
-            </SelectItem>
-          ))}
-        </FilterChip>
-
-        <FilterChip
-          label="Team"
-          active={teamFilter !== "all"}
-          value={teamFilter}
-          display={teamName}
-          onValueChange={onTeamFilterChange}
-        >
-          <SelectItem value="all">All teams</SelectItem>
-          <SelectItem value="workspace">Workspace level</SelectItem>
-          {teamOptions.map((team) => (
-            <SelectItem key={team.id} value={team.id}>
-              {team.name}
-            </SelectItem>
-          ))}
-        </FilterChip>
-
-        {filtersActive ? (
-          <button
-            type="button"
-            onClick={onClearFilters}
-            className="h-8 rounded-xl px-2 text-[13px] text-ink-2 outline-none hover:text-ink focus-visible:ring-2 focus-visible:ring-ring"
-          >
-            Clear
-          </button>
-        ) : null}
-        <span className="shrink-0 font-mono text-xs whitespace-nowrap text-ink-3">
-          {filtersActive && taskCount !== totalCount
-            ? `${taskCount} of ${totalCount}`
-            : `${taskCount} ${taskCount === 1 ? "task" : "tasks"}`}
-        </span>
-
-        <span className="flex-1" />
-        {compact ? null : (
-          <>
-            <FilterChip
-              label="Group"
-              icon={<LayersIcon className="size-3.5" aria-hidden="true" />}
-              showValue
-              active={false}
-              value={group}
-              display={groupLabels[group]}
-              onValueChange={(value) => onGroupChange(value as TaskGroup)}
-            >
-              {Object.entries(groupLabels).map(([value, label]) => (
-                <SelectItem key={value} value={value}>
-                  {label}
-                </SelectItem>
-              ))}
-            </FilterChip>
-
-            <FilterChip
-              label="Sort"
-              icon={<ArrowDownUpIcon className="size-3.5" aria-hidden="true" />}
-              showValue
-              active={false}
-              value={sort}
-              display={sortLabels[sort]}
-              onValueChange={(value) => onSortChange(value as TaskSort)}
-            >
-              {Object.entries(sortLabels).map(([value, label]) => (
-                <SelectItem key={value} value={value}>
-                  {label}
-                </SelectItem>
-              ))}
-            </FilterChip>
-
-            {viewControl}
-          </>
-        )}
-      </div>
+      <FilterBar
+        taskCount={taskCount}
+        totalCount={totalCount}
+        assigneeOptions={assigneeOptions}
+        teamOptions={teamOptions}
+        filtersActive={filtersActive}
+        searchQuery={searchQuery}
+        statusFilter={statusFilter}
+        priorityFilter={priorityFilter}
+        assigneeFilter={assigneeFilter}
+        teamFilter={teamFilter}
+        group={group}
+        sort={sort}
+        viewControl={viewControl}
+        compact={compact}
+        onSearchQueryChange={onSearchQueryChange}
+        onStatusFilterChange={onStatusFilterChange}
+        onPriorityFilterChange={onPriorityFilterChange}
+        onAssigneeFilterChange={onAssigneeFilterChange}
+        onTeamFilterChange={onTeamFilterChange}
+        onGroupChange={onGroupChange}
+        onSortChange={onSortChange}
+        onClearFilters={onClearFilters}
+      />
     </div>
   );
 };

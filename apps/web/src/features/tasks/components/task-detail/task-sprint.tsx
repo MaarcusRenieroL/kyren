@@ -1,5 +1,6 @@
 "use client";
 
+import { Label } from "@zentro/ui/shadcn/label";
 import { useTrpcClient } from "@zentro/api/react";
 import { toastError } from "@zentro/ui/index";
 import { NativeSelect } from "@zentro/ui/shadcn/native-select";
@@ -30,7 +31,7 @@ export function TaskSprint({
 
   return (
     <section aria-label="Sprint" className="tile px-[22px] py-[18px]">
-      <label className="flex items-center justify-between gap-3 text-sm">
+      <Label className="flex items-center justify-between gap-3 text-sm">
         <span className="font-semibold text-ink">Sprint</span>
         <NativeSelect
           className="w-48"
@@ -60,7 +61,7 @@ export function TaskSprint({
             </option>
           ))}
         </NativeSelect>
-      </label>
+      </Label>
     </section>
   );
 }

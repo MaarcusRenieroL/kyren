@@ -1,39 +1,25 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import { CalendarDaysIcon, Columns3Icon, ListIcon } from "lucide-react";
-
-import { cn } from "@zentro/ui/lib/utils";
+import { useEffect, useState, type FC } from "react";
 import { useSidebar } from "@zentro/ui/shadcn/sidebar";
-
-import { useCurrentUserId } from "~/src/components/permissions/permission-provider";
-
 import { CalendarView } from "./calendar-view";
 import { EmptyTasks } from "./empty-tasks";
 import { ListView } from "./list-view";
 import { TaskBoard } from "./task-board";
 import {
   TaskWorkspaceHeader,
-  savedViewLabels,
-  type SavedView,
-  type TaskGroup,
-  type TaskSort,
   type TaskView,
 } from "./task-workspace-header";
 import { RecurringTasksPanel } from "./recurring-tasks-panel";
 import { TemplatesPanel } from "./templates-panel";
-import { SprintPanel, type SprintScope } from "./sprint-panel";
+import { SprintPanel } from "./sprint-panel";
 import type {
   BulkChange,
-  TaskPriority,
   TaskStatus,
   WorkspaceTask,
 } from "~/src/features/tasks/lib/types";
-import Link from "next/link";
-import { FC } from "react";
-import { statusLabels } from "~/src/features/tasks/lib/constants";
-
-import { SavedViewsMenu, type ViewConfig } from "./saved-views-menu";
+import { useTaskWorkspaceFilters } from "./task-workspace/use-task-workspace-filters";
+import { WorkspaceViewControls } from "./task-workspace/workspace-view-controls";
 
 type Props = {
   title: string;
@@ -57,171 +43,51 @@ export const TaskWorkspace: FC<Props> = ({
   onTasksDelete,
   onTaskCreated,
 }) => {
-  const userId = useCurrentUserId();
   const projectId = projectSlug
     ? tasks.find((task) => task.projectSlug === projectSlug)?.projectId
     : undefined;
   const { isMobile } = useSidebar();
-  const [savedView, setSavedView] = useState<SavedView>("all");
-  const [searchQuery, setSearchQuery] = useState("");
-  const [statusFilter, setStatusFilter] = useState<TaskStatus | "all">(
-    initialStatus,
-  );
-  const [priorityFilter, setPriorityFilter] = useState<TaskPriority | "all">(
-    "all",
-  );
-  const [assigneeFilter, setAssigneeFilter] = useState("all");
-  const [teamFilter, setTeamFilter] = useState("all");
-  const [group, setGroup] = useState<TaskGroup>("state");
-  const [sort, setSort] = useState<TaskSort>("due");
   const [chosenView, setView] = useState<TaskView>("list");
-  const [sprintScope, setSprintScope] = useState<SprintScope>("all");
-  const [activeSprintId, setActiveSprintId] = useState<string | null>(null);
   // Phones get the list only; board and calendar need the width.
   const view = isMobile ? "list" : chosenView;
 
-  const assigneeOptions = useMemo(() => {
-    return Array.from(new Set(tasks.map((task) => task.assignee))).sort(
-      (a, b) => a.localeCompare(b),
-    );
-  }, [tasks]);
-
-  const teamOptions = useMemo(() => {
-    const options = new Map<string, string>();
-
-    tasks.forEach((task) => {
-      if (task.teamId && task.teamName) {
-        options.set(task.teamId, task.teamName);
-      }
-    });
-
-    return Array.from(options, ([id, name]) => ({ id, name })).sort((a, b) =>
-      a.name.localeCompare(b.name),
-    );
-  }, [tasks]);
-
-  const filteredTasks = useMemo(() => {
-    const normalizedSearch = searchQuery.trim().toLowerCase();
-    const weekEnd = new Date();
-
-    weekEnd.setHours(23, 59, 59, 999);
-    weekEnd.setDate(weekEnd.getDate() + ((7 - weekEnd.getDay()) % 7));
-
-    return tasks.filter((task) => {
-      const matchesView =
-        savedView === "all" ||
-        (savedView === "mine"
-          ? task.assigneeUserId === userId && task.status !== "done"
-          : task.status !== "done" &&
-            Boolean(task.dueAt) &&
-            new Date(task.dueAt!).getTime() <= weekEnd.getTime());
-      const matchesProject = !projectSlug || task.projectSlug === projectSlug;
-      const matchesSearch =
-        !normalizedSearch ||
-        [
-          task.key,
-          task.title,
-          task.description,
-          task.projectName,
-          task.teamName ?? "",
-          task.assignee,
-        ]
-          .join(" ")
-          .toLowerCase()
-          .includes(normalizedSearch);
-      const matchesStatus =
-        statusFilter === "all" || task.status === statusFilter;
-      const matchesPriority =
-        priorityFilter === "all" || task.priority === priorityFilter;
-      const matchesAssignee =
-        assigneeFilter === "all" || task.assignee === assigneeFilter;
-      const matchesTeam =
-        teamFilter === "all" ||
-        (teamFilter === "workspace" && !task.teamId) ||
-        task.teamId === teamFilter;
-      const matchesScope =
-        sprintScope === "all" ||
-        (sprintScope === "sprint"
-          ? Boolean(activeSprintId) && task.sprintId === activeSprintId
-          : !task.sprintId);
-
-      return (
-        matchesView &&
-        matchesProject &&
-        matchesSearch &&
-        matchesStatus &&
-        matchesPriority &&
-        matchesAssignee &&
-        matchesTeam &&
-        matchesScope
-      );
-    });
-  }, [
+  const {
     savedView,
-    userId,
-    assigneeFilter,
-    priorityFilter,
-    projectSlug,
+    setSavedView,
     searchQuery,
-    sprintScope,
-    activeSprintId,
+    setSearchQuery,
     statusFilter,
-    tasks,
+    setStatusFilter,
+    priorityFilter,
+    setPriorityFilter,
+    assigneeFilter,
+    setAssigneeFilter,
     teamFilter,
-  ]);
-
-  const filtersActive =
-    Boolean(searchQuery.trim()) ||
-    statusFilter !== "all" ||
-    priorityFilter !== "all" ||
-    assigneeFilter !== "all" ||
-    teamFilter !== "all" ||
-    sprintScope !== "all";
-
-  const currentConfig = {
-    search: searchQuery.trim(),
-    status: statusFilter,
-    priority: priorityFilter,
-    assignee: assigneeFilter,
-    team: teamFilter,
+    setTeamFilter,
     group,
+    setGroup,
     sort,
-    view: chosenView,
-  };
+    setSort,
+    sprintScope,
+    setSprintScope,
+    activeSprintId,
+    setActiveSprintId,
+    assigneeOptions,
+    teamOptions,
+    filteredTasks,
+    filtersActive,
+    currentConfig,
+    applyConfig,
+    clearFilters,
+    filterSummary,
+  } = useTaskWorkspaceFilters({
+    tasks,
+    projectSlug,
+    initialStatus,
+    chosenView,
+    setView,
+  });
 
-  const applyConfig = (config: ViewConfig) => {
-    setSearchQuery(config.search);
-    setStatusFilter(config.status as TaskStatus | "all");
-    setPriorityFilter(config.priority as TaskPriority | "all");
-    setAssigneeFilter(config.assignee);
-    setTeamFilter(config.team);
-    setGroup(config.group as TaskGroup);
-    setSort(config.sort as TaskSort);
-    setView(config.view as TaskView);
-    setSavedView("all");
-  };
-
-  const clearFilters = () => {
-    setSearchQuery("");
-    setStatusFilter("all");
-    setPriorityFilter("all");
-    setAssigneeFilter("all");
-    setTeamFilter("all");
-    setSprintScope("all");
-  };
-  // What the filters ask for, in words, for the empty state.
-  const filterSummary = [
-    statusFilter !== "all" ? statusLabels[statusFilter].toLowerCase() : null,
-    assigneeFilter !== "all" ? `assigned to ${assigneeFilter}` : null,
-    teamFilter !== "all"
-      ? teamFilter === "workspace"
-        ? "outside a team"
-        : `on the ${teamOptions.find((team) => team.id === teamFilter)?.name ?? "chosen"} team`
-      : null,
-    priorityFilter !== "all" ? `${priorityFilter} priority` : null,
-    searchQuery.trim() ? `matching “${searchQuery.trim()}”` : null,
-    savedView !== "all" ? `in ${savedViewLabels[savedView]}` : null,
-  ].filter(Boolean);
   const empty =
     tasks.length && (filtersActive || savedView !== "all") ? (
       <EmptyTasks
@@ -261,12 +127,6 @@ export const TaskWorkspace: FC<Props> = ({
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [isMobile]);
 
-  const views = [
-    { value: "list", label: "List", Icon: ListIcon },
-    { value: "board", label: "Board", Icon: Columns3Icon },
-    { value: "calendar", label: "Calendar", Icon: CalendarDaysIcon },
-  ] as const;
-
   return (
     <section className="flex w-full flex-col">
       <TaskWorkspaceHeader
@@ -289,51 +149,12 @@ export const TaskWorkspace: FC<Props> = ({
         onSavedViewChange={setSavedView}
         compact={isMobile}
         viewControl={
-          <>
-            <SavedViewsMenu current={currentConfig} onApply={applyConfig} />
-            <Link
-              href="/tasks/timesheet"
-              className="rounded-xl border border-hairline bg-surface px-3 py-1.5 text-sm text-ink-2 hover:text-ink"
-            >
-              Timesheet
-            </Link>
-            <Link
-              href="/tasks/goals"
-              className="rounded-xl border border-hairline bg-surface px-3 py-1.5 text-sm text-ink-2 hover:text-ink"
-            >
-              Goals
-            </Link>
-            <Link
-              href="/tasks/trash"
-              className="rounded-xl border border-hairline bg-surface px-3 py-1.5 text-sm text-ink-2 hover:text-ink"
-            >
-              Trash
-            </Link>
-            <div
-              role="radiogroup"
-              aria-label="View"
-              className="flex gap-0.5 rounded-xl border border-hairline bg-surface p-[3px]"
-            >
-              {views.map(({ value, label, Icon }) => (
-                <button
-                  key={value}
-                  type="button"
-                  role="radio"
-                  aria-checked={view === value}
-                  onClick={() => setView(value)}
-                  className={cn(
-                    "flex h-[26px] items-center gap-1.5 rounded-[9px] px-2.5 text-[13px] outline-none focus-visible:ring-2 focus-visible:ring-ring",
-                    view === value
-                      ? "bg-ink text-ink-inverse"
-                      : "text-ink-2 hover:text-ink",
-                  )}
-                >
-                  <Icon className="size-3.5" aria-hidden="true" />
-                  {label}
-                </button>
-              ))}
-            </div>
-          </>
+          <WorkspaceViewControls
+            currentConfig={currentConfig}
+            applyConfig={applyConfig}
+            view={view}
+            setView={setView}
+          />
         }
         onSearchQueryChange={setSearchQuery}
         onStatusFilterChange={setStatusFilter}

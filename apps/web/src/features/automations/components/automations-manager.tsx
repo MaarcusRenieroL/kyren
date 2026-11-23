@@ -1,107 +1,34 @@
 "use client";
 
+import { Button } from "@zentro/ui/shadcn/button";
 import { FC, useEffect, useState } from "react";
-import {
-  BotIcon,
-  ClockIcon,
-  PlusIcon,
-  PowerIcon,
-  SparklesIcon,
-  Trash2Icon,
-  WorkflowIcon,
-  ZapIcon,
-} from "lucide-react";
+import { ClockIcon, ZapIcon } from "lucide-react";
 
 import { useTrpcClient } from "@zentro/api/react";
-import { cn } from "@zentro/ui/lib/utils";
 import { toastError, toastSuccess } from "@zentro/ui/index";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@zentro/ui/shadcn/dialog";
-import { NativeSelect } from "@zentro/ui/shadcn/native-select";
 
 import { usePermission } from "~/src/components/permissions/permission-provider";
-
-type TriggerEvent =
-  | "task.status_changed"
-  | "task.subtasks_all_done"
-  | "task.blockers_resolved"
-  | "task.created"
-  | "task.due_date_approaching"
-  | "chat.message_contains";
-
-type ActionType =
-  | "update_status"
-  | "assign_actor"
-  | "set_priority"
-  | "post_to_channel"
-  | "create_task";
-
-type AutomationRule = {
-  id: string;
-  name: string;
-  description: string | null;
-  enabled: boolean;
-  triggerEvent: string;
-  triggerConfig: Record<string, unknown>;
-  actionType: string;
-  actionConfig: Record<string, unknown>;
-  runCount: number;
-  lastRunAt: string | Date | null;
-  projectId: string | null;
-  projectName: string | null;
-  createdAt: string | Date;
-};
-
-const TRIGGER_LABELS: Record<string, string> = {
-  "task.status_changed": "Status Changed",
-  "task.subtasks_all_done": "All Subtasks Completed",
-  "task.blockers_resolved": "Blockers Cleared",
-  "task.created": "New Task Created",
-  "task.due_date_approaching": "SLA & Due Date Approaching (<24h)",
-  "task.sla_breach_risk": "SLA Breach Risk",
-  "chat.message_contains": "A Chat Message Contains…",
-};
-
-const ACTION_LABELS: Record<string, string> = {
-  update_status: "Update Status",
-  assign_actor: "Auto-Assign to Actor",
-  set_priority: "Set Priority",
-  post_to_channel: "Post to a Chat Channel",
-  create_task: "Create a Task from the Message",
-};
+import { AutomationRuleCard } from "./manager/automation-rule-card";
+import type {
+  ActionType,
+  AutomationRule,
+  TriggerEvent,
+} from "./manager/automation-types";
+import { AutomationsEmptyState } from "./manager/automations-empty-state";
+import { CreateAutomationDialog } from "./manager/create-automation-dialog";
 
 export const AutomationsManager: FC = () => {
   const trpc = useTrpcClient();
-  // A rule for every project also runs on private ones, so it is for admins.
   const canRunEverywhere = usePermission("org.settings.update");
   const [rules, setRules] = useState<AutomationRule[]>([]);
   const [loading, setLoading] = useState(true);
   const [createOpen, setCreateOpen] = useState(false);
-  const [name, setName] = useState("");
-  const [nameError, setNameError] = useState<string | null>(null);
-  const [description, setDescription] = useState("");
-  const [triggerEvent, setTriggerEvent] = useState<TriggerEvent>(
-    "task.subtasks_all_done",
-  );
-  const [toStatus, setToStatus] = useState("in-progress");
-  const [actionType, setActionType] = useState<ActionType>("update_status");
-  const [contains, setContains] = useState("");
-  const [triggerChannelId, setTriggerChannelId] = useState("");
-  const [postChannelId, setPostChannelId] = useState("");
-  const [projectId, setProjectId] = useState("");
   const [channels, setChannels] = useState<Array<{ id: string; name: string }>>(
     [],
   );
   const [projectOptions, setProjectOptions] = useState<
     Array<{ id: string; name: string }>
   >([]);
-  const [targetStatus, setTargetStatus] = useState("review");
-  const [priority, setPriority] = useState("high");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isEscalating, setIsEscalating] = useState(false);
 
@@ -119,8 +46,6 @@ export const AutomationsManager: FC = () => {
   useEffect(() => {
     void fetchRules();
 
-    // Chat channels and projects for the new rule kinds. Either list may be
-    // empty when that module is off or not available to this person.
     void trpc.chat.sidebar
       .query()
       .then((data) =>
@@ -134,6 +59,7 @@ export const AutomationsManager: FC = () => {
         ),
       )
       .catch(() => undefined);
+
     void trpc.project.getProjectsByOrgId
       .query()
       .then((rows) =>
@@ -225,52 +151,18 @@ export const AutomationsManager: FC = () => {
     }
   };
 
-  const handleCreateCustom = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!name.trim()) {
-      setNameError("Give the rule a name.");
-      return;
-    }
-
-    if (!projectId && (!canRunEverywhere || actionType === "create_task")) {
-      toastError("No project picked", "Pick the project this rule runs on.");
-      return;
-    }
-
-    setIsSubmitting(true);
+  const handleCreateRule = async (params: {
+    name: string;
+    description: string | null;
+    triggerEvent: TriggerEvent;
+    triggerConfig: Record<string, unknown>;
+    actionType: ActionType;
+    actionConfig: Record<string, unknown>;
+    projectId: string | null;
+  }) => {
     try {
-      const triggerConfig =
-        triggerEvent === "task.status_changed"
-          ? { toStatus }
-          : triggerEvent === "chat.message_contains"
-            ? {
-                contains: contains.trim(),
-                ...(triggerChannelId ? { channelId: triggerChannelId } : {}),
-              }
-            : {};
-      const actionConfig =
-        actionType === "update_status"
-          ? { targetStatus }
-          : actionType === "set_priority"
-            ? { priority }
-            : actionType === "post_to_channel"
-              ? { channelId: postChannelId }
-              : {};
-
-      await trpc.automation.create.mutate({
-        name: name.trim(),
-        description: description.trim() || null,
-        triggerEvent,
-        triggerConfig,
-        actionType,
-        actionConfig,
-        projectId: projectId || null,
-      });
-
-      toastSuccess(`Created automation "${name.trim()}"`);
-      setName("");
-      setDescription("");
-      setCreateOpen(false);
+      await trpc.automation.create.mutate(params);
+      toastSuccess(`Created automation "${params.name}"`);
       void fetchRules();
     } catch (error) {
       toastError(
@@ -279,14 +171,12 @@ export const AutomationsManager: FC = () => {
           ? error.message
           : "Failed to create automation rule",
       );
-    } finally {
-      setIsSubmitting(false);
+      throw error;
     }
   };
 
   return (
     <div className="flex flex-col gap-6">
-      {/* Header Banner */}
       <div className="tile p-6 flex flex-col xl:flex-row xl:items-center justify-between gap-4">
         <div className="flex items-start gap-3 min-w-0">
           <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-signal/10 border border-signal/20 text-signal">
@@ -302,7 +192,8 @@ export const AutomationsManager: FC = () => {
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
-          <button
+          <Button
+            variant="custom"
             type="button"
             onClick={handleRunEscalation}
             disabled={isEscalating}
@@ -313,422 +204,38 @@ export const AutomationsManager: FC = () => {
             <span>
               {isEscalating ? "Checking…" : "Raise priority of tasks due soon"}
             </span>
-          </button>
+          </Button>
 
-          {rules.length === 0 && canRunEverywhere ? (
-            <button
-              type="button"
-              onClick={handleSeedPresets}
-              disabled={isSubmitting}
-              className="inline-flex items-center gap-1.5 rounded-xl border border-signal bg-signal/10 px-3 py-2 text-xs font-semibold text-signal hover:bg-signal hover:text-on-signal transition-all cursor-pointer"
-            >
-              <SparklesIcon className="size-3.5" />
-              <span>Add the preset automations</span>
-            </button>
-          ) : null}
-
-          <Dialog open={createOpen} onOpenChange={setCreateOpen}>
-            <DialogTrigger asChild>
-              <button
-                type="button"
-                className="inline-flex items-center gap-1.5 rounded-xl bg-ink px-3 py-2 text-xs font-semibold text-ink-inverse hover:bg-ink/90 transition-all cursor-pointer"
-              >
-                <PlusIcon className="size-3.5" />
-                <span>New automation</span>
-              </button>
-            </DialogTrigger>
-            <DialogContent className="max-w-md rounded-2xl border border-hairline bg-surface p-6 shadow-2xl">
-              <DialogHeader>
-                <DialogTitle className="flex items-center gap-2 text-base font-semibold text-ink">
-                  <WorkflowIcon className="size-4 text-signal" />
-                  New automation rule
-                </DialogTitle>
-              </DialogHeader>
-
-              <form
-                onSubmit={handleCreateCustom}
-                className="flex flex-col gap-4 mt-3"
-              >
-                <div className="flex flex-col gap-1.5">
-                  <label
-                    htmlFor="automation-name"
-                    className="text-xs font-medium text-ink"
-                  >
-                    Rule name
-                  </label>
-                  <input
-                    id="automation-name"
-                    type="text"
-                    required
-                    value={name}
-                    aria-invalid={nameError ? true : undefined}
-                    aria-describedby={
-                      nameError ? "automation-name-error" : undefined
-                    }
-                    onChange={(e) => {
-                      setName(e.target.value);
-                      setNameError(null);
-                    }}
-                    placeholder="e.g. Auto-move to Review when done"
-                    className="h-9 rounded-lg border border-hairline bg-surface-subtle px-3 text-xs outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                  />
-                  {nameError ? (
-                    <p
-                      id="automation-name-error"
-                      role="alert"
-                      className="text-xs text-danger-text"
-                    >
-                      {nameError}
-                    </p>
-                  ) : null}
-                </div>
-
-                <div className="flex flex-col gap-1.5">
-                  <label
-                    htmlFor="automation-description"
-                    className="text-xs font-medium text-ink"
-                  >
-                    Description (optional)
-                  </label>
-                  <input
-                    id="automation-description"
-                    type="text"
-                    value={description}
-                    onChange={(e) => setDescription(e.target.value)}
-                    placeholder="Explain what this automation does"
-                    className="h-9 rounded-lg border border-hairline bg-surface-subtle px-3 text-xs outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                  />
-                </div>
-
-                {/* When Trigger */}
-                <div className="rounded-xl border border-hairline/80 bg-surface-subtle/50 p-3 flex flex-col gap-2.5">
-                  <span className="text-[11px] font-semibold uppercase tracking-wider text-signal flex items-center gap-1">
-                    <ZapIcon className="size-3" /> When (Trigger)
-                  </span>
-                  <NativeSelect
-                    aria-label="When"
-                    value={triggerEvent}
-                    onChange={(e) =>
-                      setTriggerEvent(e.target.value as TriggerEvent)
-                    }
-                  >
-                    <option value="task.subtasks_all_done">
-                      All Subtasks of a Task are Completed
-                    </option>
-                    <option value="task.status_changed">
-                      Task Status Changes
-                    </option>
-                    <option value="task.blockers_resolved">
-                      All Blocking Dependencies are Cleared
-                    </option>
-                    <option value="task.created">New Task is Created</option>
-                    <option value="task.due_date_approaching">
-                      A Task Is Due Within 24 Hours (or Overdue)
-                    </option>
-                    <option value="chat.message_contains">
-                      A Chat Message Contains Some Words
-                    </option>
-                  </NativeSelect>
-
-                  {triggerEvent === "chat.message_contains" ? (
-                    <div className="flex flex-col gap-2">
-                      <input
-                        type="text"
-                        value={contains}
-                        onChange={(e) => setContains(e.target.value)}
-                        placeholder="Words to look for, e.g. bug:"
-                        aria-label="Words the message contains"
-                        className="h-8 rounded-lg border border-hairline bg-surface px-2.5 text-xs outline-none"
-                      />
-                      <NativeSelect
-                        size="sm"
-                        value={triggerChannelId}
-                        onChange={(e) => setTriggerChannelId(e.target.value)}
-                        aria-label="Only in this channel"
-                      >
-                        <option value="">In any conversation</option>
-                        {channels.map((channel) => (
-                          <option key={channel.id} value={channel.id}>
-                            Only in #{channel.name}
-                          </option>
-                        ))}
-                      </NativeSelect>
-                    </div>
-                  ) : null}
-
-                  {triggerEvent === "task.status_changed" ? (
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs text-ink-3">To status:</span>
-                      <NativeSelect
-                        size="sm"
-                        aria-label="Status it moves to"
-                        value={toStatus}
-                        onChange={(e) => setToStatus(e.target.value)}
-                      >
-                        <option value="in-progress">In Progress</option>
-                        <option value="review">Review</option>
-                        <option value="done">Done</option>
-                        <option value="todo">To Do</option>
-                      </NativeSelect>
-                    </div>
-                  ) : null}
-                </div>
-
-                {/* Then Action */}
-                <div className="rounded-xl border border-hairline/80 bg-surface-subtle/50 p-3 flex flex-col gap-2.5">
-                  <span className="text-[11px] font-semibold uppercase tracking-wider text-success-text flex items-center gap-1">
-                    <BotIcon className="size-3" /> Then (Action)
-                  </span>
-                  <NativeSelect
-                    aria-label="Then"
-                    value={actionType}
-                    onChange={(e) =>
-                      setActionType(e.target.value as ActionType)
-                    }
-                  >
-                    <option value="update_status">Update Task Status</option>
-                    <option value="assign_actor">
-                      Auto-Assign Task to Active Member
-                    </option>
-                    <option value="set_priority">Set Task Priority</option>
-                    <option value="post_to_channel">
-                      Post a Note to a Chat Channel
-                    </option>
-                    {triggerEvent === "chat.message_contains" ? (
-                      <option value="create_task">
-                        Create a Task from the Message
-                      </option>
-                    ) : null}
-                  </NativeSelect>
-
-                  {actionType === "post_to_channel" ? (
-                    <NativeSelect
-                      size="sm"
-                      value={postChannelId}
-                      onChange={(e) => setPostChannelId(e.target.value)}
-                      aria-label="Channel to post in"
-                    >
-                      <option value="">Pick a channel…</option>
-                      {channels.map((channel) => (
-                        <option key={channel.id} value={channel.id}>
-                          #{channel.name}
-                        </option>
-                      ))}
-                    </NativeSelect>
-                  ) : null}
-
-                  <NativeSelect
-                    size="sm"
-                    value={projectId}
-                    onChange={(e) => setProjectId(e.target.value)}
-                    aria-label={
-                      actionType === "create_task"
-                        ? "Project for the new tasks"
-                        : "Project this rule runs on"
-                    }
-                  >
-                    <option value="">
-                      {canRunEverywhere && actionType !== "create_task"
-                        ? "All projects"
-                        : "Pick a project…"}
-                    </option>
-                    {projectOptions.map((project) => (
-                      <option key={project.id} value={project.id}>
-                        {project.name}
-                      </option>
-                    ))}
-                  </NativeSelect>
-
-                  {actionType === "update_status" ? (
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs text-ink-3">Target status:</span>
-                      <NativeSelect
-                        size="sm"
-                        aria-label="Target status"
-                        value={targetStatus}
-                        onChange={(e) => setTargetStatus(e.target.value)}
-                      >
-                        <option value="review">Review</option>
-                        <option value="in-progress">In Progress</option>
-                        <option value="done">Done</option>
-                        <option value="todo">To Do</option>
-                      </NativeSelect>
-                    </div>
-                  ) : null}
-
-                  {actionType === "set_priority" ? (
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs text-ink-3">Priority:</span>
-                      <NativeSelect
-                        size="sm"
-                        aria-label="Priority to set"
-                        value={priority}
-                        onChange={(e) => setPriority(e.target.value)}
-                      >
-                        <option value="high">High</option>
-                        <option value="medium">Medium</option>
-                        <option value="low">Low</option>
-                      </NativeSelect>
-                    </div>
-                  ) : null}
-                </div>
-
-                <div className="flex justify-end gap-2 pt-2">
-                  <button
-                    type="button"
-                    onClick={() => setCreateOpen(false)}
-                    className="h-9 rounded-xl border border-hairline px-3 text-xs text-ink-2 hover:bg-hover cursor-pointer"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    disabled={isSubmitting}
-                    className="h-9 rounded-xl bg-ink px-4 text-xs font-semibold text-ink-inverse hover:bg-ink/90 cursor-pointer"
-                  >
-                    Create rule
-                  </button>
-                </div>
-              </form>
-            </DialogContent>
-          </Dialog>
+          <CreateAutomationDialog
+            open={createOpen}
+            onOpenChange={setCreateOpen}
+            canRunEverywhere={canRunEverywhere}
+            channels={channels}
+            projectOptions={projectOptions}
+            onSubmit={handleCreateRule}
+          />
         </div>
       </div>
 
-      {/* Rules List */}
       {loading ? (
         <div className="tile p-12 text-center text-ink-3 text-sm">
           Loading automations...
         </div>
       ) : rules.length === 0 ? (
-        <div className="tile p-12 text-center text-ink-3 flex flex-col items-center">
-          <WorkflowIcon className="size-10 opacity-40 mb-3" />
-          <h3 className="text-base font-semibold text-ink">
-            No automations configured yet
-          </h3>
-          {canRunEverywhere ? (
-            <>
-              <p className="text-xs text-ink-3 max-w-sm mt-1 mb-5">
-                Presets run on every project: they move a parent to review when
-                its subtasks are done, assign tasks moved to in progress, start
-                tasks whose blockers clear, and raise the priority of tasks due
-                within a day.
-              </p>
-              <button
-                type="button"
-                onClick={handleSeedPresets}
-                disabled={isSubmitting}
-                className="inline-flex items-center gap-1.5 rounded-xl bg-ink px-4 py-2.5 text-xs font-semibold text-ink-inverse hover:bg-ink/90 transition-all cursor-pointer"
-              >
-                <SparklesIcon className="size-4" />
-                <span>Add the preset automations</span>
-              </button>
-            </>
-          ) : (
-            <p className="text-xs text-ink-3 max-w-sm mt-1">
-              Create a rule for a project you work on. Rules for every project
-              are set up by an admin.
-            </p>
-          )}
-        </div>
+        <AutomationsEmptyState
+          canRunEverywhere={canRunEverywhere}
+          isSubmitting={isSubmitting}
+          onSeedPresets={handleSeedPresets}
+        />
       ) : (
         <div className="flex flex-col gap-3">
           {rules.map((rule) => (
-            <div
+            <AutomationRuleCard
               key={rule.id}
-              className={cn(
-                "rounded-2xl border border-hairline bg-surface p-5 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-all hover:border-hairline-strong hover:shadow-sm",
-                !rule.enabled && "opacity-60",
-              )}
-            >
-              <div className="flex items-start gap-3.5 min-w-0">
-                <div
-                  className={cn(
-                    "flex size-9 shrink-0 items-center justify-center rounded-xl border",
-                    rule.enabled
-                      ? "bg-signal/10 border-signal/20 text-signal"
-                      : "bg-surface-subtle border-hairline text-ink-3",
-                  )}
-                >
-                  <WorkflowIcon className="size-4" />
-                </div>
-
-                <div className="flex flex-col min-w-0">
-                  <div className="flex items-center gap-2">
-                    <span className="font-semibold text-sm text-ink truncate">
-                      {rule.name}
-                    </span>
-                    {rule.enabled ? (
-                      <span className="rounded-md bg-success-subtle border border-success/30 px-1.5 py-0.5 font-mono text-[10px] font-semibold text-success-text">
-                        ACTIVE
-                      </span>
-                    ) : (
-                      <span className="rounded-md bg-sunken px-1.5 py-0.5 font-mono text-[10px] text-ink-3">
-                        PAUSED
-                      </span>
-                    )}
-                  </div>
-
-                  {rule.description ? (
-                    <p className="text-xs text-ink-3 mt-0.5">
-                      {rule.description}
-                    </p>
-                  ) : null}
-
-                  {/* Trigger -> Action logic badge */}
-                  <div className="flex flex-wrap items-center gap-1.5 mt-2 text-[11px] font-mono text-ink-2">
-                    <span className="rounded bg-surface-subtle border border-hairline px-1.5 py-0.5">
-                      WHEN:{" "}
-                      {TRIGGER_LABELS[rule.triggerEvent] ?? rule.triggerEvent}
-                    </span>
-                    <span className="text-ink-3">→</span>
-                    <span className="rounded bg-surface-subtle border border-hairline px-1.5 py-0.5">
-                      THEN: {ACTION_LABELS[rule.actionType] ?? rule.actionType}
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Stats & Controls */}
-              <div className="flex items-center justify-between sm:justify-end gap-4 shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-hairline/60">
-                <div className="flex flex-col sm:items-end text-xs text-ink-3 font-mono">
-                  <span>{rule.runCount} executions</span>
-                  {rule.lastRunAt ? (
-                    <span className="text-[10px] text-ink-3">
-                      Last run: {new Date(rule.lastRunAt).toLocaleDateString()}
-                    </span>
-                  ) : null}
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <button
-                    type="button"
-                    onClick={() => handleToggle(rule)}
-                    aria-pressed={rule.enabled}
-                    aria-label={`Run ${rule.name}`}
-                    className={cn(
-                      "inline-flex items-center gap-1 rounded-lg border px-2.5 py-1 text-xs font-medium cursor-pointer transition-colors",
-                      rule.enabled
-                        ? "border-success/30 bg-success-subtle text-success-text"
-                        : "border-hairline bg-surface text-ink-3 hover:text-ink",
-                    )}
-                  >
-                    <PowerIcon className="size-3" />
-                    <span>{rule.enabled ? "Enabled" : "Paused"}</span>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => handleDelete(rule.id, rule.name)}
-                    aria-label={`Delete ${rule.name}`}
-                    className="p-1.5 rounded-lg text-ink-3 hover:text-danger-text hover:bg-danger-subtle transition-colors cursor-pointer"
-                    title="Delete rule"
-                  >
-                    <Trash2Icon className="size-4" />
-                  </button>
-                </div>
-              </div>
-            </div>
+              rule={rule}
+              onToggle={handleToggle}
+              onDelete={handleDelete}
+            />
           ))}
         </div>
       )}

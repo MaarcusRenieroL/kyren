@@ -2,22 +2,15 @@
 
 import { paths } from "~/src/lib/paths";
 import { useTrpcClient } from "@zentro/api/react";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@zentro/ui/components/shadcn/alert-dialog";
 import { Button } from "@zentro/ui/components/shadcn/button";
-import { Input } from "@zentro/ui/components/shadcn/input";
 import { toastError, toastSuccess } from "@zentro/ui/index";
 import { ArchiveIcon, RotateCcwIcon, Trash2Icon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { FC, useEffect, useState } from "react";
+import {
+  ArchiveProjectDialog,
+  DeleteProjectDialog,
+} from "./project-danger-dialogs";
 
 type ProjectStatus = "active" | "archived";
 
@@ -78,10 +71,7 @@ export const DangerSection: FC<Props> = ({ project }) => {
     };
   }, [project.slug, trpc]);
 
-  // Typing the name, not the slug: the name is what people recognise.
-  const deleteConfirmation = project.name;
   const isArchived = projectStatus === "archived";
-  const isDeleteConfirmed = typedConfirmation === deleteConfirmation;
 
   const handleArchiveToggle = async () => {
     try {
@@ -199,108 +189,25 @@ export const DangerSection: FC<Props> = ({ project }) => {
         </div>
       </section>
 
-      <AlertDialog
+      <ArchiveProjectDialog
         open={isArchiveDialogOpen}
-        onOpenChange={(open) => {
-          if (isArchiving) return;
-          setIsArchiveDialogOpen(open);
-        }}
-      >
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>
-              {isArchived
-                ? `Restore ${project.name}?`
-                : `Archive ${project.name}?`}
-            </AlertDialogTitle>
-            <AlertDialogDescription>
-              {isArchived
-                ? `${project.name} will be active again.`
-                : `${project.name} moves out of active work. Nothing is deleted.`}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
+        onOpenChange={setIsArchiveDialogOpen}
+        projectName={project.name}
+        isArchived={isArchived}
+        isArchiving={isArchiving}
+        onToggle={handleArchiveToggle}
+      />
 
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={isArchiving}>Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={handleArchiveToggle}
-              disabled={isArchiving}
-            >
-              {isArchiving
-                ? isArchived
-                  ? "Restoring..."
-                  : "Archiving..."
-                : isArchived
-                  ? "Restore project"
-                  : "Archive project"}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-
-      <AlertDialog
+      <DeleteProjectDialog
         open={isDeleteDialogOpen}
-        onOpenChange={(open) => {
-          if (isDeleting) return;
-
-          setIsDeleteDialogOpen(open);
-
-          if (!open) {
-            setTypedConfirmation("");
-          }
-        }}
-      >
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Delete {project.name}?</AlertDialogTitle>
-            <AlertDialogDescription>
-              This deletes the project for everyone. It can’t be undone.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-
-          {counts ? (
-            <ul className="flex flex-col gap-1.5 rounded-md border border-hairline px-4 py-3 text-sm">
-              <li className="flex gap-3">
-                <span className="w-8 text-right font-mono">{counts.tasks}</span>
-                tasks, including {counts.open} open
-              </li>
-              <li className="flex gap-3">
-                <span className="w-8 text-right font-mono">{counts.docs}</span>
-                docs and their comments
-              </li>
-            </ul>
-          ) : null}
-
-          <label className="flex flex-col gap-1.5 text-[13px]">
-            <span>
-              Type{" "}
-              <span className="font-mono font-semibold text-ink">
-                {deleteConfirmation}
-              </span>{" "}
-              to confirm
-            </span>
-            <Input
-              value={typedConfirmation}
-              onChange={(event) => setTypedConfirmation(event.target.value)}
-              aria-label={`Type ${deleteConfirmation} to confirm`}
-              autoComplete="off"
-              className="h-11 rounded-md border-hairline text-[15px]"
-              disabled={isDeleting}
-            />
-          </label>
-
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-              disabled={!isDeleteConfirmed || isDeleting}
-              onClick={handleDelete}
-            >
-              {isDeleting ? "Deleting..." : "Delete project"}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+        onOpenChange={setIsDeleteDialogOpen}
+        projectName={project.name}
+        counts={counts}
+        typedConfirmation={typedConfirmation}
+        onTypedChange={setTypedConfirmation}
+        isDeleting={isDeleting}
+        onDelete={handleDelete}
+      />
     </div>
   );
 };

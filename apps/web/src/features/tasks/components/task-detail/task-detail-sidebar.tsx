@@ -1,8 +1,6 @@
-import { useMemo, useState, type ReactNode } from "react";
+import type { ReactNode } from "react";
+import { Trash2Icon } from "lucide-react";
 
-import { CalendarIcon, CheckIcon, SearchIcon, Trash2Icon } from "lucide-react";
-
-import { cn } from "@zentro/ui/lib/utils";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -16,12 +14,6 @@ import {
 } from "@zentro/ui/components/shadcn/alert-dialog";
 import { PriorityMeter, StatusGlyph } from "@zentro/ui/components/status-glyph";
 import { Button } from "@zentro/ui/shadcn/button";
-import { Input } from "@zentro/ui/shadcn/input";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@zentro/ui/shadcn/popover";
 import {
   Select,
   SelectContent,
@@ -32,18 +24,16 @@ import {
 
 import type { TaskPriority, TaskStatus } from "~/src/features/tasks/lib/types";
 
-import { DueDate } from "~/src/components/due-date";
-
 import { AvatarInitials } from "./avatar-initials";
 import { DetailRow } from "./detail-row";
 import {
   formatDate,
-  dueFromDateInput,
-  getDateInputValue,
   toTaskPriority,
   toTaskStatus,
 } from "./task-detail-utils";
 import type { MemberOption, TaskDetail, TaskUpdate } from "./types";
+import { AssigneePicker } from "./sidebar/assignee-picker";
+import { DuePicker } from "./sidebar/due-picker";
 
 type Props = {
   task: TaskDetail;
@@ -210,222 +200,5 @@ export function TaskDetailSidebar({
         ) : null}
       </div>
     </aside>
-  );
-}
-type AssigneePickerProps = {
-  members: MemberOption[];
-  value: string | null;
-  disabled: boolean;
-  onChange: (value: string | null) => void;
-};
-
-function AssigneePicker({
-  members,
-  value,
-  disabled,
-  onChange,
-}: AssigneePickerProps) {
-  const [open, setOpen] = useState(false);
-  const [query, setQuery] = useState("");
-
-  const selectedMember = value
-    ? members.find((member) => member.id === value)
-    : null;
-
-  const filteredMembers = useMemo(() => {
-    const normalizedQuery = query.trim().toLowerCase();
-
-    if (!normalizedQuery) {
-      return members;
-    }
-
-    return members.filter((member) =>
-      [member.name, member.email]
-        .filter(Boolean)
-        .join(" ")
-        .toLowerCase()
-        .includes(normalizedQuery),
-    );
-  }, [members, query]);
-
-  return (
-    <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
-        <Button
-          variant="ghost"
-          disabled={disabled}
-          className="-ml-1.5 h-8 w-[calc(100%+0.375rem)] justify-start gap-2.5 px-1.5 text-sm font-normal text-ink hover:bg-hover disabled:opacity-100"
-        >
-          {selectedMember ? (
-            <>
-              <AvatarInitials
-                value={selectedMember.name ?? selectedMember.email}
-              />
-              <span className="truncate">
-                {selectedMember.name ?? selectedMember.email}
-              </span>
-            </>
-          ) : (
-            <>
-              <span
-                aria-hidden="true"
-                className="size-6 rounded-full border-[1.5px] border-dashed border-line-strong"
-              />
-              <span className="text-ink-3">Unassigned</span>
-            </>
-          )}
-        </Button>
-      </PopoverTrigger>
-      <PopoverContent
-        align="start"
-        className="w-[--radix-popover-trigger-width] min-w-72 p-2"
-      >
-        <div className="relative">
-          <SearchIcon className="absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            value={query}
-            onChange={(event) => setQuery(event.target.value)}
-            placeholder="Search members"
-            className="h-9 pl-8"
-          />
-        </div>
-
-        <div className="mt-2 max-h-72 overflow-y-auto">
-          <button
-            type="button"
-            className="flex h-9 w-full items-center gap-2 rounded-md px-2 text-left text-sm hover:bg-muted"
-            onClick={() => {
-              onChange(null);
-              setOpen(false);
-              setQuery("");
-            }}
-          >
-            <span
-              aria-hidden="true"
-              className="size-6 rounded-full border-[1.5px] border-dashed border-line-strong"
-            />
-            <span className="min-w-0 flex-1 truncate">Unassigned</span>
-            {!value ? <CheckIcon className="size-4 text-primary" /> : null}
-          </button>
-
-          {filteredMembers.map((member) => {
-            const label = member.name ?? member.email;
-            const isSelected = member.id === value;
-
-            return (
-              <button
-                type="button"
-                key={member.id}
-                className={cn(
-                  "flex h-10 w-full items-center gap-2 rounded-md px-2 text-left text-sm hover:bg-muted",
-                  isSelected && "bg-muted",
-                )}
-                onClick={() => {
-                  onChange(member.id);
-                  setOpen(false);
-                  setQuery("");
-                }}
-              >
-                <AvatarInitials value={label} />
-                <span className="min-w-0 flex-1 truncate">{label}</span>
-                {isSelected ? (
-                  <CheckIcon className="size-4 text-primary" />
-                ) : null}
-              </button>
-            );
-          })}
-
-          {!filteredMembers.length ? (
-            <p className="px-2 py-6 text-center text-sm text-muted-foreground">
-              No members found.
-            </p>
-          ) : null}
-        </div>
-      </PopoverContent>
-    </Popover>
-  );
-}
-
-type DuePickerProps = {
-  value: Date | null;
-  done: boolean;
-  disabled: boolean;
-  onChange: (value: Date | null) => void;
-};
-
-/** The due date as it reads ("Tomorrow"), the date beside it, a picker on click. */
-function DuePicker({ value, done, disabled, onChange }: DuePickerProps) {
-  const [open, setOpen] = useState(false);
-  const [draft, setDraft] = useState(getDateInputValue(value));
-
-  return (
-    <Popover
-      open={open}
-      onOpenChange={(next) => {
-        setOpen(next);
-        if (next) setDraft(getDateInputValue(value));
-      }}
-    >
-      <PopoverTrigger asChild>
-        <Button
-          variant="ghost"
-          disabled={disabled}
-          aria-label="Due date"
-          className="-ml-1.5 h-8 justify-start gap-2.5 px-1.5 text-sm font-normal hover:bg-hover disabled:opacity-100"
-        >
-          {value ? (
-            <>
-              <DueDate value={value} done={done} className="text-sm" />
-              <span className="font-mono text-xs text-ink-3">
-                {value.toLocaleDateString("en-US", {
-                  month: "short",
-                  day: "numeric",
-                })}
-              </span>
-            </>
-          ) : (
-            <span className="flex items-center gap-2 font-mono text-[13px] text-ink-3">
-              <CalendarIcon className="size-3.5" aria-hidden="true" />
-              No date
-            </span>
-          )}
-        </Button>
-      </PopoverTrigger>
-      <PopoverContent align="start" className="w-64 rounded-2xl p-3">
-        <form
-          className="flex flex-col gap-3"
-          onSubmit={(event) => {
-            event.preventDefault();
-            onChange(draft ? dueFromDateInput(draft) : null);
-            setOpen(false);
-          }}
-        >
-          <Input
-            type="date"
-            aria-label="Due date"
-            value={draft}
-            onChange={(event) => setDraft(event.target.value)}
-            className="font-mono"
-          />
-          <div className="flex justify-between gap-2">
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              disabled={!value}
-              onClick={() => {
-                onChange(null);
-                setOpen(false);
-              }}
-            >
-              Remove date
-            </Button>
-            <Button type="submit" size="sm">
-              Save
-            </Button>
-          </div>
-        </form>
-      </PopoverContent>
-    </Popover>
   );
 }

@@ -58,7 +58,8 @@ export const ProjectHeader: FC<Props> = ({
             {title}
           </h1>
           <StatusPill project={health} />
-          <button
+          <Button
+            variant="custom"
             type="button"
             aria-pressed={favorite}
             aria-label={
@@ -75,7 +76,7 @@ export const ProjectHeader: FC<Props> = ({
               aria-hidden="true"
               className={cn("size-4", favorite && "fill-ink text-ink")}
             />
-          </button>
+          </Button>
         </div>
         <p className="font-mono text-xs text-ink-3">
           {keyPrefix ?? slug}

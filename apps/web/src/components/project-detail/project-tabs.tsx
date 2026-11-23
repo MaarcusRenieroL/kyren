@@ -1,21 +1,16 @@
 "use client";
 
+import { Button } from "@zentro/ui/shadcn/button";
 import Link from "next/link";
-import { FC, useEffect, useState, type ReactNode } from "react";
-import { SearchIcon } from "lucide-react";
+import { FC, useState, type ReactNode } from "react";
 
-import { useTrpcClient } from "@zentro/api/react";
 import { cn } from "@zentro/ui/lib/utils";
-import { Skeleton } from "@zentro/ui/shadcn/skeleton";
 
 import { ActivityFeed } from "~/src/components/workspace/activity/activity-feed";
-import { DocTable } from "~/src/features/docs/components/doc-rows";
-import type { DocsListItem } from "~/src/features/docs/lib/docs";
-import { ListView } from "~/src/features/tasks/components/workspace/list-view";
 import type { WorkspaceTask } from "~/src/features/tasks/lib/types";
-import { paths } from "~/src/lib/paths";
 import { CriticalPathVisualizer } from "./critical-path-visualizer";
 import { TimelineGanttVisualizer } from "./timeline-gantt-visualizer";
+import { ProjectDocsList, ProjectTasks } from "./project-tab-views";
 
 type Props = {
   projectId: string;
@@ -23,7 +18,6 @@ type Props = {
   description?: string | null;
   tasks: WorkspaceTask[];
   totalDocs: number;
-  // A tab is only offered when its module is enabled.
   showTasks?: boolean;
   showDocs?: boolean;
   /** Beside every tab: details and the Thread. */
@@ -46,95 +40,6 @@ function Panel({ title, children }: { title: string; children: ReactNode }) {
       {children}
     </section>
   );
-}
-
-function ProjectTasks({
-  tasks,
-  projectSlug,
-}: {
-  tasks: WorkspaceTask[];
-  projectSlug: string;
-}) {
-  const [query, setQuery] = useState("");
-  const needle = query.trim().toLowerCase();
-  const shown = needle
-    ? tasks.filter(
-        (task) =>
-          task.title.toLowerCase().includes(needle) ||
-          task.key.toLowerCase().includes(needle),
-      )
-    : tasks;
-  const open = tasks.filter((task) => task.status !== "done").length;
-
-  return (
-    <div className="flex flex-col gap-3">
-      <div className="flex flex-wrap items-center gap-2">
-        <div className="relative h-8 w-full min-w-0 sm:w-60">
-          <SearchIcon
-            aria-hidden="true"
-            className="absolute top-1/2 left-2.5 size-3.5 -translate-y-1/2 text-ink-3"
-          />
-          <input
-            value={query}
-            onChange={(event) => setQuery(event.target.value)}
-            placeholder="Filter tasks"
-            aria-label="Filter tasks"
-            className="h-full w-full rounded-xl border border-hairline bg-surface pr-2.5 pl-8 text-[13px] outline-none placeholder:text-ink-3 focus-visible:border-ring focus-visible:ring-4 focus-visible:ring-ring/22"
-          />
-        </div>
-        <span className="font-mono text-xs text-ink-3">{open} open</span>
-        <span className="flex-1" />
-        <Link
-          href={paths.tasksForProject(projectSlug)}
-          className="text-[13px] text-signal hover:underline"
-        >
-          Open in Tasks
-        </Link>
-      </div>
-      <ListView tasks={shown} />
-    </div>
-  );
-}
-
-function ProjectDocsList({ projectId }: { projectId: string }) {
-  const trpc = useTrpcClient();
-  const [docs, setDocs] = useState<DocsListItem[] | null>(null);
-  const [failed, setFailed] = useState(false);
-
-  useEffect(() => {
-    let isMounted = true;
-
-    trpc.docs.getAll
-      .query({})
-      .then((data) => {
-        if (isMounted) {
-          setDocs(data.filter((doc) => doc.projectId === projectId));
-        }
-      })
-      .catch(() => isMounted && setFailed(true));
-
-    return () => {
-      isMounted = false;
-    };
-  }, [projectId, trpc]);
-
-  if (failed) {
-    return (
-      <p className="text-sm text-ink-2">
-        Docs could not be loaded. They are safe; reload to try again.
-      </p>
-    );
-  }
-
-  if (!docs) return <Skeleton className="h-40 rounded-xl" />;
-
-  if (!docs.length) {
-    return (
-      <p className="text-sm text-ink-2">No docs linked to this project.</p>
-    );
-  }
-
-  return <DocTable docs={docs} />;
 }
 
 export const ProjectTabs: FC<Props> = ({
@@ -193,7 +98,8 @@ export const ProjectTabs: FC<Props> = ({
         className="tab-scroll flex gap-5 border-b border-hairline text-[15px]"
       >
         {tabs.map(({ id, label, count }) => (
-          <button
+          <Button
+            variant="custom"
             key={id}
             type="button"
             role="tab"
@@ -210,7 +116,7 @@ export const ProjectTabs: FC<Props> = ({
             {count !== undefined ? (
               <span className="font-mono text-xs text-ink-3">{count}</span>
             ) : null}
-          </button>
+          </Button>
         ))}
         {/* Planned: shown dim so the tab bar tells the truth. */}
         <span

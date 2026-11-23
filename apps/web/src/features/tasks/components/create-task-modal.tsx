@@ -1,18 +1,12 @@
 "use client";
 
 import {
-  useCurrentUserId,
-  useReachable,
-} from "~/src/components/permissions/permission-provider";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useTrpcClient } from "@zentro/api/react";
-import {
-  createTaskSchema,
-  type CreateTaskFormValues,
-} from "@zentro/api/types/zod-schema";
+  type FC,
+  type KeyboardEvent,
+  useState,
+} from "react";
+import { PlusIcon, XIcon } from "lucide-react";
 import { Button } from "@zentro/ui/shadcn/button";
-import { RichTextEditor } from "@zentro/ui/components/rich-text-editor";
-import { PriorityMeter, StatusGlyph } from "@zentro/ui/components/status-glyph";
 import {
   Dialog,
   DialogClose,
@@ -21,309 +15,57 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@zentro/ui/shadcn/dialog";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@zentro/ui/shadcn/select";
-import { cn } from "@zentro/ui/lib/utils";
-import { toastError, toastSuccess } from "@zentro/ui/index";
-import { AlertCircleIcon, CalendarIcon, PlusIcon, XIcon } from "lucide-react";
 import { Kbd } from "@zentro/ui/components/kbd";
-import {
-  type FC,
-  type KeyboardEvent,
-  type ReactNode,
-  useEffect,
-  useState,
-} from "react";
-import { Controller, useForm, useWatch } from "react-hook-form";
+import { useReachable } from "~/src/components/permissions/permission-provider";
 
-import { ActorAvatar } from "~/src/components/actor-avatar";
-import {
-  dueFromDateInput,
-  getDateInputValue as localDateInputValue,
-} from "./task-detail/task-detail-utils";
+import { CreateTaskFields } from "./create-task/create-task-fields";
+import type { Props } from "./create-task/types";
+import { useCreateTaskForm } from "./create-task/use-create-task-form";
 
-type ProjectOption = {
-  id: string;
-  name: string;
-  taskKeyPrefix: string;
-  teamName: string | null;
-};
+const CreateTaskModalInner: FC<Props> = (props) => {
+  const {
+    trigger,
+    open: controlledOpen,
+    onOpenChange,
+    hideTrigger = false,
+  } = props;
 
-type MemberOption = {
-  id: string;
-  userId: string;
-  name: string;
-  email: string;
-  role: string;
-};
-
-type Props = {
-  defaultProjectId?: string;
-  defaultStatus?: CreateTaskFormValues["status"];
-  defaultName?: string;
-  defaultDescription?: string;
-  trigger?: React.ReactNode;
-  onTaskCreated?: () => void | Promise<void>;
-  /** Control the dialog from outside (the Create menu), with no trigger button. */
-  open?: boolean;
-  onOpenChange?: (open: boolean) => void;
-  hideTrigger?: boolean;
-  /** Created from a doc: the new task is linked to it. */
-  linkDocId?: string;
-  /** Created from a chat message: starts with its text, linked back to it. */
-  linkMessageId?: string;
-};
-
-const unassignedValue = "unassigned";
-
-const statusOptions = [
-  ["backlog", "Backlog"],
-  ["todo", "To do"],
-  ["in-progress", "In progress"],
-  ["review", "Review"],
-  ["done", "Done"],
-] as const;
-
-// The form checks what the server checks, plus what only makes sense while
-// creating: a new task is not due in the past.
-const formSchema = createTaskSchema.superRefine((values, ctx) => {
-  if (!values.dueAt) return;
-
-  const today = new Date();
-
-  today.setHours(0, 0, 0, 0);
-
-  if (new Date(values.dueAt).getTime() < today.getTime()) {
-    ctx.addIssue({
-      code: "custom",
-      path: ["dueAt"],
-      message: "That date has passed. Pick today or later.",
-    });
-  }
-});
-
-const messages: Partial<Record<keyof CreateTaskFormValues, string>> = {
-  name: "Give the task a name so people know what it’s about.",
-};
-
-const getDateInputValue = (value: unknown) => {
-  if (value instanceof Date) return localDateInputValue(value);
-
-  return typeof value === "string" ? value : "";
-};
-
-/** A 44px field box: rose when it has an error, violet ring on focus. */
-const fieldBox = (invalid: boolean, extra?: string) =>
-  cn(
-    "h-11 w-full justify-start rounded-md border-hairline bg-surface px-3 text-[15px] shadow-none data-[size=default]:h-11 [&>svg:last-child]:ml-auto",
-    extra,
-    invalid &&
-      "border-danger focus-visible:border-danger focus-visible:ring-danger/22",
-  );
-
-function FieldError({ children }: { children?: ReactNode }) {
-  if (!children) return null;
-
-  return (
-    <p
-      role="alert"
-      className="flex gap-1.5 text-[13px] leading-5 text-danger-text"
-    >
-      <span aria-hidden="true" className="font-mono font-medium">
-        !
-      </span>
-      {children}
-    </p>
-  );
-}
-
-function Label({
-  htmlFor,
-  children,
-}: {
-  htmlFor?: string;
-  children: ReactNode;
-}) {
-  return (
-    <label htmlFor={htmlFor} className="text-[13px] font-medium text-ink">
-      {children}
-    </label>
-  );
-}
-
-const CreateTaskModalInner: FC<Props> = ({
-  defaultProjectId = "",
-  defaultStatus = "todo",
-  defaultName = "",
-  defaultDescription = "",
-  trigger,
-  onTaskCreated,
-  open: controlledOpen,
-  onOpenChange,
-  hideTrigger = false,
-  linkDocId,
-  linkMessageId,
-}) => {
-  const trpc = useTrpcClient();
-  const userId = useCurrentUserId();
   const [internalOpen, setInternalOpen] = useState(false);
   const open = controlledOpen ?? internalOpen;
   const setOpen = (value: boolean) => {
     setInternalOpen(value);
     onOpenChange?.(value);
   };
-  const [projects, setProjects] = useState<ProjectOption[]>([]);
-  const [members, setMembers] = useState<MemberOption[]>([]);
-  const [oooMembers, setOooMembers] = useState<
-    Record<string, { untilDate?: string | null }>
-  >({});
-  const [isLoadingProjects, setIsLoadingProjects] = useState(false);
-  const [isLoadingMembers, setIsLoadingMembers] = useState(false);
 
-  const blank = {
-    projectId: defaultProjectId,
-    name: defaultName,
-    description: defaultDescription,
-    status: defaultStatus,
-    priority: "medium" as const,
-    assignedToMemberId: null,
-    dueAt: null,
-  };
   const {
     control,
-    handleSubmit,
-    reset,
-    setValue,
-    getFieldState,
-    formState: { isSubmitting, errors, isSubmitted },
-  } = useForm<CreateTaskFormValues>({
-    resolver: zodResolver(formSchema),
-    defaultValues: blank,
-    mode: "onTouched",
+    submit,
+    isSubmitting,
+    errors,
+    isSubmitted,
+    projects,
+    members,
+    oooMembers,
+    isLoadingProjects,
+    isLoadingMembers,
+    selected,
+    assigneeOoo,
+    userId,
+    handleOpenChange,
+  } = useCreateTaskForm({
+    defaultProjectId: props.defaultProjectId,
+    defaultStatus: props.defaultStatus,
+    defaultName: props.defaultName,
+    defaultDescription: props.defaultDescription,
+    onTaskCreated: props.onTaskCreated,
+    open,
+    setOpen,
+    linkDocId: props.linkDocId,
+    linkMessageId: props.linkMessageId,
   });
 
-  useEffect(() => {
-    if (open) {
-      if (defaultName) setValue("name", defaultName);
-      if (defaultDescription) setValue("description", defaultDescription);
-      if (defaultProjectId) setValue("projectId", defaultProjectId);
-    }
-  }, [open, defaultName, defaultDescription, defaultProjectId, setValue]);
-
-  const chosenProject = useWatch({ control, name: "projectId" });
-  const chosenAssigneeId = useWatch({ control, name: "assignedToMemberId" });
-  const selected = projects.find((project) => project.id === chosenProject);
-  const assigneeOoo = chosenAssigneeId ? oooMembers[chosenAssigneeId] : null;
   const errorCount = Object.keys(errors).length;
 
-  useEffect(() => {
-    if (!open) return;
-
-    let isMounted = true;
-
-    const loadOptions = async () => {
-      setIsLoadingProjects(true);
-      setIsLoadingMembers(true);
-
-      try {
-        const [projectList, memberList, oooList] = await Promise.all([
-          trpc.project.getProjectsByOrgId.query(),
-          // Needs members.view; without it tasks are created unassigned.
-          trpc.member.getMembers.query().catch(() => []),
-          trpc.member.getOutOfOffice.query().catch(() => []),
-        ]);
-
-        if (!isMounted) return;
-
-        const oooRecord: Record<string, { untilDate?: string | null }> = {};
-        for (const item of oooList) {
-          oooRecord[item.memberId] = { untilDate: item.untilDate };
-        }
-        setOooMembers(oooRecord);
-
-        if (!isMounted) return;
-
-        setProjects(
-          projectList
-            .filter((project) => project.status === "active")
-            .map((project) => ({
-              id: project.id,
-              name: project.name,
-              taskKeyPrefix: project.taskKeyPrefix,
-              teamName: project.teamName,
-            })),
-        );
-        setMembers(
-          memberList.map((member) => ({
-            id: member.id,
-            userId: member.userId,
-            name: member.name,
-            email: member.email,
-            role: member.role,
-          })),
-        );
-
-        // New work is yours unless you hand it to someone.
-        const mine = memberList.find((member) => member.userId === userId);
-
-        if (mine && !getFieldState("assignedToMemberId").isDirty) {
-          setValue("assignedToMemberId", mine.id);
-        }
-      } catch {
-        toastError("Could not load projects", "Please try again.");
-      } finally {
-        if (isMounted) {
-          setIsLoadingProjects(false);
-          setIsLoadingMembers(false);
-        }
-      }
-    };
-
-    void loadOptions();
-
-    return () => {
-      isMounted = false;
-    };
-  }, [getFieldState, open, setValue, trpc, userId]);
-
-  const handleOpenChange = (nextOpen: boolean) => {
-    setOpen(nextOpen);
-
-    if (!nextOpen) {
-      reset(blank);
-    }
-  };
-
-  const onSubmit = async (values: CreateTaskFormValues) => {
-    try {
-      const task = await trpc.task.createTask.mutate({
-        ...values,
-        description: values.description || "",
-        assignedToMemberId: values.assignedToMemberId || null,
-        dueAt: values.dueAt || null,
-        ...(linkDocId ? { linkDocId } : {}),
-        ...(linkMessageId ? { linkMessageId } : {}),
-      });
-
-      toastSuccess("Task created", `${task.key} is ready.`);
-
-      await onTaskCreated?.();
-      reset(blank);
-      setOpen(false);
-    } catch (error) {
-      toastError(
-        "Could not create task",
-        error instanceof Error ? error.message : "Please try again.",
-      );
-    }
-  };
-
-  const submit = handleSubmit(onSubmit);
   const onKeyDown = (event: KeyboardEvent<HTMLFormElement>) => {
     if ((event.metaKey || event.ctrlKey) && event.key === "Enter") {
       event.preventDefault();
@@ -368,276 +110,17 @@ const CreateTaskModalInner: FC<Props> = ({
             </DialogDescription>
           </div>
 
-          <div className="flex flex-col gap-4 px-6 pt-1 pb-5">
-            <Controller
-              name="projectId"
-              control={control}
-              render={({ field, fieldState }) => (
-                <div className="flex flex-col gap-1.5">
-                  <Label>Project</Label>
-                  <Select
-                    value={field.value ?? ""}
-                    onValueChange={(value) => {
-                      if (value !== "") field.onChange(value);
-                    }}
-                    onOpenChange={(isOpen) => {
-                      if (!isOpen) field.onBlur();
-                    }}
-                    disabled={isLoadingProjects || !projects.length}
-                  >
-                    <SelectTrigger
-                      aria-invalid={Boolean(fieldState.error)}
-                      aria-label="Project"
-                      className={fieldBox(Boolean(fieldState.error))}
-                    >
-                      {selected ? (
-                        <span className="flex size-[22px] shrink-0 items-center justify-center rounded-[7px] bg-tint-projects font-mono text-[10px] text-ink">
-                          {selected.name.charAt(0).toUpperCase()}
-                        </span>
-                      ) : (
-                        <span
-                          aria-hidden="true"
-                          className="size-[22px] shrink-0 rounded-[7px] border-[1.5px] border-dashed border-line-strong"
-                        />
-                      )}
-                      <SelectValue
-                        placeholder={
-                          isLoadingProjects
-                            ? "Loading projects..."
-                            : "Choose a project"
-                        }
-                      />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {projects.map((project) => (
-                        <SelectItem key={project.id} value={project.id}>
-                          {project.name}
-                          <span className="font-mono text-xs text-ink-3">
-                            {project.taskKeyPrefix}
-                            {project.teamName ? ` · ${project.teamName}` : ""}
-                          </span>
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  {!isLoadingProjects && !projects.length ? (
-                    <p className="text-[13px] text-ink-3">
-                      No active projects are available.
-                    </p>
-                  ) : null}
-                  <FieldError>{fieldState.error?.message}</FieldError>
-                </div>
-              )}
-            />
-
-            <Controller
-              name="name"
-              control={control}
-              render={({ field, fieldState }) => (
-                <div className="flex flex-col gap-1.5">
-                  <Label htmlFor="task-name">Task name</Label>
-                  <input
-                    id="task-name"
-                    placeholder="What needs to happen?"
-                    aria-invalid={Boolean(fieldState.error)}
-                    className={fieldBox(
-                      Boolean(fieldState.error),
-                      "border outline-none placeholder:text-ink-3 focus-visible:border-signal focus-visible:ring-[3px] focus-visible:ring-ring/22",
-                    )}
-                    {...field}
-                  />
-                  <FieldError>
-                    {fieldState.error
-                      ? (messages.name ?? fieldState.error.message)
-                      : null}
-                  </FieldError>
-                </div>
-              )}
-            />
-
-            <Controller
-              name="description"
-              control={control}
-              render={({ field, fieldState }) => (
-                <div className="flex flex-col gap-1.5">
-                  <Label>Description</Label>
-                  <RichTextEditor
-                    value={field.value ?? ""}
-                    showActions={false}
-                    onChange={field.onChange}
-                    onSave={field.onChange}
-                    placeholder="Add details, steps or links."
-                    minHeightClassName="[&_.ProseMirror]:min-h-[60px]"
-                  />
-                  <FieldError>{fieldState.error?.message}</FieldError>
-                </div>
-              )}
-            />
-
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-              <Controller
-                name="status"
-                control={control}
-                render={({ field }) => (
-                  <div className="flex flex-col gap-1.5">
-                    <Label>Status</Label>
-                    <Select value={field.value} onValueChange={field.onChange}>
-                      <SelectTrigger
-                        aria-label="Status"
-                        className={fieldBox(false)}
-                      >
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {statusOptions.map(([value, label]) => (
-                          <SelectItem key={value} value={value}>
-                            <StatusGlyph status={value} size={12} decorative />
-                            {label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                )}
-              />
-
-              <Controller
-                name="priority"
-                control={control}
-                render={({ field }) => (
-                  <div className="flex flex-col gap-1.5">
-                    <Label>Priority</Label>
-                    <Select value={field.value} onValueChange={field.onChange}>
-                      <SelectTrigger
-                        aria-label="Priority"
-                        className={fieldBox(false)}
-                      >
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {(["low", "medium", "high"] as const).map((value) => (
-                          <SelectItem key={value} value={value}>
-                            <PriorityMeter priority={value} />
-                            {value.charAt(0).toUpperCase() + value.slice(1)}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                )}
-              />
-
-              <Controller
-                name="dueAt"
-                control={control}
-                render={({ field, fieldState }) => (
-                  <div className="flex flex-col gap-1.5">
-                    <Label htmlFor="task-due-date">Due date</Label>
-                    <div className="relative">
-                      <CalendarIcon
-                        aria-hidden="true"
-                        className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-ink-2"
-                      />
-                      <input
-                        id="task-due-date"
-                        type="date"
-                        aria-invalid={Boolean(fieldState.error)}
-                        value={getDateInputValue(field.value)}
-                        onBlur={field.onBlur}
-                        onChange={(event) =>
-                          // The picked day, ending in the viewer's own time.
-                          field.onChange(
-                            event.target.value
-                              ? dueFromDateInput(event.target.value)
-                              : null,
-                          )
-                        }
-                        className={fieldBox(
-                          Boolean(fieldState.error),
-                          cn(
-                            "border pl-9 font-mono outline-none focus-visible:border-signal focus-visible:ring-[3px] focus-visible:ring-ring/22",
-                            !field.value && "text-ink-3",
-                          ),
-                        )}
-                      />
-                    </div>
-                    <FieldError>{fieldState.error?.message}</FieldError>
-                  </div>
-                )}
-              />
-              <Controller
-                name="assignedToMemberId"
-                control={control}
-                render={({ field }) => (
-                  <div className="flex flex-col gap-1.5">
-                    <Label>Assignee</Label>
-                    <Select
-                      value={field.value ?? unassignedValue}
-                      onValueChange={(value) => {
-                        // Radix reports "" when the options arrive together
-                        // with the value; no option has an empty value.
-                        if (value === "") return;
-                        field.onChange(
-                          value === unassignedValue ? null : value,
-                        );
-                      }}
-                      disabled={isLoadingMembers}
-                    >
-                      <SelectTrigger
-                        aria-label="Assignee"
-                        className={fieldBox(false)}
-                      >
-                        <SelectValue
-                          placeholder={
-                            isLoadingMembers
-                              ? "Loading members..."
-                              : "Select assignee"
-                          }
-                        />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value={unassignedValue}>
-                          <span
-                            aria-hidden="true"
-                            className="size-[22px] rounded-full border-[1.5px] border-dashed border-line-strong"
-                          />
-                          Unassigned
-                        </SelectItem>
-                        {members.map((member) => {
-                          const isAway = Boolean(oooMembers[member.id]);
-                          return (
-                            <SelectItem key={member.id} value={member.id}>
-                              <ActorAvatar name={member.name} size={22} />
-                              <span>{member.name}</span>
-                              {member.userId === userId ? " (you)" : ""}
-                              {isAway ? (
-                                <span className="ml-1 rounded border border-warning/30 bg-warning-subtle px-1 py-0.2 font-mono text-[10px] font-semibold text-warning-text">
-                                  Away
-                                </span>
-                              ) : null}
-                            </SelectItem>
-                          );
-                        })}
-                      </SelectContent>
-                    </Select>
-                    {assigneeOoo ? (
-                      <div className="flex items-center gap-2 rounded-lg border border-warning/30 bg-warning-subtle/50 px-2.5 py-1.5 text-xs text-warning-text">
-                        <AlertCircleIcon className="size-3.5 shrink-0" />
-                        <span>
-                          This teammate is currently{" "}
-                          <strong>Out of Office</strong>
-                          {assigneeOoo.untilDate
-                            ? ` until ${assigneeOoo.untilDate}`
-                            : ""}
-                          . Assignment may delay progress.
-                        </span>
-                      </div>
-                    ) : null}
-                  </div>
-                )}
-              />
-            </div>
-          </div>
+          <CreateTaskFields
+            control={control}
+            projects={projects}
+            members={members}
+            oooMembers={oooMembers}
+            isLoadingProjects={isLoadingProjects}
+            isLoadingMembers={isLoadingMembers}
+            selected={selected}
+            assigneeOoo={assigneeOoo}
+            userId={userId}
+          />
 
           <div className="flex items-center gap-2.5 border-t border-hairline py-3.5 pr-4 pl-6">
             {isSubmitted && errorCount ? (
@@ -679,8 +162,6 @@ const CreateTaskModalInner: FC<Props> = ({
 };
 
 export const CreateTaskModal: FC<Props> = (props) => {
-  // A role on one project is enough; the server checks each project.
   const canCreate = useReachable("tasks.create");
-
   return canCreate ? <CreateTaskModalInner {...props} /> : null;
 };

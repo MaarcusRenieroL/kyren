@@ -1,5 +1,6 @@
 "use client";
 
+import { Button } from "@zentro/ui/shadcn/button";
 import { useEffect, useMemo, useState } from "react";
 
 import { useTrpcClient } from "@zentro/api/react";
@@ -83,7 +84,8 @@ export function TaskPicker({
           <ul className="max-h-72 divide-y divide-line overflow-y-auto rounded-lg border border-line">
             {shown.map((task) => (
               <li key={task.key}>
-                <button
+                <Button
+                  variant="custom"
                   type="button"
                   className="flex w-full items-center gap-3 px-3 py-2 text-left text-sm hover:bg-hover"
                   onClick={() => onPick(task)}
@@ -95,7 +97,7 @@ export function TaskPicker({
                     {task.name}
                   </span>
                   <span className="text-xs text-ink-2">{task.status}</span>
-                </button>
+                </Button>
               </li>
             ))}
           </ul>

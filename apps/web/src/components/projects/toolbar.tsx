@@ -1,5 +1,7 @@
 "use client";
 
+import { Input } from "@zentro/ui/shadcn/input";
+import { Button } from "@zentro/ui/shadcn/button";
 import { ArrowDownUpIcon, SearchIcon, StarIcon } from "lucide-react";
 import type { ReactNode } from "react";
 
@@ -91,7 +93,7 @@ export const ProjectToolbar = ({
             aria-hidden="true"
             className="absolute top-1/2 left-2.5 size-3.5 -translate-y-1/2 text-ink-3"
           />
-          <input
+          <Input
             type="search"
             value={searchQuery}
             onChange={(event) => onSearchQueryChange(event.target.value)}
@@ -149,7 +151,8 @@ export const ProjectToolbar = ({
           </SelectContent>
         </Select>
 
-        <button
+        <Button
+          variant="custom"
           type="button"
           aria-pressed={favoritesOnly}
           onClick={() => onFavoritesOnlyChange(!favoritesOnly)}
@@ -160,7 +163,7 @@ export const ProjectToolbar = ({
         >
           <StarIcon className="size-3.5" aria-hidden="true" />
           Favorites only
-        </button>
+        </Button>
 
         <span className="font-mono text-xs text-ink-3">
           {count} {count === 1 ? "project" : "projects"}

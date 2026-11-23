@@ -1,5 +1,7 @@
 "use client";
 
+import { Label } from "@zentro/ui/shadcn/label";
+import { Checkbox } from "@zentro/ui/shadcn/checkbox";
 import { useCallback, useEffect, useState, type FormEvent } from "react";
 
 import { useTrpcClient } from "@zentro/api/react";
@@ -12,7 +14,7 @@ import { NativeSelect } from "@zentro/ui/shadcn/native-select";
 
 type SavedTaskView = inferRouterOutputs<AppRouter>["taskView"]["list"][number];
 export type ViewConfig = SavedTaskView["config"];
-type NewViewConfig =
+export type NewViewConfig =
   inferRouterInputs<AppRouter>["taskView"]["create"]["config"];
 
 /** Pick, save and remove named sets of filters for the task list. */
@@ -126,14 +128,13 @@ export function SavedViewsMenu({
             autoFocus
             onChange={(event) => setName(event.target.value)}
           />
-          <label className="flex items-center gap-1.5 text-[13px] text-ink-2">
-            <input
-              type="checkbox"
+          <Label className="flex items-center gap-1.5 text-[13px] text-ink-2">
+            <Checkbox
               checked={shared}
-              onChange={(event) => setShared(event.target.checked)}
+              onCheckedChange={(checked) => setShared(checked === true)}
             />
             Share with the team
-          </label>
+          </Label>
           <Button type="submit" size="sm" disabled={busy || !name.trim()}>
             Save
           </Button>

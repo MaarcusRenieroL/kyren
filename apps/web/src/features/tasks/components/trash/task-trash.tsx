@@ -42,13 +42,14 @@ export function TaskTrash() {
       {trash.error ? (
         <p role="alert" className="text-sm text-danger">
           The deleted tasks did not load.{" "}
-          <button
+          <Button
+            variant="custom"
             type="button"
             className="underline"
             onClick={() => setVersion((value) => value + 1)}
           >
             Retry
-          </button>
+          </Button>
         </p>
       ) : null}
 

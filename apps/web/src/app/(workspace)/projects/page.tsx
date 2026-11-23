@@ -1,5 +1,6 @@
 "use client";
 
+import { Button } from "@zentro/ui/shadcn/button";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { LayoutGridIcon, ListIcon } from "lucide-react";
@@ -149,7 +150,8 @@ export default function ProjectsPage() {
           ["list", ListIcon, "List"],
         ] as const
       ).map(([value, Icon, label]) => (
-        <button
+        <Button
+          variant="custom"
           key={value}
           type="button"
           role="radio"
@@ -164,7 +166,7 @@ export default function ProjectsPage() {
         >
           <Icon className="size-3.5" aria-hidden="true" />
           {label}
-        </button>
+        </Button>
       ))}
     </div>
   );

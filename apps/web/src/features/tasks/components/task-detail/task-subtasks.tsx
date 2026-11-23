@@ -1,5 +1,7 @@
 "use client";
 
+import { Button } from "@zentro/ui/shadcn/button";
+import { Input } from "@zentro/ui/shadcn/input";
 import Link from "next/link";
 import { useState } from "react";
 import { CheckSquareIcon, PlusIcon, Loader2Icon } from "lucide-react";
@@ -139,7 +141,8 @@ export function TaskSubtasks({
                 key={subtask.id}
                 className="group flex items-center gap-2.5 py-2 text-sm"
               >
-                <button
+                <Button
+                  variant="custom"
                   type="button"
                   disabled={!canEdit || isLoading}
                   onClick={() => toggleStatus(subtask)}
@@ -151,7 +154,7 @@ export function TaskSubtasks({
                   ) : (
                     <StatusGlyph status={subtask.status} size={11} decorative />
                   )}
-                </button>
+                </Button>
 
                 <span className="w-14 shrink-0 font-mono text-xs text-ink-3">
                   {subtask.key}
@@ -181,7 +184,7 @@ export function TaskSubtasks({
       {canEdit && (
         <form onSubmit={handleCreate} className="mt-3 flex items-center gap-2">
           <div className="relative flex-1">
-            <input
+            <Input
               type="text"
               value={newTitle}
               onChange={(e) => setNewTitle(e.target.value)}
@@ -191,7 +194,8 @@ export function TaskSubtasks({
               className="h-8 w-full rounded-md border border-hairline bg-surface-subtle px-2.5 text-xs text-ink placeholder:text-ink-3 focus:border-ink-3 focus:bg-surface focus:outline-none"
             />
           </div>
-          <button
+          <Button
+            variant="custom"
             type="submit"
             disabled={!newTitle.trim() || isCreating}
             className="flex h-8 items-center gap-1 rounded-md border border-hairline px-2.5 text-xs font-medium text-ink-2 hover:bg-hover hover:text-ink disabled:opacity-40"
@@ -202,7 +206,7 @@ export function TaskSubtasks({
               <PlusIcon className="size-3.5" />
             )}
             <span>Add</span>
-          </button>
+          </Button>
         </form>
       )}
     </section>
