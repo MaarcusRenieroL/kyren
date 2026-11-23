@@ -236,7 +236,7 @@ export function buildNavAndShell(ctx: SiteBuilderCtx): Record<string, any> {
     ].map(([k, t]: any) => ({ t, go: go(k) })),
     footCompany: [
       ["about", "About"],
-      
+
       ["security", "Security"],
     ].map(([k, t]: any) => ({ t, go: go(k) })),
     footLegal: [

@@ -278,4 +278,3 @@ describe("own and any", () => {
     ).toBe("own");
   });
 });
-

@@ -60,4 +60,3 @@ export const ARCHIVED_PROJECT_ACTIONS = new Set([
   "projects.delete",
   "projects.settings.manage",
 ]);
-

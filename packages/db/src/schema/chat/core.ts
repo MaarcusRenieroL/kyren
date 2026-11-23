@@ -170,4 +170,3 @@ export const chatReactions = pgTable(
 export type ChatChannel = typeof chatChannels.$inferSelect;
 export type ChatMember = typeof chatMembers.$inferSelect;
 export type ChatMessage = typeof chatMessages.$inferSelect;
-

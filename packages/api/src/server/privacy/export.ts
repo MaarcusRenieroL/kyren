@@ -221,4 +221,3 @@ export async function exportMemberData(
     meetings: meetingRows,
   };
 }
-

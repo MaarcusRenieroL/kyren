@@ -229,4 +229,3 @@
   --cat-subtle: oklch(var(--cat-subtle-l) var(--cat-subtle-c) var(--cat-h, 25));
   --cat-text: oklch(var(--cat-text-l) var(--cat-text-c) var(--cat-h, 25));
 }
-

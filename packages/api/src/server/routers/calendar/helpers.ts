@@ -233,4 +233,3 @@ export async function manageable(ctx: OrganizationContext, id: string) {
 
   return event;
 }
-

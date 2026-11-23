@@ -200,4 +200,3 @@ export const settingsPermissions: PermissionDefinition[] = [
     org,
   ),
 ];
-

@@ -148,4 +148,3 @@ export const mailPermissions: PermissionDefinition[] = [
     org,
   ),
 ];
-

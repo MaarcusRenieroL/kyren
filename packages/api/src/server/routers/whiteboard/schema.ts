@@ -153,4 +153,3 @@ export function mergeBoard(stored: BoardElement[], incoming: BoardElement[]) {
 }
 
 export const title = z.string().trim().min(1, "Give the board a title.").max(120);
-

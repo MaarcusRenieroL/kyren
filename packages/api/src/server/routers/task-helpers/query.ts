@@ -77,4 +77,3 @@ export async function getTaskForActiveOrganization(
 
   return task;
 }
-

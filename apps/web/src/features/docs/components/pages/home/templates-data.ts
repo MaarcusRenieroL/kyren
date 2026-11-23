@@ -115,7 +115,7 @@ What is the architecture choice we are committing to?
     hint: "Agendas, key decisions, follow-up tickets",
     content: `# Sync & Planning Notes
 
-**Date:** ${new Date().toISOString().slice(0, 10)}  
+**Date:** ${new Date().toISOString().slice(0, 10)}\\
 **Attendees:** Team
 
 ## Agenda Topics
@@ -142,8 +142,8 @@ What is the architecture choice we are committing to?
     hint: "Root cause, timeline, preventive fixes",
     content: `# Incident Postmortem: [Incident Name]
 
-**Date:** ${new Date().toISOString().slice(0, 10)}  
-**Severity:** P1 / P2  
+**Date:** ${new Date().toISOString().slice(0, 10)}\\
+**Severity:** P1 / P2\\
 **Impact:** Total downtime and affected users
 
 ## Executive Summary

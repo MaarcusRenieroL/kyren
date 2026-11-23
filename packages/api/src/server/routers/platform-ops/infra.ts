@@ -251,4 +251,3 @@ export function liveAnnouncementsCondition(now = new Date()) {
     ),
   );
 }
-
