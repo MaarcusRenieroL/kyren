@@ -10,6 +10,7 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
+        custom: "",
         default:
           "bg-primary text-primary-foreground enabled:hover:bg-signal-hover disabled:not-aria-busy:bg-pressed disabled:not-aria-busy:text-ink-disabled disabled:not-aria-busy:opacity-100",
         secondary:
@@ -66,7 +67,12 @@ function Button({
       data-loading={loading || undefined}
       aria-busy={loading || undefined}
       disabled={asChild ? undefined : disabled || loading}
-      className={cn(buttonVariants({ variant, size, className }))}
+      className={cn(
+        variant === "custom"
+          ? "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring disabled:cursor-not-allowed"
+          : buttonVariants({ variant, size }),
+        className,
+      )}
       {...props}
     >
       {asChild ? (

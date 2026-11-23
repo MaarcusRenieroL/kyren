@@ -1,5 +1,7 @@
 "use client";
 
+import { Button } from "@zentro/ui/shadcn/button";
+import { Input } from "@zentro/ui/shadcn/input";
 import { useId, useMemo, useState, type ReactElement } from "react";
 import { CheckIcon, ChevronsUpDownIcon } from "lucide-react";
 
@@ -19,6 +21,7 @@ type ComboboxProps = {
   emptyText?: string;
   className?: string;
   "aria-invalid"?: boolean;
+  "aria-label"?: string;
 };
 
 /** A searchable select. Arrow keys move, Enter chooses, Escape closes. */
@@ -56,12 +59,14 @@ export function Combobox({
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
-        <button
+        <Button
+          variant="custom"
           type="button"
           role="combobox"
           aria-expanded={open}
           aria-controls={listId}
           aria-invalid={props["aria-invalid"]}
+          aria-label={props["aria-label"]}
           className={cn(
             "flex h-(--control-h) w-full items-center justify-between gap-2 rounded-md border border-border-strong bg-surface px-3 text-left text-sm outline-none transition-colors hover:border-ink-3 focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/30 aria-invalid:border-danger",
             !selected && "text-ink-3",
@@ -73,13 +78,13 @@ export function Combobox({
             className="size-4 shrink-0 text-ink-3"
             aria-hidden="true"
           />
-        </button>
+        </Button>
       </PopoverTrigger>
       <PopoverContent
         align="start"
         className="w-(--radix-popover-trigger-width) min-w-56 p-1.5"
       >
-        <input
+        <Input
           autoFocus
           value={query}
           placeholder={searchPlaceholder}

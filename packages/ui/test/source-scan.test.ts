@@ -12,6 +12,11 @@ const root = path.resolve(process.cwd(), "../..");
 const roots = ["apps/web/src", "packages/ui/src"];
 const tokenLayer = [
   "packages/ui/src/styles/globals.css",
+  "packages/ui/src/styles/tokens.css",
+  "packages/ui/src/styles/theme.css",
+  "packages/ui/src/styles/base.css",
+  "packages/ui/src/styles/utilities.css",
+  "packages/ui/src/styles/landing.css",
   "packages/ui/src/lib/theme-colors.ts",
   "packages/ui/src/components/logo.tsx",
 ];

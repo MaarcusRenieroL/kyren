@@ -1,9 +1,16 @@
 import { readFileSync } from "node:fs";
 import path from "node:path";
 
-const css = readFileSync(
+function loadCss(filePath: string): string {
+  let content = readFileSync(filePath, "utf8");
+  content = content.replace(/@import\s+["'](\.[^"']+)["'];/g, (_, relPath: string) => {
+    return loadCss(path.resolve(path.dirname(filePath), relPath));
+  });
+  return content;
+}
+
+const css = loadCss(
   path.resolve(process.cwd(), "src/styles/globals.css"),
-  "utf8",
 );
 
 type Theme = "light" | "dark";

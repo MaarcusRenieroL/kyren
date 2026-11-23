@@ -1,3 +1,4 @@
+import { Button } from "@zentro/ui/shadcn/button";
 import type { ComponentProps, ReactElement } from "react";
 import { XIcon } from "lucide-react";
 
@@ -33,14 +34,15 @@ export function Chip({
     >
       {children}
       {onRemove ? (
-        <button
+        <Button
+          variant="custom"
           type="button"
           aria-label={removeLabel}
           onClick={onRemove}
           className="-mr-1 inline-flex size-4 items-center justify-center rounded-xs outline-none hover:bg-pressed focus-visible:ring-2 focus-visible:ring-ring"
         >
           <XIcon className="size-3" aria-hidden="true" />
-        </button>
+        </Button>
       ) : null}
     </span>
   );

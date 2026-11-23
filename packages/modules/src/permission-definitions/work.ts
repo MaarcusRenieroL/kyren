@@ -1,0 +1,150 @@
+import type { PermissionDefinition } from "../types";
+import { definePermission, org, orgTeam, all } from "./common";
+
+export const projectsPermissions: PermissionDefinition[] = [
+  definePermission(
+    "projects.view",
+    "View projects",
+    "See projects the caller has access to.",
+    "Projects",
+    all,
+  ),
+  definePermission(
+    "projects.view_private",
+    "View private projects",
+    "See private and team projects without being a member.",
+    "Projects",
+    all,
+  ),
+  definePermission(
+    "projects.create",
+    "Create projects",
+    "Create new projects.",
+    "Projects",
+    org,
+  ),
+  definePermission(
+    "projects.update",
+    "Update projects",
+    "Edit a project's name, slug and description.",
+    "Projects",
+    all,
+  ),
+  definePermission(
+    "projects.archive",
+    "Archive projects",
+    "Archive projects.",
+    "Projects",
+    all,
+  ),
+  definePermission(
+    "projects.restore",
+    "Restore projects",
+    "Bring archived projects back.",
+    "Projects",
+    all,
+    { uiOnly: "Projects cannot be restored from the archive yet." },
+  ),
+  definePermission(
+    "projects.delete",
+    "Delete projects",
+    "Delete projects.",
+    "Projects",
+    all,
+  ),
+  definePermission(
+    "projects.members.manage",
+    "Manage project members",
+    "Give people and teams roles on a project.",
+    "Projects",
+    all,
+  ),
+  definePermission(
+    "projects.settings.manage",
+    "Manage project settings",
+    "Change a project's visibility and owning team.",
+    "Projects",
+    all,
+  ),
+];
+
+export const tasksPermissions: PermissionDefinition[] = [
+  definePermission(
+    "tasks.view",
+    "View tasks",
+    "See tasks and the task overview.",
+    "Tasks",
+    all,
+  ),
+  definePermission(
+    "tasks.create",
+    "Create tasks",
+    "Create new tasks.",
+    "Tasks",
+    all,
+  ),
+  definePermission(
+    "tasks.manage_templates",
+    "Manage task templates",
+    "Create, edit and delete the templates people start tasks from.",
+    "Tasks",
+    org,
+  ),
+  definePermission(
+    "tasks.manage_goals",
+    "Manage goals",
+    "Create, edit and delete goals and their key results, and link tasks to them.",
+    "Tasks",
+    org,
+  ),
+  definePermission(
+    "tasks.update_own",
+    "Edit own tasks",
+    "Edit tasks the user created.",
+    "Tasks",
+    all,
+  ),
+  definePermission(
+    "tasks.update_any",
+    "Edit any task",
+    "Edit any task.",
+    "Tasks",
+    all,
+  ),
+  definePermission(
+    "tasks.delete_own",
+    "Delete own tasks",
+    "Delete tasks the user created.",
+    "Tasks",
+    all,
+  ),
+  definePermission(
+    "tasks.delete_any",
+    "Delete any task",
+    "Delete any task.",
+    "Tasks",
+    all,
+  ),
+  definePermission(
+    "tasks.assign",
+    "Assign tasks",
+    "Change who a task is assigned to.",
+    "Tasks",
+    all,
+  ),
+  definePermission(
+    "tasks.comment",
+    "Comment on tasks",
+    "Write comments on tasks.",
+    "Tasks",
+    all,
+  ),
+  definePermission(
+    "tasks.activity.view",
+    "View task activity",
+    "See a task's history.",
+    "Tasks",
+    all,
+  ),
+];
+

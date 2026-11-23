@@ -1,5 +1,6 @@
 "use client";
 
+import { Button } from "@zentro/ui/shadcn/button";
 import type { ReactElement, ReactNode } from "react";
 
 import { cn } from "@zentro/ui/lib/utils";
@@ -53,7 +54,8 @@ export function SegmentedControl<T extends string>({
         const active = option.value === value;
 
         return (
-          <button
+          <Button
+            variant="custom"
             key={option.value}
             type="button"
             role="radio"
@@ -68,7 +70,7 @@ export function SegmentedControl<T extends string>({
             )}
           >
             {option.label}
-          </button>
+          </Button>
         );
       })}
     </div>

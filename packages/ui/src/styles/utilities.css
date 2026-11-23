@@ -1,0 +1,232 @@
+@layer utilities {
+  .font-display {
+    font-weight: 700;
+    letter-spacing: -0.03em;
+  }
+
+  .font-figure {
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: "tnum" 1;
+  }
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  /* Crisp, high-contrast headline accent: replaces legacy cursive with clean modern type */
+  .font-serif-italic {
+    font-family: var(--font-sans);
+    font-style: normal;
+    font-weight: 600;
+    letter-spacing: -0.025em;
+  }
+
+  /* Mono eyebrow, counts and dates */
+  .eyebrow {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    line-height: 16px;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+  }
+
+  /* Bento tile: hairline border, big radius, faint top highlight in dark */
+  .tile {
+    background: var(--surface);
+    border: 1px solid var(--hairline);
+    border-radius: var(--radius-xl);
+    box-shadow: var(--edge-highlight);
+  }
+  .tile-hero {
+    border-radius: var(--radius-2xl);
+  }
+
+  /* Bi-directional mention chips (@task, @doc, @member) */
+  .mention-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.1rem 0.4rem;
+    border-radius: var(--radius-sm);
+    background: var(--signal-subtle);
+    color: var(--signal);
+    font-weight: 500;
+    text-decoration: none;
+    border: 1px solid color-mix(in srgb, var(--signal) 20%, transparent);
+    transition: all 0.15s ease;
+  }
+  .mention-link:hover {
+    background: color-mix(in srgb, var(--signal) 15%, transparent);
+    color: var(--signal-strong);
+  }
+
+  /* Glass tile for dark showcase surfaces */
+  .glass {
+    background: color-mix(in srgb, var(--surface) 70%, transparent);
+    border: 1px solid var(--hairline);
+    border-radius: var(--radius-xl);
+    box-shadow: var(--edge-highlight);
+    backdrop-filter: blur(14px);
+  }
+
+  /* The one halo per screen */
+  .halo {
+    background: var(--halo);
+    pointer-events: none;
+  }
+
+  /* Faint vertical light beams (landing only) */
+  .beams {
+    background-image:
+      linear-gradient(
+        90deg,
+        transparent 0 12%,
+        var(--beam) 12.5%,
+        transparent 18%
+      ),
+      linear-gradient(
+        90deg,
+        transparent 0 42%,
+        var(--beam) 46%,
+        transparent 52%
+      ),
+      linear-gradient(
+        90deg,
+        transparent 0 74%,
+        var(--beam) 79%,
+        transparent 84%
+      );
+    mask-image: linear-gradient(to bottom, black, transparent 85%);
+  }
+
+  .hide-scrollbar {
+    scrollbar-width: none;
+  }
+
+  /* A tab row that scrolls sideways: on narrow screens its right edge fades
+     out, so a cut-off tab reads as "there is more", not as a mistake. */
+  .tab-scroll {
+    scrollbar-width: none;
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+
+  @media (max-width: 767px) {
+    .tab-scroll {
+      -webkit-mask-image: linear-gradient(
+        to right,
+        black calc(100% - 2rem),
+        transparent
+      );
+      mask-image: linear-gradient(
+        to right,
+        black calc(100% - 2rem),
+        transparent
+      );
+      padding-right: 2rem;
+    }
+  }
+}
+
+/* Scroll reveal: hidden only when JS is on and motion is allowed. */
+@media (prefers-reduced-motion: no-preference) {
+  .js [data-reveal]:not([data-revealed]) {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  [data-reveal] {
+    transition:
+      opacity 400ms var(--ease-out),
+      transform 400ms var(--ease-out);
+  }
+}
+
+@keyframes pulse-in {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@keyframes live-dot {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 var(--done-glow);
+  }
+  50% {
+    box-shadow: 0 0 0 5px transparent;
+  }
+}
+/* Loading shimmer: a slow opacity breath, never a moving gradient. */
+@keyframes zsh {
+  0%,
+  100% {
+    opacity: 0.45;
+  }
+  50% {
+    opacity: 0.9;
+  }
+}
+/* "Now" dots: a green ring that grows and fades. */
+@keyframes zpulse {
+  0% {
+    box-shadow: 0 0 0 0 var(--done-glow);
+  }
+  70%,
+  100% {
+    box-shadow: 0 0 0 6px transparent;
+  }
+}
+@keyframes ring-pulse {
+  from {
+    opacity: 0.7;
+    transform: scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: scale(2.4);
+  }
+}
+
+/* Categorical color utilities: .cat-1 to .cat-8 set --cat, --cat-subtle, --cat-text */
+.cat-1 {
+  --cat-h: var(--cat-1-h);
+}
+.cat-2 {
+  --cat-h: var(--cat-2-h);
+}
+.cat-3 {
+  --cat-h: var(--cat-3-h);
+}
+.cat-4 {
+  --cat-h: var(--cat-4-h);
+}
+.cat-5 {
+  --cat-h: var(--cat-5-h);
+}
+.cat-6 {
+  --cat-h: var(--cat-6-h);
+}
+.cat-7 {
+  --cat-h: var(--cat-7-h);
+}
+.cat-8 {
+  --cat-h: var(--cat-8-h);
+}
+.cat-1,
+.cat-2,
+.cat-3,
+.cat-4,
+.cat-5,
+.cat-6,
+.cat-7,
+.cat-8 {
+  --cat: oklch(var(--cat-l) var(--cat-c) var(--cat-h, 25));
+  --cat-subtle: oklch(var(--cat-subtle-l) var(--cat-subtle-c) var(--cat-h, 25));
+  --cat-text: oklch(var(--cat-text-l) var(--cat-text-c) var(--cat-h, 25));
+}
+

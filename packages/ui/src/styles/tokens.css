@@ -1,0 +1,285 @@
+/*
+ * Zentro design tokens: "Momentum".
+ *
+ * Soft bento on a warm ground in light, near-black with a blue-violet cast in
+ * dark. Color means state: grey untouched, amber moving, cyan waiting, green
+ * finished, rose late. Violet (the accent) is only for the primary action,
+ * focus and links. Every pair below is checked by
+ * packages/ui/test/tokens.test.ts in both themes.
+ *
+ * Names kept from the earlier system so every component keeps working:
+ *   canvas = bg, surface = surface-1, sunken = surface-2, selected = accent-soft,
+ *   signal = accent, hairline = line, border-strong = control border.
+ * Theme is the `.dark` class (next-themes), density is `data-density`.
+ */
+:root,
+.light {
+  color-scheme: light;
+
+  /* Surfaces */
+  --canvas: #f6f5f1;
+  --surface: #ffffff;
+  --raised: #ffffff;
+  --sunken: #efede8;
+  --pressed: #e5e2db;
+  --sidebar: #f6f5f1;
+  --overlay: #ffffff;
+  --hover: #efede8;
+  --selected: #ece8ff;
+
+  /* Borders. `line` is the hairline; `line-strong` is the Thread and dividers;
+     `border-strong` is the 3:1 control border for inputs. */
+  --hairline: #e4e1da;
+  --line-strong: #c9c6bd;
+  --border-default: #d4d1c8;
+  --border-strong: #8a8780;
+
+  /* Text */
+  --ink: #17161c;
+  --ink-2: #55526a;
+  --ink-3: #66647c;
+  --ink-disabled: #a4a1b3;
+  --ink-inverse: #f2f2f7;
+
+  /* Accent ("signal") */
+  --signal: #5b3fe0;
+  --signal-hover: #4d33c7;
+  --signal-strong: #3e28a8;
+  --signal-subtle: #ece8ff;
+  --on-signal: #ffffff;
+
+  /* State scales: subtle background, solid, text, text on solid */
+  --success-subtle: #ddf5ea;
+  --success: #087a4e;
+  --success-text: #086a44;
+  --on-success: #ffffff;
+  --warning-subtle: #fff0d6;
+  --warning: #a35c00;
+  --warning-text: #8a4d00;
+  --on-warning: #ffffff;
+  --danger-subtle: #ffe3e9;
+  --danger: #c21f43;
+  --danger-text: #b01a3b;
+  --on-danger: #ffffff;
+  /* Danger text on an ink surface (the selection bar) */
+  --danger-on-ink: #ff8fa3;
+  --info-subtle: #ddf1fa;
+  --info: #0b7fa8;
+  --info-text: #086487;
+  --on-info: #ffffff;
+
+  /* Task state glyphs. Priority is ink, never a state color. */
+  --status-backlog: var(--ink-3);
+  --status-todo: #8a8aa0;
+  --status-progress: var(--warning);
+  --status-review: var(--info);
+  --status-done: var(--success);
+  --priority-low: var(--ink-3);
+  --priority-medium: var(--ink-2);
+  --priority-high: var(--ink);
+
+  /* Module tint tiles: identity colors for tile headers and icon chips only */
+  --tint-projects: #dcebff;
+  --tint-tasks: #e9e4ff;
+  --tint-docs: #ffe6d2;
+  --tint-teams: #d8f3e6;
+  --tint-audit: #ffdde4;
+  --tint-sun: #fff2c9;
+  --tint-lilac: #f0e3ff;
+  --tint-slate: #e6e9ef;
+  --tint-line-alpha: 55%;
+  --tint-chip: #ffffff;
+
+  /* Categorical palette (teams, projects): solid, subtle background, text */
+  --cat-l: 0.62;
+  --cat-c: 0.11;
+  --cat-subtle-l: 0.94;
+  --cat-subtle-c: 0.035;
+  --cat-text-l: 0.4;
+  --cat-text-c: 0.09;
+
+  /* Charts */
+  --chart-1: #5b3fe0;
+  --chart-2: #0b7fa8;
+  --chart-3: #087a4e;
+  --chart-4: #a35c00;
+  --chart-5: #c21f43;
+
+  --focus-ring: #5b3fe0;
+  --selection: #d9d1ff;
+  --scrim: rgb(23 22 28 / 40%);
+  --shadow-color: 250 14% 10%;
+  --shadow-k: 1;
+  --edge-highlight:
+    0 1px 3px 0 rgb(0 0 0 / 0.05), 0 1px 2px -1px rgb(0 0 0 / 0.05),
+    inset 0 1px 0 0 rgb(255 255 255 / 0.8);
+
+  /* Glow: a faint lavender wash in light, a violet halo in dark */
+  --halo: radial-gradient(
+    closest-side,
+    rgb(91 63 224 / 14%),
+    rgb(91 63 224 / 0%)
+  );
+  --beam: rgb(91 63 224 / 6%);
+  --done-glow: rgb(8 122 78 / 35%);
+}
+
+.dark {
+  color-scheme: dark;
+
+  --canvas: #0a0a0f;
+  --surface: #111118;
+  --raised: #181821;
+  --sunken: #181821;
+  --pressed: #20202c;
+  --sidebar: #0a0a0f;
+  --overlay: #181821;
+  --hover: #181821;
+  --selected: #1e1838;
+
+  --hairline: #25253a;
+  --line-strong: #3a3a52;
+  --border-default: #30304a;
+  --border-strong: #6a6a88;
+
+  --ink: #f2f2f7;
+  --ink-2: #a0a0b4;
+  --ink-3: #8686a0;
+  --ink-disabled: #5c5c72;
+  --ink-inverse: #0a0a0f;
+
+  --signal: #9b7fff;
+  --signal-hover: #ad96ff;
+  --signal-strong: #c4b3ff;
+  --signal-subtle: #1e1838;
+  --on-signal: #0a0a0f;
+
+  --success-subtle: #0f2a22;
+  --success: #2ee59d;
+  --success-text: #5cf0b6;
+  --on-success: #0a0a0f;
+  --warning-subtle: #2b2110;
+  --warning: #ffb224;
+  --warning-text: #ffc457;
+  --on-warning: #0a0a0f;
+  --danger-subtle: #2e1019;
+  --danger: #ff5c7a;
+  --danger-text: #ff8099;
+  --on-danger: #0a0a0f;
+  --danger-on-ink: #c21f43;
+  --info-subtle: #0e2430;
+  --info: #4cc9f0;
+  --info-text: #7cd8f5;
+  --on-info: #0a0a0f;
+
+  --status-todo: #6b6b82;
+
+  /* Tints sit at about 14% over surface, with a tint-colored border at 30% */
+  --tint-projects: color-mix(in srgb, #dcebff 14%, var(--surface));
+  --tint-tasks: color-mix(in srgb, #e9e4ff 14%, var(--surface));
+  --tint-docs: color-mix(in srgb, #ffe6d2 14%, var(--surface));
+  --tint-teams: color-mix(in srgb, #d8f3e6 14%, var(--surface));
+  --tint-audit: color-mix(in srgb, #ffdde4 14%, var(--surface));
+  --tint-sun: color-mix(in srgb, #fff2c9 14%, var(--surface));
+  --tint-lilac: color-mix(in srgb, #f0e3ff 14%, var(--surface));
+  --tint-slate: color-mix(in srgb, #e6e9ef 14%, var(--surface));
+  --tint-line-alpha: 30%;
+  --tint-chip: #20202c;
+
+  --cat-l: 0.72;
+  --cat-c: 0.12;
+  --cat-subtle-l: 0.3;
+  --cat-subtle-c: 0.05;
+  --cat-text-l: 0.84;
+  --cat-text-c: 0.1;
+
+  --chart-1: #9b7fff;
+  --chart-2: #4cc9f0;
+  --chart-3: #2ee59d;
+  --chart-4: #ffb224;
+  --chart-5: #ff5c7a;
+
+  --focus-ring: #9b7fff;
+  --selection: #3a2a78;
+  --scrim: rgb(0 0 0 / 60%);
+  --shadow-color: 250 30% 2%;
+  --shadow-k: 0.85;
+  --edge-highlight:
+    inset 0 1px 0 0 rgb(255 255 255 / 0.08), 0 2px 8px -2px rgb(0 0 0 / 0.45);
+
+  --halo: radial-gradient(
+    closest-side,
+    rgb(155 127 255 / 34%),
+    rgb(155 127 255 / 0%)
+  );
+  --beam: rgb(155 127 255 / 10%);
+  --done-glow: rgb(46 229 157 / 45%);
+}
+
+/* Categorical hues */
+:root {
+  --cat-1-h: 25;
+  --cat-2-h: 58;
+  --cat-3-h: 105;
+  --cat-4-h: 150;
+  --cat-5-h: 195;
+  --cat-6-h: 245;
+  --cat-7-h: 315;
+  --cat-8-h: 350;
+}
+
+/* Density: Comfortable is the default; Compact is an option. */
+:root,
+[data-density="comfortable"] {
+  --control-h: 2.75rem;
+  --row-h: 3rem;
+  --row-table: 3rem;
+  --row-list: 3rem;
+  --nav-item: 2.5rem;
+  --density-body: 0.9375rem;
+  --density-body-lh: 1.4667;
+  --density-label: 0.8125rem;
+  --gutter: 2.5rem;
+  --pad-tile: 1.5rem;
+  --card-pad: 1.5rem;
+  --gap: 1rem;
+  --title-size: 2rem;
+  --sidebar-w: 16.5rem;
+}
+
+[data-density="compact"] {
+  --control-h: 2rem;
+  --row-h: 2.25rem;
+  --row-table: 2.25rem;
+  --row-list: 2.25rem;
+  --nav-item: 1.875rem;
+  --density-body: 0.8125rem;
+  --density-body-lh: 1.5385;
+  --density-label: 0.75rem;
+  --gutter: 1.5rem;
+  --pad-tile: 1rem;
+  --card-pad: 1rem;
+  --gap: 0.5rem;
+  --title-size: 1.75rem;
+  --sidebar-w: 14rem;
+}
+
+/* Phones: page titles are long sentences (a ticket subject, a pay run). */
+@media (max-width: 639px) {
+  :root,
+  [data-density="compact"] {
+    --title-size: 1.5rem;
+  }
+}
+
+/* Touch devices: controls stay comfortable to hit, whatever the setting. */
+@media (pointer: coarse) {
+  :root,
+  [data-density] {
+    --control-h: 2.75rem;
+    --nav-item: 2.75rem;
+    --row-table: 3rem;
+    --row-list: 3rem;
+  }
+}
+

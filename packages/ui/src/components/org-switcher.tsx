@@ -1,5 +1,6 @@
 "use client";
 
+import { Button } from "@zentro/ui/shadcn/button";
 import { FC, ReactNode, useId, useMemo, useState } from "react";
 import { CheckIcon, ChevronDownIcon, PlusIcon } from "lucide-react";
 
@@ -68,7 +69,8 @@ export const OrgSwitcher: FC<Props> = ({
       }}
     >
       <PopoverTrigger asChild>
-        <button
+        <Button
+          variant="custom"
           type="button"
           aria-label={`Organization: ${active.name}`}
           aria-haspopup="listbox"
@@ -93,7 +95,7 @@ export const OrgSwitcher: FC<Props> = ({
             className="size-3.5 shrink-0 text-ink-3 group-data-[collapsible=icon]:hidden"
             aria-hidden="true"
           />
-        </button>
+        </Button>
       </PopoverTrigger>
       <PopoverContent align="start" className="w-64 gap-1 p-1.5">
         {organizations.length > 4 ? (
@@ -116,7 +118,8 @@ export const OrgSwitcher: FC<Props> = ({
             const isActive = organization.slug === active.slug;
 
             return (
-              <button
+              <Button
+                variant="custom"
                 key={organization.id}
                 type="button"
                 role="option"
@@ -142,7 +145,7 @@ export const OrgSwitcher: FC<Props> = ({
                     aria-hidden="true"
                   />
                 ) : null}
-              </button>
+              </Button>
             );
           })}
           {!shown.length ? (
