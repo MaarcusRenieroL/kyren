@@ -42,6 +42,9 @@ jobs:
       - run: pnpm check-types
       - run: pnpm lint
       - run: pnpm test
+      - run: pnpm exec playwright install --with-deps chromium
+      - name: Verify production build, sign-in and access control
+        run: pnpm test:e2e e2e/auth.spec.ts e2e/roles-permissions.spec.ts
 
   secrets:
     runs-on: ubuntu-latest

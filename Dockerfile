@@ -61,7 +61,8 @@ ENV NODE_ENV=production \
     NEXT_TELEMETRY_DISABLED=1 \
     HOSTNAME=0.0.0.0
 WORKDIR /repo
-RUN addgroup -S app && adduser -S app -G app \
+RUN rm -rf /usr/local/lib/node_modules/npm /usr/local/bin/npm /usr/local/bin/npx \
+    && addgroup -S app && adduser -S app -G app \
     && mkdir -p /data/uploads && chown -R app:app /data
 # Uploaded files live on a volume mounted here (FILE_STORAGE_DIR).
 ENV FILE_STORAGE_DIR=/data/uploads

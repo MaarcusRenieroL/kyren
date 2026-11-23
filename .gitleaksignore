@@ -1,0 +1,2 @@
+# Fixed E2E-only encryption fixture in Playwright's test server configuration.
+0793fd9c79f7e19aa0634b4631317f336c6c0f65:playwright.config.ts:generic-api-key:57

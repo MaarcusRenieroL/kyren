@@ -10,13 +10,21 @@
 # The database is replaced: run it against an empty database, or one you
 # mean to overwrite.
 set -eu
+set -o pipefail
 
 UPLOADS_DIR="${UPLOADS_DIR:-/data/uploads}"
 : "${BACKUP_REMOTE:?set BACKUP_REMOTE}"
 
+list_backups() {
+  # Older backups used minute timestamps and predate completion markers.
+  rclone lsf "$BACKUP_REMOTE" --recursive --files-only --max-depth 2 |
+    awk -F/ 'NF == 2 && ($2 == "complete" || ($1 ~ /^[0-9-]+T[0-9]+Z$/ && $2 == "db-" $1 ".dump.age")) {print $1 "/"}' |
+    sort -u
+}
+
 if [ "${1:-}" = "list" ]; then
-  rclone lsf "$BACKUP_REMOTE" --dirs-only | sort
-  exit 0
+  list_backups
+  exit $?
 fi
 
 : "${DATABASE_URL:?set DATABASE_URL}"
@@ -25,16 +33,22 @@ fi
 stamp="${1:?usage: restore.sh list|latest|<stamp>}"
 
 if [ "$stamp" = "latest" ]; then
-  stamp="$(rclone lsf "$BACKUP_REMOTE" --dirs-only | sort | tail -n 1 | tr -d /)"
+  stamp="$(list_backups | tail -n 1 | tr -d /)"
+  [ -n "$stamp" ] || { echo "restore: no backups found" >&2; exit 1; }
 fi
 
 work="$(mktemp -d)"
+trap 'rm -rf "$work"' EXIT
 started="$(date +%s)"
 
 rclone copy "$BACKUP_REMOTE/$stamp" "$work" --quiet
 
+case "$stamp" in
+  *Z-*) [ -f "$work/complete" ] || { echo "restore: incomplete backup" >&2; exit 1; } ;;
+esac
+
 age -d -i "$BACKUP_AGE_IDENTITY" "$work"/db-*.dump.age \
-  | pg_restore --clean --if-exists --no-owner --dbname "$DATABASE_URL"
+  | pg_restore --single-transaction --clean --if-exists --no-owner --dbname "$DATABASE_URL"
 
 if ls "$work"/uploads-*.tgz.age >/dev/null 2>&1; then
   mkdir -p "$UPLOADS_DIR"
@@ -42,5 +56,4 @@ if ls "$work"/uploads-*.tgz.age >/dev/null 2>&1; then
     | tar -C "$UPLOADS_DIR" -xzf -
 fi
 
-rm -rf "$work"
 echo "restore: $stamp done in $(( $(date +%s) - started ))s"

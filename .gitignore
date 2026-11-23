@@ -58,3 +58,5 @@ test-results/
 # Which release runs on the VM (written by deploy/update.sh)
 deploy/.version
 deploy/.previous-version
+deploy/.rollback-point
+deploy/.rollback-point.tmp

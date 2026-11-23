@@ -183,8 +183,10 @@ deploy/rollback.sh --restore   # also restore the pre-update backup (loses later
 ```
 
 Each release's image is tagged with its git commit, so the previous one is
-still on the VM to roll back to. Migrations only ever add; a rollback of the
-app alone is safe unless a release notes otherwise.
+still on the VM to roll back to. Before starting migrations, the updater records
+the previous image and the matching backup in `deploy/.rollback-point`.
+Check migration compatibility before rolling back the app alone. For an older
+release without a recorded backup, select and verify the restore point manually.
 
 ## 9. Capacity and load testing
 

@@ -41,11 +41,19 @@ services:
   db:
     image: postgres:17-alpine
     profiles: [db]
+    # Compose interpolates disabled profiles too. Check the password only
+    # when this database actually starts.
+    entrypoint:
+      - /bin/sh
+      - -ec
+      - ': "$${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD}"; exec docker-entrypoint.sh "$$@"'
+      - docker-entrypoint
+    command: ["postgres"]
     restart: unless-stopped
     environment:
       POSTGRES_DB: zentro
       POSTGRES_USER: zentro
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-}
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
