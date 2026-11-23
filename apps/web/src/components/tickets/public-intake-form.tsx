@@ -1,5 +1,9 @@
 "use client";
 
+import { Label } from "@zentro/ui/shadcn/label";
+import { Textarea } from "@zentro/ui/shadcn/textarea";
+import { Input } from "@zentro/ui/shadcn/input";
+import { Button } from "@zentro/ui/shadcn/button";
 import { useEffect, useState, type FormEvent } from "react";
 import { NativeSelect } from "@zentro/ui/shadcn/native-select";
 import { apiPath } from "~/src/lib/paths";
@@ -94,13 +98,13 @@ export function PublicIntakeForm({ token }: { token: string }) {
       ) : null}
       <form className="mt-6 flex flex-col gap-4" onSubmit={send} noValidate>
         {form.fields.map((field) => (
-          <label key={field.id} className="flex flex-col gap-1.5 text-sm">
+          <Label key={field.id} className="flex flex-col gap-1.5 text-sm">
             <span className="text-ink">
               {field.label}
               {field.required ? " *" : ""}
             </span>
             {field.type === "longtext" ? (
-              <textarea
+              <Textarea
                 className={control}
                 rows={5}
                 maxLength={5000}
@@ -124,7 +128,7 @@ export function PublicIntakeForm({ token }: { token: string }) {
                 ))}
               </NativeSelect>
             ) : (
-              <input
+              <Input
                 className={control}
                 type={field.type === "email" ? "email" : "text"}
                 maxLength={300}
@@ -139,11 +143,11 @@ export function PublicIntakeForm({ token }: { token: string }) {
                 {errors[field.id]}
               </span>
             ) : null}
-          </label>
+          </Label>
         ))}
         {/* A trap for bots: hidden from people and from assistive tools. */}
         <div aria-hidden="true" className="absolute -left-[9999px]">
-          <input
+          <Input
             tabIndex={-1}
             autoComplete="off"
             name="website"
@@ -156,13 +160,14 @@ export function PublicIntakeForm({ token }: { token: string }) {
             {errors.form}
           </p>
         ) : null}
-        <button
+        <Button
+          variant="custom"
           type="submit"
           disabled={busy}
           className="self-start rounded-md bg-ink px-4 py-2 text-sm font-medium text-surface disabled:opacity-60"
         >
           Send
-        </button>
+        </Button>
       </form>
     </main>
   );

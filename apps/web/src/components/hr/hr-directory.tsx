@@ -11,7 +11,13 @@ import { EmptyState } from "@zentro/ui/components/empty-state";
 import { PageHeader } from "@zentro/ui/components/page-header";
 import { Button } from "@zentro/ui/shadcn/button";
 import { Input } from "@zentro/ui/shadcn/input";
-import { NativeSelect } from "@zentro/ui/shadcn/native-select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@zentro/ui/shadcn/select";
 import { toast } from "@zentro/ui/index";
 
 import {
@@ -95,29 +101,37 @@ export function HrDirectory() {
         <div className="relative w-full max-w-xs">
           <SearchIcon
             aria-hidden
-            className="pointer-events-none absolute top-2.5 left-2.5 size-4 text-ink-3"
+            className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 size-4 text-ink-3"
           />
           <Input
             aria-label="Search people"
             placeholder="Search people"
-            className="pl-8"
+            type="search"
+            className="pl-9"
             value={q}
             onChange={(e) => setQ(e.target.value)}
           />
         </div>
-        <NativeSelect
-          aria-label="Department"
-          className="w-48"
-          value={department}
-          onChange={(e) => setDepartment(e.target.value)}
+        <Select
+          value={department ? `department:${department}` : "all"}
+          onValueChange={(value) =>
+            setDepartment(
+              value === "all" ? "" : value.slice("department:".length),
+            )
+          }
         >
-          <option value="">All departments</option>
-          {departments.map((name) => (
-            <option key={name} value={name}>
-              {name}
-            </option>
-          ))}
-        </NativeSelect>
+          <SelectTrigger aria-label="Department" className="w-full sm:w-48">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All departments</SelectItem>
+            {departments.map((name) => (
+              <SelectItem key={name} value={`department:${name}`}>
+                {name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
         {directory ? (
           <span className="ml-auto text-sm text-ink-3">
             {shown.length} of {directory.people.length}
@@ -181,14 +195,15 @@ export function HrDirectory() {
             return (
               <li key={person.id}>
                 {directory.canManage ? (
-                  <button
+                  <Button
+                    variant="custom"
                     type="button"
                     aria-label={`Edit ${person.name}`}
                     onClick={() => setTarget(person)}
                     className="flex w-full flex-col gap-1 rounded-xl border border-line p-4 text-left outline-none hover:bg-sunken focus-visible:ring-2 focus-visible:ring-ring"
                   >
                     {card}
-                  </button>
+                  </Button>
                 ) : (
                   <div className="flex flex-col gap-1 rounded-xl border border-line p-4">
                     {card}

@@ -3,73 +3,23 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { ChevronLeftIcon, PlusIcon, Settings2Icon } from "lucide-react";
-
 import { useTrpcClient } from "@zentro/api/react";
-import { cn } from "@zentro/ui/lib/utils";
 import { Button } from "@zentro/ui/shadcn/button";
 import { Skeleton } from "@zentro/ui/shadcn/skeleton";
-
-import { StatusGlyph } from "@zentro/ui/components/status-glyph";
-import { DueDate } from "~/src/components/due-date";
 import { usePermission } from "~/src/components/permissions/permission-provider";
 import { usePageCrumb } from "~/src/components/shell/breadcrumb-context";
 import { TeamActivity } from "~/src/components/workspace/activity/activity-feed";
 import { paths } from "~/src/lib/paths";
-import {
-  TeamWorkloadBalancer,
-  type MemberCapacity,
-  type WorkloadTask,
-} from "./team-workload-balancer";
-
-type WorkloadData = {
-  team: {
-    id: string;
-    name: string;
-  };
-  totalTasks: number;
-  openTasksCount: number;
-  doneTasksCount: number;
-  memberWorkload: MemberCapacity[];
-  tasks: WorkloadTask[];
-};
-
-type Data = {
-  team: {
-    id: string;
-    name: string;
-    description: string | null;
-    members: Array<{
-      memberId: string;
-      userId: string;
-      name: string;
-      role: string;
-    }>;
-  };
-  projects: Array<{
-    id: string;
-    name: string;
-    slug: string;
-    taskKeyPrefix: string;
-    totalTasks: number | null;
-    doneTasks: number | null;
-  }>;
-  tasks: Array<{
-    key: string;
-    name: string;
-    status: string;
-    due: Date | null;
-    assigneeUserId: string | null;
-  }>;
-  docs: Array<{ updatedAt: Date }>;
-  workload: WorkloadData | null;
-};
-
-const DAY = 24 * 60 * 60 * 1000;
+import { TeamWorkloadBalancer } from "./team-workload-balancer";
+import type { TeamDetailData } from "./team-detail/types";
+import { TeamProjectsSection } from "./team-detail/team-projects-section";
+import { TeamTasksStream } from "./team-detail/team-tasks-stream";
+import { TeamStatsCards } from "./team-detail/team-stats-cards";
 
 /** One team: its numbers, projects, people and what happened lately. */
 export function TeamDetail({ teamId }: { teamId: string }) {
   const trpc = useTrpcClient();
-  const [data, setData] = useState<Data | null>(null);
+  const [data, setData] = useState<TeamDetailData | null>(null);
   const [missing, setMissing] = useState(false);
   const [refreshToken, setRefreshToken] = useState(0);
   const canEdit = usePermission("teams.update", { teamId });
@@ -92,7 +42,6 @@ export function TeamDetail({ teamId }: { teamId: string }) {
         if (!live) return;
 
         const team = teams.find((entry) => entry.id === teamId);
-
         if (!team) {
           setMissing(true);
           return;
@@ -146,35 +95,7 @@ export function TeamDetail({ teamId }: { teamId: string }) {
   }
 
   const { team, projects, tasks, docs, workload } = data;
-  const now = Date.now();
-  const open = tasks.filter((task) => task.status !== "done");
-  const started = open.filter((task) => task.status === "in-progress").length;
-  const done = tasks.length - open.length;
-  const overdue = open.filter(
-    (task) => task.due && new Date(task.due).getTime() < now,
-  );
-  const editedToday = docs.filter(
-    (doc) => now - new Date(doc.updatedAt).getTime() < DAY,
-  ).length;
   const editHref = `${paths.teamsSettings()}?edit=${team.id}`;
-
-  const stats = [
-    { label: "Open tasks", value: open.length, note: `${started} in progress` },
-    { label: "Done", value: done, note: `of ${tasks.length} tasks` },
-    {
-      label: "Overdue",
-      value: overdue.length,
-      note: overdue[0]
-        ? `${overdue[0].key} · ${overdue[0].name}`
-        : "Nothing late",
-      tone: overdue.length > 0,
-    },
-    {
-      label: "Docs",
-      value: docs.length,
-      note: `${editedToday} edited today`,
-    },
-  ];
 
   return (
     <div className="flex flex-col gap-6">
@@ -220,82 +141,11 @@ export function TeamDetail({ teamId }: { teamId: string }) {
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-3.5 lg:grid-cols-4">
-        {stats.map((stat) => (
-          <div
-            key={stat.label}
-            className="flex min-w-0 flex-col gap-1 rounded-2xl border border-hairline/80 bg-surface/80 p-4 shadow-2xs transition-all hover:border-hairline hover:shadow-xs"
-          >
-            <span className="eyebrow text-ink-3">{stat.label}</span>
-            <span
-              className={cn(
-                "font-mono text-3xl font-bold tracking-tight text-ink",
-                stat.tone && "text-danger-text",
-              )}
-            >
-              {stat.value}
-            </span>
-            <span className="truncate text-xs text-ink-3">{stat.note}</span>
-          </div>
-        ))}
-      </div>
+      <TeamStatsCards tasks={tasks} docs={docs} />
 
       <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_340px]">
         <div className="flex min-w-0 flex-col gap-6">
-          <section aria-labelledby="team-projects" className="flex flex-col">
-            <h2
-              id="team-projects"
-              className="flex items-center gap-2 pb-2 font-semibold"
-            >
-              Projects
-              <span className="font-mono text-xs font-normal text-ink-3">
-                {projects.length}
-              </span>
-            </h2>
-            {projects.length ? (
-              projects.map((project) => {
-                const total = project.totalTasks ?? 0;
-                const finished = project.doneTasks ?? 0;
-
-                return (
-                  <Link
-                    key={project.id}
-                    href={paths.project(project.slug)}
-                    className="flex items-center gap-3 border-b border-hairline/60 px-1 py-2.5 hover:bg-hover"
-                  >
-                    <span
-                      aria-hidden="true"
-                      className="flex size-6 items-center justify-center rounded-sm border border-hairline bg-tint-projects font-mono text-[11px]"
-                    >
-                      {project.name.charAt(0).toUpperCase()}
-                    </span>
-                    <span className="min-w-0 truncate text-[15px]">
-                      {project.name}
-                    </span>
-                    <span className="font-mono text-[11px] text-ink-3">
-                      {project.taskKeyPrefix}
-                    </span>
-                    <span className="flex-1" />
-                    <span className="hidden h-1.5 w-28 overflow-hidden rounded-full bg-sunken sm:block">
-                      <span
-                        className="block h-full rounded-full bg-success"
-                        style={{
-                          width: `${total ? Math.round((finished / total) * 100) : 0}%`,
-                        }}
-                      />
-                    </span>
-                    <span className="w-14 text-right font-mono text-xs text-ink-2">
-                      {finished}/{total}
-                    </span>
-                  </Link>
-                );
-              })
-            ) : (
-              <p className="py-3 text-sm text-ink-2">
-                No projects belong to this team yet.
-              </p>
-            )}
-          </section>
+          <TeamProjectsSection projects={projects} />
 
           <section
             aria-labelledby="team-workload-balancer"
@@ -309,73 +159,7 @@ export function TeamDetail({ teamId }: { teamId: string }) {
             />
           </section>
 
-          <section aria-labelledby="team-task-stream" className="flex flex-col">
-            <div className="flex items-center justify-between pb-2">
-              <h2
-                id="team-task-stream"
-                className="flex items-center gap-2 font-semibold"
-              >
-                Cross-Project Tasks
-                <span className="font-mono text-xs font-normal text-ink-3">
-                  {workload?.tasks.length ?? 0}
-                </span>
-              </h2>
-              {workload && workload.totalTasks > 0 ? (
-                <span className="font-mono text-xs text-ink-3">
-                  {workload.openTasksCount} open · {workload.doneTasksCount}{" "}
-                  done
-                </span>
-              ) : null}
-            </div>
-
-            {workload && workload.tasks.length > 0 ? (
-              <div className="flex flex-col">
-                {workload.tasks.map((task) => (
-                  <div
-                    key={task.id}
-                    className="flex items-center gap-2.5 border-b border-hairline/60 px-1 py-2 hover:bg-hover transition-colors"
-                  >
-                    <StatusGlyph status={task.status} size={12} decorative />
-                    <Link
-                      href={paths.task(task.key)}
-                      className="font-mono text-xs font-medium text-ink-2 hover:text-ink shrink-0"
-                    >
-                      {task.key}
-                    </Link>
-                    <Link
-                      href={paths.task(task.key)}
-                      className="min-w-0 truncate text-sm text-ink hover:underline"
-                    >
-                      {task.name}
-                    </Link>
-                    <div className="ml-auto flex items-center gap-2.5 shrink-0">
-                      <Link
-                        href={paths.project(task.projectSlug)}
-                        className="rounded border border-hairline/80 bg-sunken px-1.5 py-0.5 font-mono text-[10px] text-ink-2 hover:text-ink hover:border-hairline"
-                      >
-                        {task.projectName}
-                      </Link>
-                      {task.dueAt ? (
-                        <DueDate
-                          value={task.dueAt}
-                          done={task.status === "done"}
-                        />
-                      ) : null}
-                      {task.assigneeName ? (
-                        <span className="hidden sm:inline-block max-w-[80px] truncate font-mono text-[11px] text-ink-3">
-                          {task.assigneeName}
-                        </span>
-                      ) : null}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <p className="py-3 text-sm text-ink-2">
-                No tasks assigned to this team or its members yet.
-              </p>
-            )}
-          </section>
+          <TeamTasksStream workload={workload} />
         </div>
 
         <section aria-labelledby="team-activity" className="tile p-4">

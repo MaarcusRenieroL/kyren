@@ -1,5 +1,13 @@
 "use client";
 
+import {
+  Table,
+  TableHeader,
+  TableRow,
+  TableHead,
+  TableBody,
+  TableCell,
+} from "@zentro/ui/shadcn/table";
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -212,24 +220,34 @@ export function RunDetail({ id }: { id: string }) {
       </dl>
 
       <div className="overflow-x-auto rounded-xl border border-line">
-        <table className="w-full min-w-[34rem] text-sm">
-          <thead>
-            <tr className="border-b border-line text-left text-xs text-ink-2">
-              <th className="px-3 py-2 font-medium">Employee</th>
-              <th className="px-3 py-2 text-right font-medium">Base</th>
-              <th className="px-3 py-2 text-right font-medium">Bonus</th>
-              <th className="px-3 py-2 text-right font-medium">Deductions</th>
-              <th className="px-3 py-2 text-right font-medium">Net</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-line">
+        <Table className="w-full min-w-[34rem] text-sm">
+          <TableHeader>
+            <TableRow className="border-b border-line text-left text-xs text-ink-2">
+              <TableHead className="px-3 py-2 font-medium">Employee</TableHead>
+              <TableHead className="px-3 py-2 text-right font-medium">
+                Base
+              </TableHead>
+              <TableHead className="px-3 py-2 text-right font-medium">
+                Bonus
+              </TableHead>
+              <TableHead className="px-3 py-2 text-right font-medium">
+                Deductions
+              </TableHead>
+              <TableHead className="px-3 py-2 text-right font-medium">
+                Net
+              </TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody className="divide-y divide-line">
             {run.lines.map((line) => (
-              <tr key={line.id}>
-                <td className="px-3 py-2 text-ink">{line.employeeName}</td>
-                <td className="px-3 py-2 text-right font-mono">
+              <TableRow key={line.id}>
+                <TableCell className="px-3 py-2 text-ink">
+                  {line.employeeName}
+                </TableCell>
+                <TableCell className="px-3 py-2 text-right font-mono">
                   {formatMoney(line.base, line.currency)}
-                </td>
-                <td className="px-3 py-2 text-right font-mono">
+                </TableCell>
+                <TableCell className="px-3 py-2 text-right font-mono">
                   {editable ? (
                     <form
                       className="flex items-center justify-end gap-2"
@@ -283,17 +301,17 @@ export function RunDetail({ id }: { id: string }) {
                   ) : (
                     formatMoney(line.bonus, line.currency)
                   )}
-                </td>
-                <td className="px-3 py-2 text-right font-mono">
+                </TableCell>
+                <TableCell className="px-3 py-2 text-right font-mono">
                   {formatMoney(line.deductions, line.currency)}
-                </td>
-                <td className="px-3 py-2 text-right font-mono font-medium">
+                </TableCell>
+                <TableCell className="px-3 py-2 text-right font-mono font-medium">
                   {formatMoney(line.net, line.currency)}
-                </td>
-              </tr>
+                </TableCell>
+              </TableRow>
             ))}
-          </tbody>
-        </table>
+          </TableBody>
+        </Table>
       </div>
     </div>
   );

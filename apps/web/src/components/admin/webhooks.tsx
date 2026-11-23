@@ -1,5 +1,6 @@
 "use client";
 
+import { Label } from "@zentro/ui/shadcn/label";
 import { useCallback, useEffect, useState, type FormEvent } from "react";
 
 import { useTrpcClient } from "@zentro/api/react";
@@ -97,7 +98,7 @@ export function Webhooks() {
         </div>
 
         <form onSubmit={create} className="flex items-end gap-2">
-          <label className="flex flex-1 flex-col gap-1.5 text-sm">
+          <Label className="flex flex-1 flex-col items-stretch gap-1.5 text-sm">
             <span className="text-ink-2">Address</span>
             <Input
               type="url"
@@ -106,7 +107,7 @@ export function Webhooks() {
               maxLength={500}
               onChange={(event) => setUrl(event.target.value)}
             />
-          </label>
+          </Label>
           <Button type="submit" disabled={busy || !url.trim()}>
             Add webhook
           </Button>

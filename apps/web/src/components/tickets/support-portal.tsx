@@ -1,5 +1,8 @@
 "use client";
 
+import { Button } from "@zentro/ui/shadcn/button";
+import { Label } from "@zentro/ui/shadcn/label";
+import { Textarea } from "@zentro/ui/shadcn/textarea";
 import { useCallback, useEffect, useState } from "react";
 import { apiPath } from "~/src/lib/paths";
 
@@ -32,18 +35,25 @@ export function SupportPortal({ token }: { token: string }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const [loadFailed, setLoadFailed] = useState(false);
   const load = useCallback(async () => {
-    const response = await fetch(apiPath(`/api/portal/${token}`), {
-      cache: "no-store",
-    });
+    setLoadFailed(false);
+    try {
+      const response = await fetch(apiPath(`/api/portal/${token}`), {
+        cache: "no-store",
+      });
 
-    if (response.status === 404) {
-      setMissing(true);
+      if (response.status === 404) {
+        setMissing(true);
 
-      return;
+        return;
+      }
+
+      if (!response.ok) throw new Error("Ticket unavailable");
+      setView((await response.json()) as View);
+    } catch {
+      setLoadFailed(true);
     }
-
-    if (response.ok) setView((await response.json()) as View);
   }, [token]);
 
   useEffect(() => {
@@ -70,6 +80,10 @@ export function SupportPortal({ token }: { token: string }) {
 
       setText("");
       await load();
+    } catch {
+      setError(
+        "Could not confirm delivery. Check the conversation before sending again.",
+      );
     } finally {
       setBusy(false);
     }
@@ -89,6 +103,21 @@ export function SupportPortal({ token }: { token: string }) {
     );
   }
 
+  if (loadFailed) {
+    return (
+      <main className="mx-auto max-w-xl space-y-3 p-6">
+        <p role="alert">The conversation could not be loaded.</p>
+        <Button
+          variant="custom"
+          type="button"
+          className="underline"
+          onClick={() => void load()}
+        >
+          Try again
+        </Button>
+      </main>
+    );
+  }
   if (!view) {
     return <main className="mx-auto max-w-xl p-6 text-sm">Loading…</main>;
   }
@@ -125,10 +154,10 @@ export function SupportPortal({ token }: { token: string }) {
         onSubmit={(event) => void send(event)}
         className="flex flex-col gap-2"
       >
-        <label className="text-sm font-medium" htmlFor="portal-reply">
+        <Label className="text-sm font-medium" htmlFor="portal-reply">
           Reply
-        </label>
-        <textarea
+        </Label>
+        <Textarea
           id="portal-reply"
           className="min-h-28 rounded-md border border-line bg-surface p-2 text-sm"
           value={text}
@@ -141,13 +170,14 @@ export function SupportPortal({ token }: { token: string }) {
             {error}
           </p>
         ) : null}
-        <button
+        <Button
+          variant="custom"
           type="submit"
           disabled={busy || !text.trim()}
           className="self-start rounded-md bg-primary px-4 py-2 text-sm text-primary-foreground disabled:opacity-50"
         >
           Send reply
-        </button>
+        </Button>
       </form>
     </main>
   );

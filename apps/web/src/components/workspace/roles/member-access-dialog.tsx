@@ -13,8 +13,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@zentro/ui/shadcn/dialog";
-import { Input } from "@zentro/ui/shadcn/input";
-import { Label } from "@zentro/ui/shadcn/label";
 import {
   Select,
   SelectContent,
@@ -26,7 +24,10 @@ import {
 import { usePermission } from "~/src/components/permissions/permission-provider";
 import { trpcResult } from "~/src/lib/trpc-result";
 
-import { useCatalog } from "./use-catalog";
+import {
+  MemberOverridesSection,
+  type Override,
+} from "./member-overrides-section";
 
 type Props = {
   userId: string;
@@ -41,14 +42,6 @@ type Assignment = {
   roleName: string;
   scopeType: string;
   scopeName: string;
-};
-
-type Override = {
-  id: string;
-  permission: string;
-  effect: "allow" | "deny";
-  scopeType: string;
-  reason: string | null;
 };
 
 type RoleOption = {
@@ -66,16 +59,12 @@ export const MemberAccessDialog: FC<Props> = ({
   onOpenChange,
 }) => {
   const trpc = useTrpcClient();
-  const catalog = useCatalog();
   const canAssign = usePermission("roles.assign");
   const canOverride = usePermission("permissions.overrides.manage");
   const [assignments, setAssignments] = useState<Assignment[]>([]);
   const [overrides, setOverrides] = useState<Override[]>([]);
   const [orgRoles, setOrgRoles] = useState<RoleOption[]>([]);
   const [roleId, setRoleId] = useState("");
-  const [permission, setPermission] = useState("");
-  const [effect, setEffect] = useState<"allow" | "deny">("deny");
-  const [reason, setReason] = useState("");
 
   const load = useCallback(async () => {
     const [assignmentResult, overrideResult, roleResult] = await Promise.all([
@@ -200,116 +189,31 @@ export const MemberAccessDialog: FC<Props> = ({
           ) : null}
         </section>
 
-        <section className="space-y-3">
-          <h3 className="text-sm font-semibold">Permission overrides</h3>
-          <ul className="divide-y rounded-md border">
-            {overrides.length ? (
-              overrides.map((override) => (
-                <li
-                  key={override.id}
-                  className="flex items-center justify-between gap-3 px-3 py-2 text-sm"
-                >
-                  <span>
-                    <Badge
-                      variant={
-                        override.effect === "deny" ? "destructive" : "default"
-                      }
-                    >
-                      {override.effect}
-                    </Badge>{" "}
-                    {override.permission}
-                    {override.reason ? (
-                      <span className="text-muted-foreground">
-                        {" "}
-                        · {override.reason}
-                      </span>
-                    ) : null}
-                  </span>
-                  {canOverride ? (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() =>
-                        run(
-                          trpc.permissions.overrides.remove.mutate({
-                            id: override.id,
-                          }),
-                          "Override removed",
-                        )
-                      }
-                    >
-                      Remove
-                    </Button>
-                  ) : null}
-                </li>
-              ))
-            ) : (
-              <li className="px-3 py-4 text-center text-sm text-muted-foreground">
-                No overrides.
-              </li>
-            )}
-          </ul>
-          {canOverride ? (
-            <div className="grid gap-2 md:grid-cols-[1fr_8rem]">
-              <Select value={permission} onValueChange={setPermission}>
-                <SelectTrigger aria-label="Permission to override">
-                  <SelectValue placeholder="Permission" />
-                </SelectTrigger>
-                <SelectContent>
-                  {(catalog ?? [])
-                    .filter((entry) => entry.enabled && !entry.ownerOnly)
-                    .map((entry) => (
-                      <SelectItem key={entry.key} value={entry.key}>
-                        {entry.label}
-                      </SelectItem>
-                    ))}
-                </SelectContent>
-              </Select>
-              <Select
-                value={effect}
-                onValueChange={(value) => setEffect(value as "allow" | "deny")}
-              >
-                <SelectTrigger aria-label="Override effect">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="allow">Allow</SelectItem>
-                  <SelectItem value="deny">Deny</SelectItem>
-                </SelectContent>
-              </Select>
-              <div className="space-y-1 md:col-span-2">
-                <Label htmlFor="override-reason">Reason (optional)</Label>
-                <Input
-                  id="override-reason"
-                  value={reason}
-                  onChange={(event) => setReason(event.target.value)}
-                />
-              </div>
-              <Button
-                className="md:col-span-2"
-                disabled={!permission || !organizationId}
-                onClick={() =>
-                  run(
-                    trpc.permissions.overrides.set.mutate({
-                      userId,
-                      permission,
-                      effect,
-                      scopeType: "organization",
-                      scopeId: organizationId,
-                      reason: reason || undefined,
-                    }),
-                    "Override saved",
-                  ).then(() => {
-                    setPermission("");
-                    setReason("");
-                  })
-                }
-              >
-                Save override
-              </Button>
-            </div>
-          ) : null}
-        </section>
+        <MemberOverridesSection
+          overrides={overrides}
+          canOverride={canOverride}
+          userId={userId}
+          organizationId={organizationId}
+          onRemoveOverride={(id) =>
+            run(
+              trpc.permissions.overrides.remove.mutate({ id }),
+              "Override removed",
+            )
+          }
+          onSaveOverride={({ permission, effect, reason }) =>
+            run(
+              trpc.permissions.overrides.set.mutate({
+                userId,
+                permission,
+                effect,
+                scopeType: "organization",
+                scopeId: organizationId,
+                reason,
+              }),
+              "Override saved",
+            )
+          }
+        />
       </DialogContent>
     </Dialog>
   );

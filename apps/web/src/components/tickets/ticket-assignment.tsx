@@ -1,5 +1,14 @@
 "use client";
 
+import {
+  Collapsible,
+  CollapsibleTrigger,
+  CollapsibleContent,
+} from "@zentro/ui/shadcn/collapsible";
+import { FieldSet, FieldLegend } from "@zentro/ui/shadcn/field";
+import { Label } from "@zentro/ui/shadcn/label";
+import { Checkbox } from "@zentro/ui/shadcn/checkbox";
+import { RadioGroup, RadioGroupItem } from "@zentro/ui/shadcn/radio-group";
 import { useCallback, useEffect, useState } from "react";
 
 import { useTrpcClient } from "@zentro/api/react";
@@ -75,89 +84,98 @@ export function TicketAssignment() {
     );
 
   return (
-    <details className="rounded-xl border border-line px-4 py-3">
-      <summary className="cursor-pointer text-sm font-medium text-ink">
+    <Collapsible
+      role="group"
+      className="rounded-xl border border-line px-4 py-3"
+    >
+      <CollapsibleTrigger className="w-full text-left before:mr-2 before:inline-block before:content-['▸'] data-[state=open]:before:rotate-90 cursor-pointer text-sm font-medium text-ink">
         Automatic assignment {enabled ? "· on" : "· off"}
-      </summary>
-      <p className="mt-2 text-sm text-ink-2">
-        New tickets from email and forms go to the people below. Anyone away
-        today is skipped. Tickets your team creates by hand keep the assignee
-        you pick.
-      </p>
-      {failed ? (
-        <p role="alert" className="mt-2 text-sm text-danger">
-          The assignment settings did not load.{" "}
-          <button
-            type="button"
-            className="underline"
-            onClick={() => void load()}
-          >
-            Retry
-          </button>
+      </CollapsibleTrigger>
+      <CollapsibleContent forceMount className="data-[state=closed]:hidden">
+        <p className="mt-2 text-sm text-ink-2">
+          New tickets from email and forms go to the people below. Anyone away
+          today is skipped. Tickets your team creates by hand keep the assignee
+          you pick.
         </p>
-      ) : null}
-      <fieldset
-        className="mt-3 flex flex-wrap gap-x-4 gap-y-2"
-        disabled={!loaded}
-      >
-        <legend className="sr-only">People who take turns</legend>
-        {people.map((person) => (
-          <label key={person.id} className="flex items-center gap-2 text-sm">
-            <input
-              type="checkbox"
-              checked={chosen.includes(person.id)}
-              onChange={() => toggle(person.id)}
-            />
-            {person.name}
-            {person.awayUntil !== null ? (
-              <span className="text-xs text-ink-3">(away)</span>
-            ) : null}
-          </label>
-        ))}
-      </fieldset>
-      <fieldset
-        className="mt-3 flex flex-wrap gap-x-4 gap-y-2 text-sm"
-        disabled={!loaded}
-      >
-        <legend className="mb-1 text-ink-2">Who gets the next ticket</legend>
-        <label className="flex items-center gap-2">
-          <input
-            type="radio"
-            name="assignment-mode"
-            checked={mode === "round_robin"}
-            onChange={() => setMode("round_robin")}
-          />
-          Take turns
-        </label>
-        <label className="flex items-center gap-2">
-          <input
-            type="radio"
-            name="assignment-mode"
-            checked={mode === "least_open"}
-            onChange={() => setMode("least_open")}
-          />
-          Whoever has the fewest open tickets
-        </label>
-      </fieldset>
-      <div className="mt-3 flex flex-wrap gap-2">
-        <Button
-          size="sm"
-          disabled={busy || !loaded || !chosen.length}
-          onClick={() => void save({ enabled: true, memberIds: chosen })}
+        {failed ? (
+          <p role="alert" className="mt-2 text-sm text-danger">
+            The assignment settings did not load.{" "}
+            <Button
+              variant="custom"
+              type="button"
+              className="underline"
+              onClick={() => void load()}
+            >
+              Retry
+            </Button>
+          </p>
+        ) : null}
+        <FieldSet
+          className="flex-row mt-3 flex flex-wrap gap-x-4 gap-y-2"
+          disabled={!loaded}
         >
-          {enabled ? "Save rotation" : "Turn on"}
-        </Button>
-        {enabled ? (
+          <FieldLegend className="sr-only">People who take turns</FieldLegend>
+          {people.map((person) => (
+            <Label key={person.id} className="flex items-center gap-2 text-sm">
+              <Checkbox
+                checked={chosen.includes(person.id)}
+                onCheckedChange={() => toggle(person.id)}
+              />
+              {person.name}
+              {person.awayUntil !== null ? (
+                <span className="text-xs text-ink-3">(away)</span>
+              ) : null}
+            </Label>
+          ))}
+        </FieldSet>
+        <FieldSet
+          className="flex-row mt-3 flex flex-wrap gap-x-4 gap-y-2 text-sm"
+          disabled={!loaded}
+        >
+          <FieldLegend className="mb-1 text-ink-2" id="assignment-mode-label">
+            Who gets the next ticket
+          </FieldLegend>
+          <RadioGroup
+            aria-labelledby="assignment-mode-label"
+            name="assignment-mode"
+            disabled={!loaded}
+            value={mode}
+            onValueChange={(value) => {
+              if (value === "round_robin" || value === "least_open")
+                setMode(value);
+            }}
+            className="flex flex-wrap gap-4"
+          >
+            <Label className="flex items-center gap-2">
+              <RadioGroupItem value="round_robin" />
+              Take turns
+            </Label>
+            <Label className="flex items-center gap-2">
+              <RadioGroupItem value="least_open" />
+              Whoever has the fewest open tickets
+            </Label>
+          </RadioGroup>
+        </FieldSet>
+        <div className="mt-3 flex flex-wrap gap-2">
           <Button
             size="sm"
-            variant="outline"
-            disabled={busy}
-            onClick={() => void save({ enabled: false, memberIds: chosen })}
+            disabled={busy || !loaded || !chosen.length}
+            onClick={() => void save({ enabled: true, memberIds: chosen })}
           >
-            Turn off
+            {enabled ? "Save rotation" : "Turn on"}
           </Button>
-        ) : null}
-      </div>
-    </details>
+          {enabled ? (
+            <Button
+              size="sm"
+              variant="outline"
+              disabled={busy}
+              onClick={() => void save({ enabled: false, memberIds: chosen })}
+            >
+              Turn off
+            </Button>
+          ) : null}
+        </div>
+      </CollapsibleContent>
+    </Collapsible>
   );
 }

@@ -1,5 +1,7 @@
 "use client";
 
+import { Label } from "@zentro/ui/shadcn/label";
+import { Input } from "@zentro/ui/shadcn/input";
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -65,15 +67,16 @@ export function ImportPeople() {
       />
 
       <div className="flex max-w-xl flex-col gap-4">
-        <label className="flex flex-col gap-1.5 text-sm">
+        <Label className="flex flex-col items-stretch gap-1.5 text-sm">
           <span className="text-ink-2">CSV file</span>
-          <input
+          <Input
+            appearance="native"
             type="file"
             accept=".csv,text/csv"
             className="text-sm"
             onChange={(e) => void readFile(e.target.files?.[0])}
           />
-        </label>
+        </Label>
 
         {parsed?.error ? (
           <p role="alert" className="text-sm text-danger-text">

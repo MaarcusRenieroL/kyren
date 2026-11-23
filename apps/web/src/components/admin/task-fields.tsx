@@ -1,5 +1,6 @@
 "use client";
 
+import { Label } from "@zentro/ui/shadcn/label";
 import { useCallback, useEffect, useState, type FormEvent } from "react";
 
 import { useTrpcClient } from "@zentro/api/react";
@@ -93,15 +94,15 @@ export function TaskFields() {
         </div>
 
         <form onSubmit={create} className="flex flex-wrap items-end gap-2">
-          <label className="flex min-w-40 flex-1 flex-col gap-1.5 text-sm">
+          <Label className="flex min-w-40 flex-1 flex-col items-stretch gap-1.5 text-sm">
             <span className="text-ink-2">Name</span>
             <Input
               value={name}
               maxLength={60}
               onChange={(event) => setName(event.target.value)}
             />
-          </label>
-          <label className="flex flex-col gap-1.5 text-sm">
+          </Label>
+          <Label className="flex flex-col items-stretch gap-1.5 text-sm">
             <span className="text-ink-2">Type</span>
             <NativeSelect
               value={type}
@@ -116,15 +117,15 @@ export function TaskFields() {
                 </option>
               ))}
             </NativeSelect>
-          </label>
+          </Label>
           {type === "select" ? (
-            <label className="flex min-w-40 flex-1 flex-col gap-1.5 text-sm">
+            <Label className="flex min-w-40 flex-1 flex-col items-stretch gap-1.5 text-sm">
               <span className="text-ink-2">Choices, separated by commas</span>
               <Input
                 value={choices}
                 onChange={(event) => setChoices(event.target.value)}
               />
-            </label>
+            </Label>
           ) : null}
           <Button type="submit" disabled={busy || !name.trim()}>
             Add field

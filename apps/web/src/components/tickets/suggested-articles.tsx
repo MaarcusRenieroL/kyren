@@ -1,5 +1,6 @@
 "use client";
 
+import { Button } from "@zentro/ui/shadcn/button";
 import { useEffect, useState } from "react";
 
 import { useTrpcClient } from "@zentro/api/react";
@@ -48,16 +49,18 @@ export function SuggestedArticles({
         <span>Suggested articles:</span>
         {found.map((article) =>
           article.audience === "public" ? (
-            <button
+            <Button
+              variant="custom"
               key={article.id}
               type="button"
               className="rounded-md border border-line px-2 py-1 text-ink hover:bg-sunken"
               onClick={() => onInsert(article.body)}
             >
               {article.title}
-            </button>
+            </Button>
           ) : (
-            <button
+            <Button
+              variant="custom"
               key={article.id}
               type="button"
               aria-expanded={reading?.id === article.id}
@@ -67,7 +70,7 @@ export function SuggestedArticles({
               }
             >
               {article.title} · internal
-            </button>
+            </Button>
           ),
         )}
       </div>

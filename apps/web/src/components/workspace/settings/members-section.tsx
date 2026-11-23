@@ -1,47 +1,14 @@
 "use client";
 
-import { useTrpcClient } from "@zentro/api/react";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@zentro/ui/components/shadcn/alert-dialog";
-import { Button } from "@zentro/ui/components/shadcn/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@zentro/ui/components/shadcn/dropdown-menu";
-import { Input } from "@zentro/ui/components/shadcn/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@zentro/ui/components/shadcn/select";
-import { toastError, toastSuccess } from "@zentro/ui/index";
-import { cn } from "@zentro/ui/lib/utils";
-import {
-  AlertCircleIcon,
-  ChevronLeftIcon,
-  ChevronRightIcon,
-  MoreHorizontalIcon,
-  SearchIcon,
-  ShieldIcon,
-  Trash2Icon,
-} from "lucide-react";
+import { FC, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { FC, useState } from "react";
+import { AlertCircleIcon, ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
 
-import { ActorAvatar } from "~/src/components/actor-avatar";
+import { useTrpcClient } from "@zentro/api/react";
+import { Button } from "@zentro/ui/components/shadcn/button";
+import { toastError, toastSuccess } from "@zentro/ui/index";
+
 import { MemberAccessDialog } from "~/src/components/workspace/roles/member-access-dialog";
 import {
   useAnyPermission,
@@ -51,151 +18,16 @@ import { paths } from "~/src/lib/paths";
 import { trpcResult } from "~/src/lib/trpc-result";
 import { Member } from "~/src/lib/types";
 
+import { PAGE_SIZE, type Role } from "./members/members-helpers";
+import { MembersFilterBar } from "./members/members-filter-bar";
+import { MembersTable } from "./members/members-table";
+import { RemoveMemberDialog } from "./members/remove-member-dialog";
 import { SettingsHeader } from "./settings-kit";
 
-type Role = "owner" | "admin" | "member";
-
-const PAGE_SIZE = 10;
-
-const teamDots = [
-  "bg-tint-tasks",
-  "bg-tint-projects",
-  "bg-tint-docs",
-  "bg-tint-teams",
-  "bg-tint-audit",
-] as const;
-
-function dotFor(name: string) {
-  let hash = 0;
-
-  for (const char of name) hash = (hash * 31 + char.charCodeAt(0)) >>> 0;
-
-  return teamDots[hash % teamDots.length];
-}
-
-function formatRole(role: Role) {
-  return role.charAt(0).toUpperCase() + role.slice(1);
-}
-
-/** "Active now", "12m ago", "2h ago", "Yesterday" or a short date. */
-export function shortAgo(iso: string | null) {
-  if (!iso) return "Never";
-
-  const at = new Date(iso);
-  const minutes = Math.round((Date.now() - at.getTime()) / 60_000);
-
-  if (minutes < 5) return "Active now";
-  if (minutes < 60) return `${minutes}m ago`;
-  if (minutes < 24 * 60) return `${Math.round(minutes / 60)}h ago`;
-  if (minutes < 48 * 60) return "Yesterday";
-  if (minutes < 7 * 24 * 60) return `${Math.round(minutes / 1440)}d ago`;
-
-  return at.toLocaleDateString("en", { month: "short", day: "numeric" });
-}
-
-function monthYear(date: Date) {
-  return new Date(date).toLocaleDateString("en", {
-    month: "short",
-    year: "numeric",
-  });
-}
-
-/** A small bordered select used as a table filter. */
-function FilterSelect({
-  label,
-  value,
-  onChange,
-  options,
-}: {
-  label: string;
-  value: string;
-  onChange: (value: string) => void;
-  options: Array<{ value: string; label: string }>;
-}) {
-  return (
-    <Select
-      value={value}
-      onValueChange={(next) => {
-        // Radix clears to "" while options mount.
-        if (next !== "") onChange(next);
-      }}
-    >
-      <SelectTrigger
-        size="sm"
-        aria-label={label}
-        className="h-8 w-auto gap-1.5 rounded-md bg-surface px-2.5 text-[13px] data-[size=sm]:h-8"
-      >
-        {value === "all" ? label : <SelectValue />}
-      </SelectTrigger>
-      <SelectContent align="start">
-        <SelectItem value="all">All</SelectItem>
-        {options.map((option) => (
-          <SelectItem key={option.value} value={option.value}>
-            {option.label}
-          </SelectItem>
-        ))}
-      </SelectContent>
-    </Select>
-  );
-}
-
-type RoleControlProps = {
-  disabled: boolean;
-  isCurrentUser: boolean;
-  member: Member;
-  onRoleChange: (memberId: string, role: Role) => void;
-};
-
-const pill =
-  "inline-flex h-7 items-center gap-1 rounded-sm border border-hairline px-2.5 text-[13px]";
-
-const RoleControl: FC<RoleControlProps> = ({
-  disabled,
-  isCurrentUser,
-  member,
-  onRoleChange,
-}) => {
-  // Ownership moves through a transfer, not through this menu.
-  if (isCurrentUser || member.role === "owner" || disabled) {
-    return (
-      <span
-        className={cn(
-          pill,
-          member.role === "owner" ? "bg-hover" : "bg-surface",
-        )}
-      >
-        {formatRole(member.role)}
-      </span>
-    );
-  }
-
-  return (
-    <Select
-      value={member.role}
-      onValueChange={(value) => {
-        if (value === "") return;
-        onRoleChange(member.id, value as Role);
-      }}
-    >
-      <SelectTrigger
-        size="sm"
-        aria-label={`Role for ${member.user.name}`}
-        className={cn(pill, "w-auto bg-surface shadow-none data-[size=sm]:h-7")}
-      >
-        <SelectValue />
-      </SelectTrigger>
-
-      <SelectContent>
-        <SelectItem value="admin">Admin</SelectItem>
-        <SelectItem value="member">Member</SelectItem>
-      </SelectContent>
-    </Select>
-  );
-};
+export { shortAgo } from "./members/members-helpers";
 
 type Props = {
   members: Member[];
-  /** Team names and last activity per user id. */
   extras?: Record<string, { teams: string[]; lastActive: string | null }>;
   userId: string;
   permissions: {
@@ -274,7 +106,6 @@ export const MembersSection: FC<Props> = ({
     );
 
     if (error) {
-      // Put the role back: the change did not happen.
       if (previous) {
         setMembers((currentMembers) =>
           currentMembers.map((member) =>
@@ -343,240 +174,41 @@ export const MembersSection: FC<Props> = ({
         </div>
       ) : null}
 
-      <div className="flex flex-wrap items-center gap-2">
-        <label className="relative w-full sm:w-60">
-          <span className="sr-only">Search name or email</span>
-          <SearchIcon
-            aria-hidden="true"
-            className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-ink-3"
-          />
-          <Input
-            value={query}
-            onChange={(event) => {
-              setQuery(event.target.value);
-              setPage(0);
-            }}
-            placeholder="Search name or email"
-            className="h-8 rounded-md bg-surface pl-9 text-[13px]"
-          />
-        </label>
-        <FilterSelect
-          label="Role"
-          value={roleFilter}
-          onChange={(value) => {
-            setRoleFilter(value);
-            setPage(0);
-          }}
-          options={[
-            { value: "owner", label: "Owner" },
-            { value: "admin", label: "Admin" },
-            { value: "member", label: "Member" },
-          ]}
-        />
-        <FilterSelect
-          label="Team"
-          value={teamFilter}
-          onChange={(value) => {
-            setTeamFilter(value);
-            setPage(0);
-          }}
-          options={[
-            ...teamNames.map((name) => ({ value: name, label: name })),
-            { value: "none", label: "No team" },
-          ]}
-        />
-        <span className="font-mono text-xs text-ink-3">
-          {filtered.length} {filtered.length === 1 ? "member" : "members"}
-        </span>
-      </div>
+      <MembersFilterBar
+        query={query}
+        setQuery={(q) => {
+          setQuery(q);
+          setPage(0);
+        }}
+        roleFilter={roleFilter}
+        setRoleFilter={(r) => {
+          setRoleFilter(r);
+          setPage(0);
+        }}
+        teamFilter={teamFilter}
+        setTeamFilter={(t) => {
+          setTeamFilter(t);
+          setPage(0);
+        }}
+        teamNames={teamNames}
+        filteredCount={filtered.length}
+      />
 
-      {members.length === 1 && canInvite ? (
-        <div className="flex flex-col items-center gap-2 rounded-xl border border-dashed border-line-strong px-6 py-14 text-center">
-          <p className="font-display font-semibold text-xl tracking-tight text-ink">
-            Just you so far.
-          </p>
-          <p className="max-w-[420px] text-[15px] leading-[22px] text-ink-2">
-            Invite teammates by email. They&apos;ll join with the role you pick,
-            and you can change it any time.
-          </p>
-        </div>
-      ) : null}
-
-      <div
-        role="table"
-        aria-label="Members"
-        className={cn(
-          "flex flex-col",
-          members.length === 1 && canInvite && "hidden",
-        )}
-      >
-        <div
-          role="row"
-          className="flex h-9 items-center gap-3 border-b border-hairline px-3 font-mono text-[11px] tracking-[0.08em] text-ink-3 uppercase"
-        >
-          <span role="columnheader" className="min-w-0 flex-1">
-            Member
-          </span>
-          <span role="columnheader" className="w-28 sm:w-32">
-            Role
-          </span>
-          <span role="columnheader" className="hidden w-32 lg:block">
-            Team
-          </span>
-          <span role="columnheader" className="hidden w-28 md:block">
-            Last active
-          </span>
-          <span role="columnheader" className="hidden w-20 xl:block">
-            Joined
-          </span>
-          <span role="columnheader" className="w-8">
-            <span className="sr-only">Actions</span>
-          </span>
-        </div>
-
-        {visible.map((member) => {
-          const isCurrentUser = member.userId === userId;
-          const teams = extras[member.userId]?.teams ?? [];
-          const lastActive = shortAgo(
-            extras[member.userId]?.lastActive ?? null,
-          );
-          // The owner, and for anyone but the owner other admins, are out
-          // of reach here: only an owner changes or removes an admin.
-          const outranks =
-            member.role === "owner" ||
-            (member.role === "admin" && !canTransfer);
-          const canAct =
-            !isCurrentUser &&
-            !outranks &&
-            (permissions.canRemoveMembers || canManageAccess);
-
-          return (
-            <div
-              role="row"
-              key={member.id}
-              className="flex min-h-[57px] items-center gap-3 border-b border-hairline/60 px-3 py-2"
-            >
-              <span
-                role="cell"
-                className="flex min-w-0 flex-1 items-center gap-3"
-              >
-                <ActorAvatar name={member.user.name} size={32} />
-                <span className="flex min-w-0 flex-col">
-                  <span className="flex min-w-0 items-center gap-2">
-                    <span className="truncate text-[15px] font-medium">
-                      {member.user.name}
-                    </span>
-                    {isCurrentUser ? (
-                      <span className="rounded-xs border border-hairline px-1.5 font-mono text-[10px] text-ink-2 uppercase">
-                        You
-                      </span>
-                    ) : null}
-                  </span>
-                  <span className="truncate font-mono text-xs text-ink-3">
-                    {member.user.email}
-                  </span>
-                </span>
-              </span>
-              <span role="cell" className="w-28 sm:w-32">
-                <RoleControl
-                  disabled={!permissions.canUpdateMemberRoles || outranks}
-                  isCurrentUser={isCurrentUser}
-                  member={member}
-                  onRoleChange={handleRoleChange}
-                />
-              </span>
-              <span
-                role="cell"
-                className="hidden w-32 items-center gap-2 text-sm text-ink-2 lg:flex"
-              >
-                {teams.length ? (
-                  <>
-                    <span
-                      aria-hidden="true"
-                      className={cn(
-                        "size-2 shrink-0 rounded-full border border-hairline",
-                        dotFor(teams[0]!),
-                      )}
-                    />
-                    <span className="truncate" title={teams.join(", ")}>
-                      {teams[0]}
-                      {teams.length > 1 ? ` +${teams.length - 1}` : ""}
-                    </span>
-                  </>
-                ) : (
-                  <>
-                    <span
-                      aria-hidden="true"
-                      className="size-2 shrink-0 rounded-full border border-dashed border-ink-3"
-                    />
-                    No team
-                  </>
-                )}
-              </span>
-              <span
-                role="cell"
-                suppressHydrationWarning
-                className="hidden w-28 items-center gap-1.5 font-mono text-xs text-ink-2 md:flex"
-              >
-                {lastActive === "Active now" ? (
-                  <span
-                    aria-hidden="true"
-                    className="size-1.5 rounded-full bg-success"
-                  />
-                ) : null}
-                {lastActive}
-              </span>
-              <span
-                role="cell"
-                suppressHydrationWarning
-                className="hidden w-20 font-mono text-xs text-ink-3 xl:block"
-              >
-                {monthYear(member.createdAt)}
-              </span>
-              <span role="cell" className="flex w-8 justify-end">
-                {canAct ? (
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="icon-sm">
-                        <MoreHorizontalIcon className="size-4" />
-                        <span className="sr-only">Open member actions</span>
-                      </Button>
-                    </DropdownMenuTrigger>
-
-                    <DropdownMenuContent align="end" className="w-44">
-                      {canManageAccess ? (
-                        <DropdownMenuItem
-                          className="gap-2"
-                          onClick={() => setAccessMember(member)}
-                        >
-                          <ShieldIcon className="size-4" />
-                          Manage access
-                        </DropdownMenuItem>
-                      ) : null}
-                      {permissions.canRemoveMembers ? (
-                        <DropdownMenuItem
-                          variant="destructive"
-                          className="gap-2"
-                          onClick={() => setMemberToRemove(member)}
-                        >
-                          <Trash2Icon className="size-4" />
-                          Remove member
-                        </DropdownMenuItem>
-                      ) : null}
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                ) : null}
-              </span>
-            </div>
-          );
-        })}
-
-        {visible.length === 0 && filtersOn ? (
-          <p className="px-3 py-10 text-center text-sm text-ink-2">
-            Nobody matches those filters.
-          </p>
-        ) : null}
-      </div>
+      <MembersTable
+        membersCount={members.length}
+        canInvite={canInvite}
+        visible={visible}
+        filtersOn={filtersOn}
+        userId={userId}
+        extras={extras}
+        canTransfer={canTransfer}
+        canManageAccess={canManageAccess}
+        canRemoveMembers={permissions.canRemoveMembers}
+        canUpdateMemberRoles={permissions.canUpdateMemberRoles}
+        onRoleChange={handleRoleChange}
+        onManageAccess={setAccessMember}
+        onRemove={setMemberToRemove}
+      />
 
       {filtered.length > PAGE_SIZE ? (
         <div className="flex items-center gap-2">
@@ -618,36 +250,11 @@ export const MembersSection: FC<Props> = ({
         />
       ) : null}
 
-      <AlertDialog
-        open={Boolean(memberToRemove)}
-        onOpenChange={(open) => {
-          if (!open) {
-            setMemberToRemove(null);
-          }
-        }}
-      >
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Remove member?</AlertDialogTitle>
-
-            <AlertDialogDescription>
-              {memberToRemove?.user.name} will lose access to this organization
-              and its workspace apps.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-
-            <AlertDialogAction
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-              onClick={handleRemoveMember}
-            >
-              Remove member
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <RemoveMemberDialog
+        member={memberToRemove}
+        onClose={() => setMemberToRemove(null)}
+        onConfirm={handleRemoveMember}
+      />
     </div>
   );
 };

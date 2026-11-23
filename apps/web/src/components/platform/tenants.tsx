@@ -1,5 +1,13 @@
 "use client";
 
+import {
+  Table,
+  TableHeader,
+  TableRow,
+  TableHead,
+  TableBody,
+  TableCell,
+} from "@zentro/ui/shadcn/table";
 import { useState } from "react";
 import Link from "next/link";
 
@@ -76,19 +84,19 @@ export function Tenants() {
 
       {data ? (
         <>
-          <table className={tableClass}>
-            <thead>
-              <tr>
-                <th className={headCell}>Organization</th>
-                <th className={headCell}>Members</th>
-                <th className={headCell}>Created</th>
-                <th className={headCell}>Status</th>
-              </tr>
-            </thead>
-            <tbody>
+          <Table className={tableClass}>
+            <TableHeader>
+              <TableRow>
+                <TableHead className={headCell}>Organization</TableHead>
+                <TableHead className={headCell}>Members</TableHead>
+                <TableHead className={headCell}>Created</TableHead>
+                <TableHead className={headCell}>Status</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
               {data.rows.map((row) => (
-                <tr key={row.id}>
-                  <td className={cell}>
+                <TableRow key={row.id}>
+                  <TableCell className={cell}>
                     <Link
                       href={`/platform/tenants/${row.id}`}
                       className="font-medium text-ink underline-offset-2 hover:underline"
@@ -98,27 +106,29 @@ export function Tenants() {
                     <div className="font-mono text-xs text-ink-2">
                       {row.slug}
                     </div>
-                  </td>
-                  <td className={cell}>{row.members}</td>
-                  <td className={cell}>{formatDate(row.createdAt)}</td>
-                  <td className={cell}>
+                  </TableCell>
+                  <TableCell className={cell}>{row.members}</TableCell>
+                  <TableCell className={cell}>
+                    {formatDate(row.createdAt)}
+                  </TableCell>
+                  <TableCell className={cell}>
                     {row.deletionScheduledFor
                       ? `Deleting ${formatDate(row.deletionScheduledFor)}`
                       : row.suspendedAt
                         ? "Suspended"
                         : "Active"}
-                  </td>
-                </tr>
+                  </TableCell>
+                </TableRow>
               ))}
               {!data.rows.length ? (
-                <tr>
-                  <td className={cell} colSpan={4}>
+                <TableRow>
+                  <TableCell className={cell} colSpan={4}>
                     No organizations match.
-                  </td>
-                </tr>
+                  </TableCell>
+                </TableRow>
               ) : null}
-            </tbody>
-          </table>
+            </TableBody>
+          </Table>
           <div className="flex items-center gap-3 text-sm text-ink-2">
             <span>
               {data.total} {data.total === 1 ? "organization" : "organizations"}

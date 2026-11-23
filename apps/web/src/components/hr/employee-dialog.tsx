@@ -42,7 +42,7 @@ type Props = {
 export function EmployeeDialog({ target, people, onClose, onSaved }: Props) {
   return (
     <Dialog open={target !== null} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent>
+      <DialogContent className="max-h-[90dvh] overflow-y-auto sm:max-w-2xl">
         {target ? (
           <Form
             key={target === "new" ? "new" : target.id}
@@ -174,7 +174,7 @@ function Form({
         </DialogDescription>
       </DialogHeader>
 
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         {field("emp-name", "Name", name, setName)}
         {field("emp-email", "Email", email, setEmail, "email")}
         {field("emp-title", "Job title", jobTitle, setJobTitle)}

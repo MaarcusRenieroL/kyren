@@ -76,10 +76,12 @@ test("the directory starts empty and a manager adds, edits and removes people @h
   await page.getByLabel("Search people").fill("nobody-here");
   await expect(page.getByText("Nothing matches")).toBeVisible();
   await page.getByLabel("Search people").fill("");
-  await page.getByLabel("Department").selectOption("Design");
+  await page.getByRole("combobox", { name: "Department" }).click();
+  await page.getByRole("option", { name: "Design", exact: true }).click();
   await expect(page.getByText(ben)).toBeVisible();
   await expect(page.getByText(ana)).toHaveCount(0);
-  await page.getByLabel("Department").selectOption("");
+  await page.getByRole("combobox", { name: "Department" }).click();
+  await page.getByRole("option", { name: "All departments" }).click();
 
   // Edit Ben: a manager and a status chip.
   await page.getByRole("button", { name: `Edit ${ben}` }).click();

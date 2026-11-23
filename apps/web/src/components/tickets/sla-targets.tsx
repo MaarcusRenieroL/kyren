@@ -1,5 +1,11 @@
 "use client";
 
+import {
+  Collapsible,
+  CollapsibleTrigger,
+  CollapsibleContent,
+} from "@zentro/ui/shadcn/collapsible";
+import { Label } from "@zentro/ui/shadcn/label";
 import { useCallback, useEffect, useState } from "react";
 
 import { useTrpcClient } from "@zentro/api/react";
@@ -84,60 +90,65 @@ export function SlaTargets() {
     }));
 
   return (
-    <details className="rounded-xl border border-line px-4 py-3">
-      <summary className="cursor-pointer text-sm font-medium text-ink">
+    <Collapsible
+      role="group"
+      className="rounded-xl border border-line px-4 py-3"
+    >
+      <CollapsibleTrigger className="w-full text-left before:mr-2 before:inline-block before:content-['▸'] data-[state=open]:before:rotate-90 cursor-pointer text-sm font-medium text-ink">
         Response targets
-      </summary>
-      <p className="mt-2 text-sm text-ink-2">
-        Hours from when a ticket arrives. Leave a box empty for no target.
-      </p>
-      <ul className="mt-3 flex flex-col gap-2">
-        {priorities.map((priority) => (
-          <li key={priority} className="flex flex-wrap items-end gap-2">
-            <span className="w-20 pb-2 text-sm text-ink">
-              {priorityLabels[priority]}
-            </span>
-            <label className="flex flex-col gap-1 text-xs text-ink-3">
-              First answer
-              <Input
-                type="number"
-                min="0"
-                step="any"
-                className="h-9 w-28"
-                aria-label={`${priorityLabels[priority]} first answer, hours`}
-                value={rows[priority]?.response ?? ""}
-                onChange={(event) =>
-                  set(priority, "response", event.target.value)
-                }
-              />
-            </label>
-            <label className="flex flex-col gap-1 text-xs text-ink-3">
-              Resolved
-              <Input
-                type="number"
-                min="0"
-                step="any"
-                className="h-9 w-28"
-                aria-label={`${priorityLabels[priority]} resolved, hours`}
-                value={rows[priority]?.resolution ?? ""}
-                onChange={(event) =>
-                  set(priority, "resolution", event.target.value)
-                }
-              />
-            </label>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              disabled={busy === priority}
-              aria-label={`Save ${priorityLabels[priority]} targets`}
-              onClick={() => void save(priority)}
-            >
-              Save
-            </Button>
-          </li>
-        ))}
-      </ul>
-    </details>
+      </CollapsibleTrigger>
+      <CollapsibleContent forceMount className="data-[state=closed]:hidden">
+        <p className="mt-2 text-sm text-ink-2">
+          Hours from when a ticket arrives. Leave a box empty for no target.
+        </p>
+        <ul className="mt-3 flex flex-col gap-2">
+          {priorities.map((priority) => (
+            <li key={priority} className="flex flex-wrap items-end gap-2">
+              <span className="w-20 pb-2 text-sm text-ink">
+                {priorityLabels[priority]}
+              </span>
+              <Label className="flex flex-col items-stretch gap-1 text-xs text-ink-3">
+                First answer
+                <Input
+                  type="number"
+                  min="0"
+                  step="any"
+                  className="h-9 w-28"
+                  aria-label={`${priorityLabels[priority]} first answer, hours`}
+                  value={rows[priority]?.response ?? ""}
+                  onChange={(event) =>
+                    set(priority, "response", event.target.value)
+                  }
+                />
+              </Label>
+              <Label className="flex flex-col items-stretch gap-1 text-xs text-ink-3">
+                Resolved
+                <Input
+                  type="number"
+                  min="0"
+                  step="any"
+                  className="h-9 w-28"
+                  aria-label={`${priorityLabels[priority]} resolved, hours`}
+                  value={rows[priority]?.resolution ?? ""}
+                  onChange={(event) =>
+                    set(priority, "resolution", event.target.value)
+                  }
+                />
+              </Label>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                disabled={busy === priority}
+                aria-label={`Save ${priorityLabels[priority]} targets`}
+                onClick={() => void save(priority)}
+              >
+                Save
+              </Button>
+            </li>
+          ))}
+        </ul>
+      </CollapsibleContent>
+    </Collapsible>
   );
 }

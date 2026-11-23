@@ -1,5 +1,10 @@
 "use client";
 
+import {
+  Collapsible,
+  CollapsibleTrigger,
+  CollapsibleContent,
+} from "@zentro/ui/shadcn/collapsible";
 import { useEffect, useState } from "react";
 
 import { authClient } from "@zentro/auth/client";
@@ -94,99 +99,105 @@ export function SavedRepliesPanel() {
   }
 
   return (
-    <details className="rounded-xl border border-line px-4 py-3">
-      <summary className="cursor-pointer text-sm font-medium text-ink">
+    <Collapsible
+      role="group"
+      className="rounded-xl border border-line px-4 py-3"
+    >
+      <CollapsibleTrigger className="w-full text-left before:mr-2 before:inline-block before:content-['▸'] data-[state=open]:before:rotate-90 cursor-pointer text-sm font-medium text-ink">
         Saved replies
-      </summary>
-      <p className="mt-2 text-sm text-ink-2">
-        Answers your team sends often. In the text, {"{customer}"}, {"{agent}"}{" "}
-        and {"{ticket}"} are filled in when a reply is inserted.
-      </p>
+      </CollapsibleTrigger>
+      <CollapsibleContent forceMount className="data-[state=closed]:hidden">
+        <p className="mt-2 text-sm text-ink-2">
+          Answers your team sends often. In the text, {"{customer}"},{" "}
+          {"{agent}"} and {"{ticket}"} are filled in when a reply is inserted.
+        </p>
 
-      <ul
-        aria-label="Saved replies"
-        className="mt-3 flex flex-col gap-1 text-sm"
-      >
-        {(replies.data ?? []).map((reply) => (
-          <li key={reply.id} className="flex items-center gap-2">
-            <button
-              type="button"
-              disabled={busy}
-              className="min-w-0 flex-1 truncate text-left text-ink hover:underline disabled:opacity-60"
-              onClick={() => setDraft(reply)}
-            >
-              {reply.title}
-            </button>
+        <ul
+          aria-label="Saved replies"
+          className="mt-3 flex flex-col gap-1 text-sm"
+        >
+          {(replies.data ?? []).map((reply) => (
+            <li key={reply.id} className="flex items-center gap-2">
+              <Button
+                variant="custom"
+                type="button"
+                disabled={busy}
+                className="min-w-0 flex-1 truncate text-left text-ink hover:underline disabled:opacity-60"
+                onClick={() => setDraft(reply)}
+              >
+                {reply.title}
+              </Button>
+              <Button
+                size="sm"
+                variant="ghost"
+                disabled={busy}
+                aria-label={`Delete saved reply ${reply.title}`}
+                onClick={() => {
+                  if (
+                    !window.confirm(`Delete the saved reply "${reply.title}"?`)
+                  ) {
+                    return;
+                  }
+
+                  void run(async () => {
+                    await trpc.cannedReply.remove.mutate({ id: reply.id });
+
+                    if (draft.id === reply.id) setDraft(blank);
+                  }, "Saved reply deleted");
+                }}
+              >
+                Delete
+              </Button>
+            </li>
+          ))}
+        </ul>
+
+        <form
+          className="mt-3 flex flex-col gap-2"
+          onSubmit={(event) => {
+            event.preventDefault();
+            void run(async () => {
+              await trpc.cannedReply.save.mutate(draft);
+              setDraft(blank);
+            }, "Saved reply saved");
+          }}
+        >
+          <Input
+            aria-label="Saved reply title"
+            placeholder="Title, e.g. Refund on its way"
+            maxLength={120}
+            value={draft.title}
+            onChange={(e) => setDraft({ ...draft, title: e.target.value })}
+          />
+          <Textarea
+            aria-label="Saved reply text"
+            rows={4}
+            maxLength={10000}
+            placeholder="Hi {customer}, …"
+            value={draft.body}
+            onChange={(e) => setDraft({ ...draft, body: e.target.value })}
+          />
+          <div className="flex gap-2">
             <Button
+              type="submit"
               size="sm"
-              variant="ghost"
-              disabled={busy}
-              aria-label={`Delete saved reply ${reply.title}`}
-              onClick={() => {
-                if (
-                  !window.confirm(`Delete the saved reply "${reply.title}"?`)
-                ) {
-                  return;
-                }
-
-                void run(async () => {
-                  await trpc.cannedReply.remove.mutate({ id: reply.id });
-
-                  if (draft.id === reply.id) setDraft(blank);
-                }, "Saved reply deleted");
-              }}
+              disabled={busy || !draft.title.trim() || !draft.body.trim()}
             >
-              Delete
+              {draft.id ? "Save changes" : "Add saved reply"}
             </Button>
-          </li>
-        ))}
-      </ul>
-
-      <form
-        className="mt-3 flex flex-col gap-2"
-        onSubmit={(event) => {
-          event.preventDefault();
-          void run(async () => {
-            await trpc.cannedReply.save.mutate(draft);
-            setDraft(blank);
-          }, "Saved reply saved");
-        }}
-      >
-        <Input
-          aria-label="Saved reply title"
-          placeholder="Title, e.g. Refund on its way"
-          maxLength={120}
-          value={draft.title}
-          onChange={(e) => setDraft({ ...draft, title: e.target.value })}
-        />
-        <Textarea
-          aria-label="Saved reply text"
-          rows={4}
-          maxLength={10000}
-          placeholder="Hi {customer}, …"
-          value={draft.body}
-          onChange={(e) => setDraft({ ...draft, body: e.target.value })}
-        />
-        <div className="flex gap-2">
-          <Button
-            type="submit"
-            size="sm"
-            disabled={busy || !draft.title.trim() || !draft.body.trim()}
-          >
-            {draft.id ? "Save changes" : "Add saved reply"}
-          </Button>
-          {draft.id ? (
-            <Button
-              type="button"
-              size="sm"
-              variant="outline"
-              onClick={() => setDraft(blank)}
-            >
-              New reply
-            </Button>
-          ) : null}
-        </div>
-      </form>
-    </details>
+            {draft.id ? (
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                onClick={() => setDraft(blank)}
+              >
+                New reply
+              </Button>
+            ) : null}
+          </div>
+        </form>
+      </CollapsibleContent>
+    </Collapsible>
   );
 }

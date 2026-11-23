@@ -1,5 +1,6 @@
 "use client";
 
+import { Label } from "@zentro/ui/shadcn/label";
 import { useCallback, useEffect, useState, type FormEvent } from "react";
 
 import { useTrpcClient } from "@zentro/api/react";
@@ -92,14 +93,14 @@ export function ApiKeys() {
         </div>
 
         <form onSubmit={create} className="flex items-end gap-2">
-          <label className="flex flex-1 flex-col gap-1.5 text-sm">
+          <Label className="flex flex-1 flex-col items-stretch gap-1.5 text-sm">
             <span className="text-ink-2">Key name</span>
             <Input
               value={name}
               maxLength={80}
               onChange={(event) => setName(event.target.value)}
             />
-          </label>
+          </Label>
           <Button type="submit" disabled={busy || !name.trim()}>
             Create key
           </Button>

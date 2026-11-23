@@ -1,5 +1,10 @@
 "use client";
 
+import {
+  Collapsible,
+  CollapsibleTrigger,
+  CollapsibleContent,
+} from "@zentro/ui/shadcn/collapsible";
 import { useCallback, useEffect, useState } from "react";
 
 import { useTrpcClient } from "@zentro/api/react";
@@ -46,41 +51,47 @@ export function SupportInbox() {
       : null;
 
   return (
-    <details className="rounded-xl border border-line px-4 py-3">
-      <summary className="cursor-pointer text-sm font-medium text-ink">
+    <Collapsible
+      role="group"
+      className="rounded-xl border border-line px-4 py-3"
+    >
+      <CollapsibleTrigger className="w-full text-left before:mr-2 before:inline-block before:content-['▸'] data-[state=open]:before:rotate-90 cursor-pointer text-sm font-medium text-ink">
         Email to ticket
-      </summary>
-      <p className="mt-2 text-sm text-ink-2">
-        Point your mail provider&apos;s incoming-mail webhook (Resend, Postmark,
-        Mailgun or a forwarding rule) at the address below. Each email opens a
-        ticket; a reply that keeps [SUP-12] in its subject joins that ticket.
-        Anyone who knows the address can open tickets, so keep it private.
-      </p>
-      {state?.enabled && address ? (
-        <p className="mt-2 break-all rounded-md bg-sunken p-2 font-mono text-xs">
-          {address}
+      </CollapsibleTrigger>
+      <CollapsibleContent forceMount className="data-[state=closed]:hidden">
+        <p className="mt-2 text-sm text-ink-2">
+          Point your mail provider&apos;s incoming-mail webhook (Resend,
+          Postmark, Mailgun or a forwarding rule) at the address below. Each
+          email opens a ticket; a reply that keeps [SUP-12] in its subject joins
+          that ticket. Anyone who knows the address can open tickets, so keep it
+          private.
         </p>
-      ) : null}
-      <div className="mt-3 flex flex-wrap gap-2">
-        <Button
-          size="sm"
-          variant="outline"
-          disabled={busy || !state}
-          onClick={() => void change({ enabled: !state?.enabled })}
-        >
-          {state?.enabled ? "Turn off" : "Turn on"}
-        </Button>
-        {state?.enabled ? (
+        {state?.enabled && address ? (
+          <p className="mt-2 break-all rounded-md bg-sunken p-2 font-mono text-xs">
+            {address}
+          </p>
+        ) : null}
+        <div className="mt-3 flex flex-wrap gap-2">
           <Button
             size="sm"
             variant="outline"
-            disabled={busy}
-            onClick={() => void change({ enabled: true, rotate: true })}
+            disabled={busy || !state}
+            onClick={() => void change({ enabled: !state?.enabled })}
           >
-            Replace address
+            {state?.enabled ? "Turn off" : "Turn on"}
           </Button>
-        ) : null}
-      </div>
-    </details>
+          {state?.enabled ? (
+            <Button
+              size="sm"
+              variant="outline"
+              disabled={busy}
+              onClick={() => void change({ enabled: true, rotate: true })}
+            >
+              Replace address
+            </Button>
+          ) : null}
+        </div>
+      </CollapsibleContent>
+    </Collapsible>
   );
 }

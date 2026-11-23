@@ -48,7 +48,7 @@ test("a customer follows and answers their ticket through a private link, signed
 
   await portal.getByLabel("Reply").fill("Any update?");
   await portal.getByRole("button", { name: "Send reply" }).click();
-  await expect(portal.getByText("Any update?")).toBeVisible();
+  await expect(portal.getByRole("listitem").filter({ hasText: "Any update?" })).toBeVisible();
 
   // A wrong link reveals nothing.
   await portal.goto("/support/" + "0".repeat(64));

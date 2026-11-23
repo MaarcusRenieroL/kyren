@@ -1,5 +1,13 @@
 "use client";
 
+import {
+  Table,
+  TableHeader,
+  TableRow,
+  TableHead,
+  TableBody,
+  TableCell,
+} from "@zentro/ui/shadcn/table";
 import { useState } from "react";
 
 import { useTrpcClient } from "@zentro/api/react";
@@ -46,46 +54,52 @@ export function PlatformAudit() {
       {trail.status === "error" ? <Failed error={trail.error} /> : null}
       {trail.data ? (
         <>
-          <table className={tableClass}>
-            <thead>
-              <tr>
-                <th className={headCell}>When</th>
-                <th className={headCell}>Operator</th>
-                <th className={headCell}>Action</th>
-                <th className={headCell}>Target</th>
-                <th className={headCell}>Detail</th>
-              </tr>
-            </thead>
-            <tbody>
+          <Table className={tableClass}>
+            <TableHeader>
+              <TableRow>
+                <TableHead className={headCell}>When</TableHead>
+                <TableHead className={headCell}>Operator</TableHead>
+                <TableHead className={headCell}>Action</TableHead>
+                <TableHead className={headCell}>Target</TableHead>
+                <TableHead className={headCell}>Detail</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
               {trail.data.rows.map((row) => (
-                <tr key={row.id}>
-                  <td className={cell}>{formatDate(row.createdAt)}</td>
-                  <td className={cell}>
+                <TableRow key={row.id}>
+                  <TableCell className={cell}>
+                    {formatDate(row.createdAt)}
+                  </TableCell>
+                  <TableCell className={cell}>
                     {row.actorEmail}
                     {row.ip ? (
                       <div className="font-mono text-xs text-ink-2">
                         {row.ip}
                       </div>
                     ) : null}
-                  </td>
-                  <td className={`${cell} font-mono text-xs`}>{row.action}</td>
-                  <td className={cell}>{row.label || row.targetType}</td>
-                  <td className={`${cell} font-mono text-xs text-ink-2`}>
+                  </TableCell>
+                  <TableCell className={`${cell} font-mono text-xs`}>
+                    {row.action}
+                  </TableCell>
+                  <TableCell className={cell}>
+                    {row.label || row.targetType}
+                  </TableCell>
+                  <TableCell className={`${cell} font-mono text-xs text-ink-2`}>
                     {Object.keys(row.detail).length
                       ? JSON.stringify(row.detail)
                       : ""}
-                  </td>
-                </tr>
+                  </TableCell>
+                </TableRow>
               ))}
               {!trail.data.rows.length ? (
-                <tr>
-                  <td className={cell} colSpan={5}>
+                <TableRow>
+                  <TableCell className={cell} colSpan={5}>
                     Nothing recorded.
-                  </td>
-                </tr>
+                  </TableCell>
+                </TableRow>
               ) : null}
-            </tbody>
-          </table>
+            </TableBody>
+          </Table>
           <div className="flex items-center gap-3 text-sm text-ink-2">
             <span>{trail.data.total} entries</span>
             <Button

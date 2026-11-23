@@ -1,5 +1,13 @@
 "use client";
 
+import {
+  Table,
+  TableHeader,
+  TableRow,
+  TableHead,
+  TableBody,
+  TableCell,
+} from "@zentro/ui/shadcn/table";
 import { useState } from "react";
 
 import { useTrpcClient } from "@zentro/api/react";
@@ -71,57 +79,61 @@ export function Health() {
           </dl>
 
           <h2 className="text-sm font-semibold">Job queue</h2>
-          <table className={tableClass}>
-            <thead>
-              <tr>
-                <th className={headCell}>Kind</th>
-                <th className={headCell}>Status</th>
-                <th className={headCell}>Count</th>
-                <th className={headCell}>Oldest due</th>
-              </tr>
-            </thead>
-            <tbody>
+          <Table className={tableClass}>
+            <TableHeader>
+              <TableRow>
+                <TableHead className={headCell}>Kind</TableHead>
+                <TableHead className={headCell}>Status</TableHead>
+                <TableHead className={headCell}>Count</TableHead>
+                <TableHead className={headCell}>Oldest due</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
               {data.jobs.map((row) => (
-                <tr key={`${row.kind}-${row.status}`}>
-                  <td className={cell}>{row.kind}</td>
-                  <td className={cell}>{row.status}</td>
-                  <td className={cell}>{row.total}</td>
-                  <td className={cell}>{formatDate(row.oldest)}</td>
-                </tr>
+                <TableRow key={`${row.kind}-${row.status}`}>
+                  <TableCell className={cell}>{row.kind}</TableCell>
+                  <TableCell className={cell}>{row.status}</TableCell>
+                  <TableCell className={cell}>{row.total}</TableCell>
+                  <TableCell className={cell}>
+                    {formatDate(row.oldest)}
+                  </TableCell>
+                </TableRow>
               ))}
               {!data.jobs.length ? (
-                <tr>
-                  <td className={cell} colSpan={4}>
+                <TableRow>
+                  <TableCell className={cell} colSpan={4}>
                     The queue is empty.
-                  </td>
-                </tr>
+                  </TableCell>
+                </TableRow>
               ) : null}
-            </tbody>
-          </table>
+            </TableBody>
+          </Table>
 
           <h2 className="text-sm font-semibold">Failed jobs</h2>
-          <table className={tableClass}>
-            <thead>
-              <tr>
-                <th className={headCell}>Kind</th>
-                <th className={headCell}>Attempts</th>
-                <th className={headCell}>Last error</th>
-                <th className={headCell}>Created</th>
-                <th className={headCell} />
-              </tr>
-            </thead>
-            <tbody>
+          <Table className={tableClass}>
+            <TableHeader>
+              <TableRow>
+                <TableHead className={headCell}>Kind</TableHead>
+                <TableHead className={headCell}>Attempts</TableHead>
+                <TableHead className={headCell}>Last error</TableHead>
+                <TableHead className={headCell}>Created</TableHead>
+                <TableHead className={headCell} />
+              </TableRow>
+            </TableHeader>
+            <TableBody>
               {data.dead.map((job) => (
-                <tr key={job.id}>
-                  <td className={cell}>{job.kind}</td>
-                  <td className={cell}>{job.attempts}</td>
-                  <td
+                <TableRow key={job.id}>
+                  <TableCell className={cell}>{job.kind}</TableCell>
+                  <TableCell className={cell}>{job.attempts}</TableCell>
+                  <TableCell
                     className={`${cell} max-w-md break-words font-mono text-xs`}
                   >
                     {job.lastError ?? "—"}
-                  </td>
-                  <td className={cell}>{formatDate(job.createdAt)}</td>
-                  <td className={`${cell} flex gap-2`}>
+                  </TableCell>
+                  <TableCell className={cell}>
+                    {formatDate(job.createdAt)}
+                  </TableCell>
+                  <TableCell className={`${cell} flex gap-2`}>
                     <Button
                       size="sm"
                       disabled={busy}
@@ -153,18 +165,18 @@ export function Health() {
                     >
                       Discard
                     </Button>
-                  </td>
-                </tr>
+                  </TableCell>
+                </TableRow>
               ))}
               {!data.dead.length ? (
-                <tr>
-                  <td className={cell} colSpan={5}>
+                <TableRow>
+                  <TableCell className={cell} colSpan={5}>
                     No failed jobs.
-                  </td>
-                </tr>
+                  </TableCell>
+                </TableRow>
               ) : null}
-            </tbody>
-          </table>
+            </TableBody>
+          </Table>
         </>
       ) : null}
     </>

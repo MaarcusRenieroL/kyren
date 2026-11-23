@@ -107,7 +107,8 @@ export function TicketQueue({ canCreate }: { canCreate: boolean }) {
           className="flex flex-wrap gap-1"
         >
           {views.map((item) => (
-            <button
+            <Button
+              variant="custom"
               key={item.id}
               role="tab"
               aria-selected={view === item.id}
@@ -124,7 +125,7 @@ export function TicketQueue({ canCreate }: { canCreate: boolean }) {
                   {queue.counts[item.id]}
                 </span>
               ) : null}
-            </button>
+            </Button>
           ))}
         </div>
         <div className="relative ml-auto w-full max-w-xs">
