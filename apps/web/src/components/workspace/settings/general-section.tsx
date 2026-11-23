@@ -100,7 +100,7 @@ export const GeneralSection: FC<Props> = ({ organization }) => {
             <span className="flex h-full items-center border-r border-hairline px-3 text-ink-3">
               zentro.app/
             </span>
-            <input
+            <Input
               id="organization-slug"
               value={organization.slug}
               readOnly

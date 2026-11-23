@@ -1,5 +1,13 @@
 "use client";
 
+import {
+  Table,
+  TableHeader,
+  TableRow,
+  TableHead,
+  TableBody,
+  TableCell,
+} from "@zentro/ui/shadcn/table";
 import { CheckIcon, LockIcon } from "lucide-react";
 import { useMemo, type FC } from "react";
 
@@ -51,51 +59,51 @@ export const PermissionMatrix: FC<{ roles: Role[] }> = ({ roles }) => {
         </span>
       </h2>
       <div className="tile overflow-x-auto">
-        <table className="w-full min-w-[32rem] border-collapse text-sm">
-          <thead>
-            <tr className="border-b border-hairline">
-              <th
+        <Table className="w-full min-w-[32rem] border-collapse text-sm">
+          <TableHeader>
+            <TableRow className="border-b border-hairline">
+              <TableHead
                 scope="col"
                 className="px-(--pad-tile) py-3.5 text-left font-mono text-[11px] font-normal tracking-[0.08em] text-ink-3 uppercase"
               >
                 Permission
-              </th>
+              </TableHead>
               {columns.map((role) => (
-                <th
+                <TableHead
                   key={role.id}
                   scope="col"
                   className="px-3 py-3.5 text-center font-medium text-ink"
                 >
                   {role.name}
-                </th>
+                </TableHead>
               ))}
-            </tr>
-          </thead>
-          <tbody>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
             {rows.map((entry, index) => {
               const showModule =
                 index === 0 || rows[index - 1]!.module !== entry.module;
 
               return [
                 showModule ? (
-                  <tr
+                  <TableRow
                     key={`m-${entry.module}`}
                     className="border-b border-hairline"
                   >
-                    <th
+                    <TableHead
                       colSpan={columns.length + 1}
                       scope="colgroup"
                       className="eyebrow px-(--pad-tile) pt-4 pb-2 text-left"
                     >
                       {moduleNames[entry.module] ?? entry.module}
-                    </th>
-                  </tr>
+                    </TableHead>
+                  </TableRow>
                 ) : null,
-                <tr
+                <TableRow
                   key={entry.key}
                   className="border-b border-hairline last:border-b-0 hover:bg-hover"
                 >
-                  <th
+                  <TableHead
                     scope="row"
                     className="px-(--pad-tile) py-2.5 text-left font-normal text-ink"
                   >
@@ -108,14 +116,17 @@ export const PermissionMatrix: FC<{ roles: Role[] }> = ({ roles }) => {
                         </span>
                       ) : null}
                     </span>
-                  </th>
+                  </TableHead>
                   {columns.map((role) => {
                     const granted =
                       role.systemKey === "owner" ||
                       role.permissions.includes(entry.key);
 
                     return (
-                      <td key={role.id} className="px-3 py-2.5 text-center">
+                      <TableCell
+                        key={role.id}
+                        className="px-3 py-2.5 text-center"
+                      >
                         {granted ? (
                           <>
                             <CheckIcon
@@ -135,14 +146,14 @@ export const PermissionMatrix: FC<{ roles: Role[] }> = ({ roles }) => {
                             <span className="sr-only">Not allowed</span>
                           </>
                         )}
-                      </td>
+                      </TableCell>
                     );
                   })}
-                </tr>,
+                </TableRow>,
               ];
             })}
-          </tbody>
-        </table>
+          </TableBody>
+        </Table>
       </div>
     </section>
   );

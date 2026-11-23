@@ -1,5 +1,10 @@
 "use client";
 
+import {
+  Collapsible,
+  CollapsibleTrigger,
+  CollapsibleContent,
+} from "@zentro/ui/shadcn/collapsible";
 import { formatEventTime } from "@zentro/utils";
 import { FC, useCallback, useEffect, useState } from "react";
 
@@ -146,18 +151,23 @@ export const PermissionLog: FC = () => {
                       </span>
                     </TableCell>
                     <TableCell>
-                      <details>
-                        <summary className="cursor-pointer text-xs text-muted-foreground">
+                      <Collapsible role="group">
+                        <CollapsibleTrigger className="w-full text-left before:mr-2 before:inline-block before:content-['▸'] data-[state=open]:before:rotate-90 cursor-pointer text-xs text-muted-foreground">
                           Before and after
-                        </summary>
-                        <pre className="mt-2 max-w-md min-w-60 overflow-x-auto rounded bg-muted p-2 text-xs">
-                          {JSON.stringify(
-                            { before: item.before, after: item.after },
-                            null,
-                            2,
-                          )}
-                        </pre>
-                      </details>
+                        </CollapsibleTrigger>
+                        <CollapsibleContent
+                          forceMount
+                          className="data-[state=closed]:hidden"
+                        >
+                          <pre className="mt-2 max-w-md min-w-60 overflow-x-auto rounded bg-muted p-2 text-xs">
+                            {JSON.stringify(
+                              { before: item.before, after: item.after },
+                              null,
+                              2,
+                            )}
+                          </pre>
+                        </CollapsibleContent>
+                      </Collapsible>
                     </TableCell>
                   </TableRow>
                 ))

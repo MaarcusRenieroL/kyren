@@ -264,7 +264,8 @@ function TwoFactorStep({ onVerified }: { onVerified: () => void }) {
         >
           Verify
         </Button>
-        <button
+        <Button
+          variant="custom"
           type="button"
           className="text-sm text-ink-2 underline-offset-2 hover:underline"
           onClick={() => {
@@ -274,7 +275,7 @@ function TwoFactorStep({ onVerified }: { onVerified: () => void }) {
           }}
         >
           {backup ? "Use my authenticator app" : "Use a backup code"}
-        </button>
+        </Button>
       </div>
     </form>
   );

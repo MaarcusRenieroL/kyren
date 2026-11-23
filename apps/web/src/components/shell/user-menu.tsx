@@ -1,5 +1,6 @@
 "use client";
 
+import { Button } from "@zentro/ui/shadcn/button";
 import Link from "next/link";
 import { useState } from "react";
 
@@ -59,14 +60,15 @@ export function UserMenu({ user, links }: Props) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <button
+        <Button
+          variant="custom"
           type="button"
           aria-label="Account menu"
           data-slot="user-menu"
           className="flex size-8 items-center justify-center rounded-full outline-none transition-opacity hover:opacity-85 focus-visible:ring-2 focus-visible:ring-ring md:size-7"
         >
           <Initials name={name} size={28} />
-        </button>
+        </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent
         align="end"

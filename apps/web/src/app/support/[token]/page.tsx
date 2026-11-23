@@ -14,5 +14,5 @@ export default async function SupportPage({
 }: Readonly<{ params: Promise<{ token: string }> }>) {
   const { token } = await params;
 
-  return <SupportPortal token={token} />;
+  return <SupportPortal key={token} token={token} />;
 }

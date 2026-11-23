@@ -1,38 +1,35 @@
-import { createHmac, randomUUID } from "node:crypto";
+import { randomUUID } from "node:crypto";
 
 import { db } from "@zentro/db";
-import { eq, inArray } from "@zentro/db/drizzle";
 import {
   docs,
   invitations,
   members,
   organizationModules,
   organizations,
-  permissionOverrides,
-  roleAssignments,
-  roles,
-  sessions,
   projects,
-  taskActivityEvents,
-  taskComments,
   tasks,
-  teamMembers,
   teams,
   users,
 } from "@zentro/db/schema";
+import { type AuditContext } from "../../src/server/audit";
 
-import { ensureSystemRoles } from "@zentro/auth";
-import { appRouter } from "../../src/server/root";
-import { createAuditContext, type AuditContext } from "../../src/server/audit";
-import { createPermissionContext } from "../../src/server/permissions";
-import { loadEnabledModules } from "../../src/server/modules";
-import type { TRPCContext } from "../../src/types";
+import {
+  anonymousCaller,
+  createOrgCaller,
+  createSessionCaller,
+  createSessionHeaders,
+} from "./callers";
+import { cleanupWorld } from "./cleanup";
+import {
+  createCustomRole,
+  createPermissionOverride,
+  createRoleAssignment,
+  getSystemRoleId,
+} from "./world-roles";
+import type { Role, TestMember, TestOrg, TestUser } from "./world-types";
 
-export type Role = "owner" | "admin" | "member";
-
-export type TestUser = typeof users.$inferSelect;
-export type TestOrg = typeof organizations.$inferSelect;
-export type TestMember = typeof members.$inferSelect;
+export type { Role, TestMember, TestOrg, TestUser };
 
 const suffix = () => randomUUID().slice(0, 8);
 
@@ -45,7 +42,6 @@ export class World {
   private userIds: string[] = [];
   private orgIds: string[] = [];
 
-  /** Cleans up an organization that was created outside the world (over HTTP). */
   trackOrg(id: string) {
     this.orgIds.push(id);
   }
@@ -95,7 +91,6 @@ export class World {
     return member!;
   }
 
-  /** A user that is a member of `org` with the given role. */
   async userIn(org: TestOrg, role: Role, name = `${role} user`) {
     const user = await this.user(name);
     const member = await this.member(org, user, role);
@@ -181,43 +176,14 @@ export class World {
       });
   }
 
-  /** A real session for `user`, as the cookie header Better Auth reads. */
   async sessionHeaders(user: TestUser, org?: TestOrg) {
-    const token = randomUUID().replace(/-/g, "");
-
-    await db.insert(sessions).values({
-      userId: user.id,
-      token,
-      expiresAt: new Date(Date.now() + 3_600_000),
-      activeOrganizationId: org?.id ?? null,
-    });
-
-    const signature = createHmac("sha256", process.env.BETTER_AUTH_SECRET!)
-      .update(token)
-      .digest("base64");
-
-    return new Headers({
-      cookie: `better-auth.session_token=${encodeURIComponent(`${token}.${signature}`)}`,
-      origin: "http://localhost:3000",
-    });
+    return createSessionHeaders(user, org);
   }
 
   async systemRoleId(org: TestOrg, systemKey: string) {
-    await ensureSystemRoles(db, org.id);
-
-    const [role] = await db
-      .select({ id: roles.id })
-      .from(roles)
-      .where(eq(roles.organizationId, org.id));
-    const all = await db
-      .select()
-      .from(roles)
-      .where(eq(roles.organizationId, org.id));
-
-    return (all.find((item) => item.systemKey === systemKey) ?? role)!.id;
+    return getSystemRoleId(org, systemKey);
   }
 
-  /** A custom role in `org`. */
   async role(
     org: TestOrg,
     values: {
@@ -226,18 +192,7 @@ export class World {
       permissions: string[];
     },
   ) {
-    const [role] = await db
-      .insert(roles)
-      .values({
-        organizationId: org.id,
-        name: values.name,
-        scope: values.scope ?? "organization",
-        kind: "custom",
-        permissions: values.permissions,
-      })
-      .returning();
-
-    return role!;
+    return createCustomRole(org, values);
   }
 
   async assign(
@@ -246,19 +201,7 @@ export class World {
     principal: { type: "user" | "team"; id: string },
     scope: { type: "organization" | "team" | "project"; id: string },
   ) {
-    const [assignment] = await db
-      .insert(roleAssignments)
-      .values({
-        organizationId: org.id,
-        roleId,
-        principalType: principal.type,
-        principalId: principal.id,
-        scopeType: scope.type,
-        scopeId: scope.id,
-      })
-      .returning();
-
-    return assignment!;
+    return createRoleAssignment(org, roleId, principal, scope);
   }
 
   async override(
@@ -271,123 +214,31 @@ export class World {
       id: org.id,
     },
   ) {
-    await db.insert(permissionOverrides).values({
-      organizationId: org.id,
-      userId: user.id,
-      permission,
-      effect,
-      scopeType: scope.type,
-      scopeId: scope.id,
-    });
+    return createPermissionOverride(org, user, permission, effect, scope);
   }
 
-  /**
-   * A tRPC caller as the app builds it for a request: the session user plus
-   * the active organization, whose `members` list comes back in whatever order
-   * the member table returned it (Better Auth's `getFullOrganization`).
-   */
   async caller(
     user: TestUser,
     org: TestOrg,
     options: {
       memberOrder?: "asc" | "desc";
-      /** Extra request headers, such as a client address. */
       headers?: Record<string, string>;
-      /** Wraps the audit context, for tests that make recording fail. */
       wrapAudit?: (audit: AuditContext) => AuditContext;
-      /** How long ago the session began; defaults to just now. */
       sessionAgeMs?: number;
     } = {},
   ) {
-    const rows = await db
-      .select({ member: members, user: users })
-      .from(members)
-      .innerJoin(users, eq(users.id, members.userId))
-      .where(eq(members.organizationId, org.id));
-
-    rows.sort((a, b) => {
-      const diff = a.member.id.localeCompare(b.member.id);
-
-      return options.memberOrder === "desc" ? -diff : diff;
-    });
-
-    const activeOrganization = {
-      ...org,
-      members: rows.map(({ member, user: memberUser }) => ({
-        ...member,
-        user: memberUser,
-      })),
-      invitations: [],
-    };
-
-    const headers = await this.sessionHeaders(user, org);
-
-    for (const [name, value] of Object.entries(options.headers ?? {})) {
-      headers.set(name, value);
-    }
-
-    const audit = createAuditContext({
-      organizationId: org.id,
-      userId: user.id,
-      headers,
-    });
-
-    return appRouter.createCaller({
-      db,
-      headers,
-      permissions: createPermissionContext(db, org.id, user.id),
-      audit: options.wrapAudit ? options.wrapAudit(audit) : audit,
-      session: {
-        session: {
-          id: randomUUID(),
-          token: randomUUID(),
-          userId: user.id,
-          activeOrganizationId: org.id,
-          expiresAt: new Date(Date.now() + 60_000),
-          createdAt: new Date(Date.now() - (options.sessionAgeMs ?? 0)),
-          updatedAt: new Date(),
-        },
-        user,
-      },
-      user,
-      activeOrganization,
-      enabledModules: () => loadEnabledModules(db, org.id),
-    } as unknown as TRPCContext);
+    return createOrgCaller(user, org, options);
   }
 
   anonymousCaller() {
     return anonymousCaller();
   }
 
-  /** A signed-in caller who has no active organization (a brand new user). */
   sessionCaller(
     user: TestUser,
     options: { sessionAgeMs?: number; ip?: string } = {},
   ) {
-    return appRouter.createCaller({
-      db,
-      headers: new Headers(options.ip ? { "x-forwarded-for": options.ip } : {}),
-      permissions: createPermissionContext(db, null, user.id),
-      audit: createAuditContext({
-        organizationId: null,
-        userId: user.id,
-      }),
-      session: {
-        session: {
-          id: randomUUID(),
-          token: randomUUID(),
-          userId: user.id,
-          activeOrganizationId: null,
-          expiresAt: new Date(Date.now() + 60_000),
-          createdAt: new Date(Date.now() - (options.sessionAgeMs ?? 0)),
-          updatedAt: new Date(),
-        },
-        user,
-      },
-      user,
-      activeOrganization: null,
-      enabledModules: async () => new Set(),
-    } as unknown as TRPCContext);
+    return createSessionCaller(user, options);
   }
 
   async invitation(
@@ -411,46 +262,10 @@ export class World {
   }
 
   async cleanup() {
-    // Task rows reference members without cascade guarantees in every path, so
-    // clear the dependents first, then let organization/user cascades finish.
-    if (this.orgIds.length) {
-      const orgTasks = db
-        .select({ id: tasks.id })
-        .from(tasks)
-        .where(inArray(tasks.organizationId, this.orgIds));
-
-      await db
-        .delete(taskActivityEvents)
-        .where(inArray(taskActivityEvents.taskId, orgTasks));
-      await db
-        .delete(taskComments)
-        .where(inArray(taskComments.taskId, orgTasks));
-      await db
-        .delete(teamMembers)
-        .where(inArray(teamMembers.organizationId, this.orgIds));
-      await db
-        .delete(organizations)
-        .where(inArray(organizations.id, this.orgIds));
-    }
-
-    if (this.userIds.length) {
-      await db.delete(users).where(inArray(users.id, this.userIds));
-    }
-
+    await cleanupWorld(this.orgIds, this.userIds);
     this.orgIds = [];
     this.userIds = [];
   }
 }
 
-export function anonymousCaller() {
-  return appRouter.createCaller({
-    db,
-    headers: new Headers(),
-    permissions: createPermissionContext(db, null, null),
-    audit: createAuditContext({ organizationId: null, userId: null }),
-    session: null,
-    user: null,
-    activeOrganization: null,
-    enabledModules: async () => new Set(),
-  } as unknown as TRPCContext);
-}
+export { anonymousCaller };

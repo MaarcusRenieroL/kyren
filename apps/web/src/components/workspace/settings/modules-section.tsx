@@ -5,7 +5,7 @@ import { FC, useCallback, useEffect, useState } from "react";
 import { LinkIcon } from "lucide-react";
 
 import { useTrpcClient } from "@zentro/api/react";
-import { TintChip, type TileTint } from "@zentro/ui/components/tile";
+import { TintChip } from "@zentro/ui/components/tile";
 import { toastError, toastSuccess } from "@zentro/ui/index";
 import { cn } from "@zentro/ui/lib/utils";
 import { Button } from "@zentro/ui/shadcn/button";
@@ -13,95 +13,18 @@ import { Skeleton } from "@zentro/ui/shadcn/skeleton";
 import { Switch } from "@zentro/ui/shadcn/switch";
 
 import { getModuleIcon } from "~/src/lib/module-icons";
-
 import { SettingsHeader } from "./settings-kit";
-
-const tints: Record<string, string> = {
-  dashboard: "bg-tint-tasks",
-  settings: "bg-tint-audit",
-  projects: "bg-tint-projects",
-  tasks: "bg-tint-tasks",
-  docs: "bg-tint-docs",
-  tickets: "bg-tint-lilac",
-  hr: "bg-tint-teams",
-  payroll: "bg-tint-slate",
-  admin: "bg-tint-audit",
-};
-
-// One line on every card about what it needs or what needs it.
-const dependencyLine: Record<string, string> = {
-  projects: "Used by Tasks",
-  tasks: "Needs Projects",
-  docs: "Works alone",
-  dashboard: "Always on",
-  settings: "Always on",
-};
-
-// Planned modules: named, dashed, never toggleable.
-const planned: Array<{ name: string; description: string; tint: TileTint }> = [
-  {
-    name: "Files",
-    description: "Store a file once and attach it anywhere.",
-    tint: "projects",
-  },
-  {
-    name: "Chat",
-    description: "Channels and threads next to the work.",
-    tint: "teams",
-  },
-  {
-    name: "Meetings",
-    description: "Agendas and notes that turn into tasks.",
-    tint: "docs",
-  },
-  {
-    name: "Calendar",
-    description: "Team calendars tied to due dates.",
-    tint: "tasks",
-  },
-  {
-    name: "Dashboards",
-    description: "Charts built from your projects and tasks.",
-    tint: "audit",
-  },
-  {
-    name: "Forms",
-    description: "Collect requests that turn into tasks.",
-    tint: "sun",
-  },
-];
-
-const plannedTint: Record<TileTint, string> = {
-  projects: "bg-tint-projects",
-  tasks: "bg-tint-tasks",
-  docs: "bg-tint-docs",
-  teams: "bg-tint-teams",
-  audit: "bg-tint-audit",
-  sun: "bg-tint-sun",
-  lilac: "bg-tint-lilac",
-  slate: "bg-tint-slate",
-};
-
-type ModuleRow = {
-  id: string;
-  name: string;
-  description: string;
-  icon: string;
-  core: boolean;
-  enabled: boolean;
-  canToggle: boolean;
-  reason: string | null;
-};
-
-type ModuleList = {
-  canManage: boolean;
-  modules: ModuleRow[];
-};
+import {
+  dependencyLine,
+  tints,
+  type ModuleList,
+  type ModuleRow,
+} from "./modules/modules-config";
+import { PlannedModules } from "./modules/planned-modules";
 
 export const ModulesSection: FC = () => {
   const [data, setData] = useState<ModuleList | null>(null);
   const [savingId, setSavingId] = useState<string | null>(null);
-  // Turning Projects off while Tasks is on asks first.
   const [warn, setWarn] = useState(false);
   const trpc = useTrpcClient();
   const router = useRouter();
@@ -136,7 +59,6 @@ export const ModulesSection: FC = () => {
       await setEnabled(module, enabled);
       toastSuccess(`${module.name} turned ${enabled ? "on" : "off"}`);
       await load();
-      // Re-render the shell so the sidebar reflects the change.
       router.refresh();
     } catch (error) {
       toastError(error, "Could not update module");
@@ -155,7 +77,6 @@ export const ModulesSection: FC = () => {
     setSavingId("projects");
 
     try {
-      // Dependents first, so Projects is never off under a running Tasks.
       await setEnabled(tasks, false);
       await setEnabled(projects, false);
       toastSuccess("Tasks and Projects turned off");
@@ -196,8 +117,6 @@ export const ModulesSection: FC = () => {
           const Icon = getModuleIcon(module.icon);
           const isSaving = savingId === module.id;
           const showWarn = warn && module.id === "projects";
-          // Projects stays clickable while Tasks needs it: that is what opens
-          // the warning, rather than a dead switch.
           const askFirst =
             module.id === "projects" &&
             Boolean(data.modules.find((row) => row.id === "tasks")?.enabled);
@@ -307,42 +226,7 @@ export const ModulesSection: FC = () => {
         })}
       </div>
 
-      <section aria-labelledby="coming-title" className="flex flex-col gap-3.5">
-        <div className="flex items-baseline gap-2.5 pt-4">
-          <h2 id="coming-title" className="text-[15px] font-semibold">
-            Coming
-          </h2>
-          <span className="font-mono text-xs text-ink-3">
-            {planned.length} planned · not available yet
-          </span>
-        </div>
-        <ul className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-          {planned.map((item) => (
-            <li
-              key={item.name}
-              className="flex flex-col gap-1.5 rounded-xl border border-dashed border-hairline px-4 py-3.5 opacity-55"
-            >
-              <div className="flex items-center gap-2.5">
-                <span
-                  aria-hidden="true"
-                  className={cn(
-                    "size-6 rounded-md border border-hairline",
-                    plannedTint[item.tint],
-                  )}
-                />
-                <span className="text-[15px] font-semibold">{item.name}</span>
-                <span className="flex-1" />
-                <span className="rounded-full border border-dashed border-ink-3 px-2 py-px font-mono text-[11px] text-ink-2">
-                  Coming
-                </span>
-              </div>
-              <p className="text-[13px] leading-5 text-ink-2">
-                {item.description}
-              </p>
-            </li>
-          ))}
-        </ul>
-      </section>
+      <PlannedModules />
     </div>
   );
 };

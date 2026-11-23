@@ -1,5 +1,7 @@
 "use client";
 
+import { Label } from "@zentro/ui/shadcn/label";
+import { Checkbox } from "@zentro/ui/shadcn/checkbox";
 import { useState } from "react";
 
 import { useTrpcClient } from "@zentro/api/react";
@@ -67,34 +69,34 @@ export function NotificationsSection() {
         <SettingsTile>
           {kinds.map(([kind, label, hint]) => (
             <SettingsRow key={kind} label={label} description={hint}>
-              <label className="flex items-center gap-2 text-sm text-ink">
-                <input
-                  type="checkbox"
+              <Label className="flex items-center gap-2 text-sm text-ink">
+                <Checkbox
                   aria-label={`Show ${label.toLowerCase()} in my inbox`}
                   className="size-4 accent-[var(--signal)]"
                   checked={!muted.includes(kind)}
-                  onChange={(event) => void toggle(kind, event.target.checked)}
+                  onCheckedChange={(checked) =>
+                    void toggle(kind, checked === true)
+                  }
                 />
                 Show in my inbox
-              </label>
+              </Label>
             </SettingsRow>
           ))}
           <SettingsRow
             label="Chat mention emails"
             description="An email when someone @mentions you in chat and you haven't read it within 10 minutes."
           >
-            <label className="flex items-center gap-2 text-sm text-ink">
-              <input
-                type="checkbox"
+            <Label className="flex items-center gap-2 text-sm text-ink">
+              <Checkbox
                 aria-label="Email me when I'm mentioned in chat"
                 className="size-4 accent-[var(--signal)]"
                 checked={!muted.includes("mention_email")}
-                onChange={(event) =>
-                  void toggle("mention_email", event.target.checked)
+                onCheckedChange={(checked) =>
+                  void toggle("mention_email", checked === true)
                 }
               />
               Email me
-            </label>
+            </Label>
           </SettingsRow>
         </SettingsTile>
       )}

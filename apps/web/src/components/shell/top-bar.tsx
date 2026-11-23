@@ -3,26 +3,11 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
-import {
-  ChevronDownIcon,
-  CompassIcon,
-  FileTextIcon,
-  LayoutGridIcon,
-  MenuIcon,
-  PlusIcon,
-  SearchIcon,
-  SquareCheckIcon,
-} from "lucide-react";
+import { CompassIcon, MenuIcon, SearchIcon } from "lucide-react";
 
 import { Breadcrumbs } from "@zentro/ui/components/breadcrumbs";
 import { Kbd } from "@zentro/ui/components/kbd";
 import { Button } from "@zentro/ui/shadcn/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@zentro/ui/shadcn/dropdown-menu";
 import { SidebarTrigger, useSidebar } from "@zentro/ui/shadcn/sidebar";
 
 import { NotificationBell } from "~/src/components/notifications/notification-bell";
@@ -30,9 +15,6 @@ import {
   usePermission,
   useReachable,
 } from "~/src/components/permissions/permission-provider";
-import { CreateProjectModal } from "~/src/components/projects/create-project-modal";
-import { CreateDocModal } from "~/src/features/docs/components/pages/home/create-doc-modal";
-import { CreateTaskModal } from "~/src/features/tasks/components/create-task-modal";
 import { getBreadcrumbs } from "~/src/lib/breadcrumbs";
 import { paths } from "~/src/lib/paths";
 
@@ -45,6 +27,7 @@ import { OPEN_PALETTE_EVENT } from "~/src/components/system/open-palette-button"
 import { useShell } from "./shell-context";
 import { UserMenu } from "./user-menu";
 import { TourStepper } from "~/src/components/walkthrough/tour-stepper";
+import { TopBarCreateMenu, TopBarModals } from "./top-bar-create-actions";
 
 type Props = {
   orgName?: string;
@@ -108,35 +91,6 @@ export function TopBar({
   const canProject =
     usePermission("projects.create") && enabledModules.includes("projects");
 
-  const createItems = [
-    canTask
-      ? {
-          id: "task" as const,
-          label: "New task",
-          key: "C",
-          Icon: SquareCheckIcon,
-          tint: "bg-tint-tasks",
-        }
-      : null,
-    canDoc
-      ? {
-          id: "doc" as const,
-          label: "New doc",
-          key: "D",
-          Icon: FileTextIcon,
-          tint: "bg-tint-docs",
-        }
-      : null,
-    canProject
-      ? {
-          id: "project" as const,
-          label: "New project",
-          key: "P",
-          Icon: LayoutGridIcon,
-          tint: "bg-tint-projects",
-        }
-      : null,
-  ].filter((item) => item !== null);
   // The trail starts at the organization, as the sidebar does.
   const trail = orgName
     ? [{ label: orgName, href: paths.dashboard() }, ...entries]
@@ -164,7 +118,8 @@ export function TopBar({
         {current?.label}
       </span>
       <div className="ml-auto flex shrink-0 items-center gap-1.5 md:gap-2.5">
-        <button
+        <Button
+          variant="custom"
           type="button"
           onClick={() => setPaletteOpen(true)}
           aria-label="Open command palette"
@@ -173,7 +128,7 @@ export function TopBar({
           <SearchIcon className="size-3.5 text-ink-3" aria-hidden="true" />
           <span className="flex-1 truncate">Search or jump to...</span>
           <Kbd className="text-[10px] bg-muted/60">⌘K</Kbd>
-        </button>
+        </Button>
         <Button
           variant="ghost"
           size="icon"
@@ -183,45 +138,14 @@ export function TopBar({
         >
           <SearchIcon className="size-[18px]" />
         </Button>
-        {createItems.length ? (
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                // One filled primary per screen: the page owns it, so the
-                // global Create is always the quiet one.
-                variant="outline"
-                aria-label="Create"
-                className="h-8 border-hairline bg-transparent px-2 text-[13px] md:px-2.5"
-              >
-                <PlusIcon />
-                {/* Just the + on a phone, where the top bar is narrow. */}
-                <span className="hidden md:inline">Create</span>
-                <ChevronDownIcon className="hidden size-3.5 md:inline" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent
-              align="end"
-              className="w-58 min-w-58 rounded-2xl p-1.5"
-            >
-              {createItems.map(({ id, label, key, Icon, tint }) => (
-                <DropdownMenuItem
-                  key={id}
-                  onSelect={() => setCreating(id)}
-                  className="h-10 gap-2.5 rounded-md px-2.5 text-sm"
-                >
-                  <span
-                    aria-hidden="true"
-                    className={`flex size-[26px] items-center justify-center rounded-sm border border-hairline text-ink ${tint}`}
-                  >
-                    <Icon className="size-3.5" />
-                  </span>
-                  {label}
-                  <Kbd className="ml-auto">{key}</Kbd>
-                </DropdownMenuItem>
-              ))}
-            </DropdownMenuContent>
-          </DropdownMenu>
-        ) : null}
+
+        <TopBarCreateMenu
+          canTask={canTask}
+          canDoc={canDoc}
+          canProject={canProject}
+          setCreating={setCreating}
+        />
+
         <Button
           variant="ghost"
           size="sm"
@@ -281,25 +205,11 @@ export function TopBar({
         ]}
       />
 
-      {/* The existing create dialogs, opened from the menu. */}
-      <CreateTaskModal
-        hideTrigger
-        open={creating === "task"}
-        onOpenChange={(open) => !open && setCreating(null)}
-        onTaskCreated={refreshPage}
-      />
-      <CreateDocModal
-        hideTrigger
-        open={creating === "doc"}
-        onOpenChange={(open) => !open && setCreating(null)}
-      />
-      <CreateProjectModal
-        hideTrigger
-        open={creating === "project"}
-        onOpenChange={(open) => !open && setCreating(null)}
-        onProjectCreated={() => {
-          if (pathname === paths.projects()) refreshPage();
-        }}
+      <TopBarModals
+        creating={creating}
+        setCreating={setCreating}
+        refreshPage={refreshPage}
+        pathname={pathname}
       />
     </header>
   );

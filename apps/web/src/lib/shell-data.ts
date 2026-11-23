@@ -2,19 +2,16 @@ import { listModules, type ModuleNavLink } from "@zentro/modules";
 
 import type { ShellModule } from "~/src/components/shell/app-sidebar";
 import { paths } from "~/src/lib/paths";
+import { sidebarSections } from "~/src/lib/sidebar-navigation";
 
 type Reachable = Record<string, boolean>;
 
-const order = [
-  "dashboard",
-  "tasks",
-  "projects",
-  "docs",
-  "chat",
-  "team",
-  "overview",
-  "settings",
-];
+const order = sidebarSections.flatMap((section) => section.modules);
+
+function sidebarRank(id: string) {
+  const index = order.indexOf(id);
+  return index === -1 ? order.length : index;
+}
 
 /**
  * What the sidebar and the page-level navigation show, from the module
@@ -100,7 +97,7 @@ export function buildShell(
     });
   }
 
-  modules.sort((a, b) => order.indexOf(a.id) - order.indexOf(b.id));
+  modules.sort((a, b) => sidebarRank(a.id) - sidebarRank(b.id));
 
   return { modules, moduleNav };
 }

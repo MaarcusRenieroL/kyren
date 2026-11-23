@@ -1,5 +1,6 @@
 "use client";
 
+import { Label } from "@zentro/ui/shadcn/label";
 import { useEffect, useState, type FormEvent } from "react";
 
 import { authClient } from "@zentro/auth/client";
@@ -143,7 +144,7 @@ export function TwoFactorSection() {
                 ))}
               </ul>
             </div>
-            <label className="flex flex-col gap-1.5 text-sm">
+            <Label className="flex flex-col items-stretch gap-1.5 text-sm">
               <span className="text-ink-2">6-digit code</span>
               <Input
                 inputMode="numeric"
@@ -152,7 +153,7 @@ export function TwoFactorSection() {
                 onChange={(e) => setCode(e.target.value)}
                 aria-invalid={Boolean(error) || undefined}
               />
-            </label>
+            </Label>
             {error ? (
               <p role="alert" className="text-[13px] text-danger-text">
                 {error}
@@ -172,7 +173,7 @@ export function TwoFactorSection() {
             onSubmit={enabled ? turnOff : start}
             className="flex max-w-xs flex-col gap-3"
           >
-            <label className="flex flex-col gap-1.5 text-sm">
+            <Label className="flex flex-col items-stretch gap-1.5 text-sm">
               <span className="text-ink-2">
                 Confirm your password to continue
               </span>
@@ -183,7 +184,7 @@ export function TwoFactorSection() {
                 onChange={(e) => setPassword(e.target.value)}
                 aria-invalid={Boolean(error) || undefined}
               />
-            </label>
+            </Label>
             {error ? (
               <p role="alert" className="text-[13px] text-danger-text">
                 {error}

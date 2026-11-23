@@ -61,13 +61,14 @@ export function NotificationBell() {
           ) : null}
           <div className="flex-1" />
           {unreadCount > 0 ? (
-            <button
+            <Button
+              variant="custom"
               type="button"
               onClick={markAllRead}
               className="rounded-sm text-xs text-ink-2 underline-offset-4 outline-none hover:text-ink hover:underline focus-visible:ring-2 focus-visible:ring-ring"
             >
               Mark all read
-            </button>
+            </Button>
           ) : null}
         </div>
 

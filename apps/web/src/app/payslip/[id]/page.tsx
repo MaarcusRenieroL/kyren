@@ -1,5 +1,13 @@
 "use client";
 
+import {
+  Table,
+  TableCaption,
+  TableBody,
+  TableRow,
+  TableHead,
+  TableCell,
+} from "@zentro/ui/shadcn/table";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
@@ -123,27 +131,35 @@ export default function PayslipPage() {
         </dd>
       </dl>
 
-      <table className="w-full text-sm">
-        <caption className="sr-only">Pay for this period</caption>
-        <tbody>
+      <Table className="w-full text-sm">
+        <TableCaption className="sr-only">Pay for this period</TableCaption>
+        <TableBody>
           {rows.map(([label, value]) => (
-            <tr key={label} className="border-b border-line">
-              <th scope="row" className="py-2 text-left font-normal text-ink-2">
+            <TableRow key={label} className="border-b border-line">
+              <TableHead
+                scope="row"
+                className="py-2 text-left font-normal text-ink-2"
+              >
                 {label}
-              </th>
-              <td className="py-2 text-right font-mono text-ink">{value}</td>
-            </tr>
+              </TableHead>
+              <TableCell className="py-2 text-right font-mono text-ink">
+                {value}
+              </TableCell>
+            </TableRow>
           ))}
-          <tr>
-            <th scope="row" className="py-3 text-left font-semibold text-ink">
+          <TableRow>
+            <TableHead
+              scope="row"
+              className="py-3 text-left font-semibold text-ink"
+            >
               Net pay
-            </th>
-            <td className="py-3 text-right font-mono text-lg font-semibold text-ink">
+            </TableHead>
+            <TableCell className="py-3 text-right font-mono text-lg font-semibold text-ink">
               {money(slip.net)}
-            </td>
-          </tr>
-        </tbody>
-      </table>
+            </TableCell>
+          </TableRow>
+        </TableBody>
+      </Table>
     </main>
   );
 }

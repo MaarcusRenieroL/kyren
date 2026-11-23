@@ -164,14 +164,15 @@ function VerifyEmailContent() {
         <p className="text-[13px] leading-5 text-ink-3">
           You can paste the whole code.{" "}
           {wait.done ? (
-            <button
+            <Button
+              variant="custom"
               type="button"
               onClick={handleResend}
               disabled={isResending}
               className="rounded-xs text-signal underline-offset-4 hover:underline focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none disabled:opacity-60"
             >
               {isResending ? "Sending…" : "Resend the code"}
-            </button>
+            </Button>
           ) : (
             <span className="font-mono">
               Resend in {formatMmSs(wait.seconds, false)}

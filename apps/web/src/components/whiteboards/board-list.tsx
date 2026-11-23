@@ -11,6 +11,25 @@ import type { inferRouterOutputs } from "@trpc/server";
 import { EmptyState } from "@zentro/ui/components/empty-state";
 import { PageHeader } from "@zentro/ui/components/page-header";
 import { Button } from "@zentro/ui/shadcn/button";
+import { Input } from "@zentro/ui/shadcn/input";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@zentro/ui/shadcn/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@zentro/ui/shadcn/alert-dialog";
 import { toast, toastError } from "@zentro/ui/index";
 
 type Board = inferRouterOutputs<AppRouter>["whiteboard"]["list"][number];
@@ -32,6 +51,11 @@ export function BoardList() {
   const [boards, setBoards] = useState<Board[] | null>(null);
   const [trash, setTrash] = useState<Trashed[]>([]);
   const [failed, setFailed] = useState(false);
+  const [naming, setNaming] = useState<{
+    board: Board | null;
+    title: string;
+  } | null>(null);
+  const [deleting, setDeleting] = useState<Board | null>(null);
   const [creating, setCreating] = useState(false);
 
   const load = useCallback(async () => {
@@ -53,42 +77,35 @@ export function BoardList() {
     void load();
   }, [load]);
 
-  async function create() {
-    const title = window.prompt("Name the board", "Untitled board")?.trim();
-
+  async function saveName() {
+    if (!naming || creating) return;
+    const { board } = naming;
+    const title = naming.title.trim();
     if (!title) return;
 
     setCreating(true);
     try {
-      const { id } = await trpc.whiteboard.create.mutate({ title });
-      router.push(`/whiteboards/${id}`);
+      if (board) {
+        if (title !== board.title) {
+          await trpc.whiteboard.rename.mutate({ id: board.id, title });
+          await load();
+        }
+      } else {
+        const { id } = await trpc.whiteboard.create.mutate({ title });
+        router.push(`/whiteboards/${id}`);
+      }
+      setNaming(null);
     } catch (error) {
-      toastError("Could not create the board", message(error));
+      toastError(
+        board ? "Could not rename the board" : "Could not create the board",
+        message(error),
+      );
+    } finally {
       setCreating(false);
     }
   }
 
-  async function rename(board: Board) {
-    const title = window.prompt("Rename the board", board.title)?.trim();
-
-    if (!title || title === board.title) return;
-
-    try {
-      await trpc.whiteboard.rename.mutate({ id: board.id, title });
-      await load();
-    } catch (error) {
-      toastError("Could not rename the board", message(error));
-    }
-  }
-
   async function remove(board: Board) {
-    if (
-      !window.confirm(
-        `Move “${board.title}” to the trash? You can restore it from there.`,
-      )
-    )
-      return;
-
     try {
       await trpc.whiteboard.remove.mutate({ id: board.id });
       toast.success("Board moved to the trash");
@@ -114,7 +131,10 @@ export function BoardList() {
         title="Whiteboards"
         description="Sketch, diagram and plan together on an open canvas."
         actions={
-          <Button disabled={creating} onClick={() => void create()}>
+          <Button
+            disabled={creating}
+            onClick={() => setNaming({ board: null, title: "Untitled board" })}
+          >
             <PlusIcon aria-hidden />
             New board
           </Button>
@@ -136,7 +156,11 @@ export function BoardList() {
           title="No boards yet"
           description="Start a board to sketch an idea with your team."
           action={
-            <Button onClick={() => void create()}>
+            <Button
+              onClick={() =>
+                setNaming({ board: null, title: "Untitled board" })
+              }
+            >
               <PlusIcon aria-hidden />
               New board
             </Button>
@@ -168,7 +192,7 @@ export function BoardList() {
                     variant="ghost"
                     size="icon-sm"
                     aria-label={`Rename ${board.title}`}
-                    onClick={() => void rename(board)}
+                    onClick={() => setNaming({ board, title: board.title })}
                   >
                     <PencilIcon aria-hidden />
                   </Button>
@@ -176,7 +200,7 @@ export function BoardList() {
                     variant="ghost"
                     size="icon-sm"
                     aria-label={`Delete ${board.title}`}
-                    onClick={() => void remove(board)}
+                    onClick={() => setDeleting(board)}
                   >
                     <Trash2Icon aria-hidden />
                   </Button>
@@ -214,6 +238,83 @@ export function BoardList() {
           </ul>
         </section>
       ) : null}
+      <Dialog
+        open={naming !== null}
+        onOpenChange={(open) => {
+          if (!open && !creating) setNaming(null);
+        }}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>
+              {naming?.board ? "Rename board" : "New board"}
+            </DialogTitle>
+            <DialogDescription>
+              Give the board a name your team can recognize.
+            </DialogDescription>
+          </DialogHeader>
+          <form
+            className="grid gap-4"
+            onSubmit={(event) => {
+              event.preventDefault();
+              void saveName();
+            }}
+          >
+            <Input
+              autoFocus
+              aria-label="Board name"
+              value={naming?.title ?? ""}
+              onChange={(event) => {
+                if (naming) setNaming({ ...naming, title: event.target.value });
+              }}
+            />
+            <DialogFooter>
+              <Button
+                type="button"
+                variant="outline"
+                disabled={creating}
+                onClick={() => setNaming(null)}
+              >
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                loading={creating}
+                disabled={!naming?.title.trim()}
+              >
+                {naming?.board ? "Save name" : "Create board"}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+      <AlertDialog
+        open={deleting !== null}
+        onOpenChange={(open) => {
+          if (!open) setDeleting(null);
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              Move “{deleting?.title}” to the trash?
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              You can restore the board from the trash.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                if (deleting) void remove(deleting);
+              }}
+            >
+              Move to trash
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

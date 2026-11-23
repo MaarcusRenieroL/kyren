@@ -1,64 +1,28 @@
 "use client";
 
 import { FC, useCallback, useEffect, useState } from "react";
-import Link from "next/link";
-import {
-  CopyIcon,
-  LockIcon,
-  MoreHorizontalIcon,
-  PlusIcon,
-  Trash2Icon,
-} from "lucide-react";
+import { PlusIcon } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 import { useTrpcClient } from "@zentro/api/react";
 import { Button } from "@zentro/ui/shadcn/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@zentro/ui/shadcn/dialog";
-import { Input } from "@zentro/ui/shadcn/input";
-import { Label } from "@zentro/ui/shadcn/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@zentro/ui/shadcn/select";
 import { Skeleton } from "@zentro/ui/shadcn/skeleton";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@zentro/ui/shadcn/dropdown-menu";
 import { toastError, toastSuccess } from "@zentro/ui/index";
-import { useRouter } from "next/navigation";
 
-import { ActorAvatar } from "~/src/components/actor-avatar";
 import { usePermission } from "~/src/components/permissions/permission-provider";
 import { useFrameAction } from "~/src/components/workspace/settings/frames";
 import { paths } from "~/src/lib/paths";
 import { trpcResult } from "~/src/lib/trpc-result";
 
 import { PermissionMatrix } from "./permission-matrix";
-import { roleOrder, scopeLabels, useCatalog } from "./use-catalog";
-
-type RoleRow = {
-  id: string;
-  name: string;
-  description: string | null;
-  scope: string;
-  kind: string;
-  systemKey: string | null;
-  permissions: string[];
-  assignmentCount: number;
-  editable: boolean;
-};
+import { roleOrder, useCatalog } from "./use-catalog";
+import type { RoleRow } from "./roles-list/types";
+import {
+  CloneRoleDialog,
+  CreateRoleDialog,
+  DeleteRoleDialog,
+} from "./roles-list/roles-dialogs";
+import { RolesTableRow } from "./roles-list/roles-table-row";
 
 export const RolesList: FC = () => {
   const trpc = useTrpcClient();
@@ -88,7 +52,6 @@ export const RolesList: FC = () => {
     if (error) {
       toastError(error.statusText, error.message);
       setRoles([]);
-
       return;
     }
 
@@ -99,7 +62,6 @@ export const RolesList: FC = () => {
     void load();
   }, [load]);
 
-  // Base roles count people by their membership; who holds them shows here.
   useEffect(() => {
     trpc.member.getMembers
       .query()
@@ -122,7 +84,6 @@ export const RolesList: FC = () => {
 
     if (error) {
       toastError(error.statusText, error.message);
-
       return;
     }
 
@@ -141,7 +102,6 @@ export const RolesList: FC = () => {
 
     if (error) {
       toastError(error.statusText, error.message);
-
       return;
     }
 
@@ -160,7 +120,6 @@ export const RolesList: FC = () => {
 
     if (error) {
       toastError(error.statusText, error.message);
-
       return;
     }
 
@@ -185,13 +144,13 @@ export const RolesList: FC = () => {
     );
   }
 
-  const keysFor = (scope: string) =>
+  const keysFor = (roleScope: string) =>
     new Set(
       (catalog ?? [])
-        .filter((entry) => entry.scopes.includes(scope))
+        .filter((entry) => entry.scopes.includes(roleScope))
         .map((entry) => entry.key),
     );
-  const totalFor = (scope: string) => keysFor(scope).size;
+  const totalFor = (roleScope: string) => keysFor(roleScope).size;
   const peopleFor = (role: RoleRow) =>
     role.systemKey === "owner" ||
     role.systemKey === "admin" ||
@@ -230,233 +189,58 @@ export const RolesList: FC = () => {
         </div>
         {roles.map((role) => {
           const people = peopleFor(role);
-          const count = people ? people.length : role.assignmentCount;
           const total = totalFor(role.scope);
-          // Only permissions that exist today count; a role can still hold
-          // keys from an older catalogue until it is next saved.
           const known = keysFor(role.scope);
           const granted =
             role.systemKey === "owner"
               ? total
               : role.permissions.filter((key) => known.has(key)).length;
-          const canClone = canCreate;
-          const canRemove = canDelete && role.kind === "custom";
 
           return (
-            <div
-              role="row"
+            <RolesTableRow
               key={role.id}
-              data-testid={`role-row-${role.name}`}
-              className="relative flex min-h-[63px] items-center gap-3 border-b border-hairline/60 px-3 py-2 hover:bg-hover"
-            >
-              <span
-                role="cell"
-                className="flex min-w-0 flex-1 flex-col gap-0.5"
-              >
-                <span className="flex flex-wrap items-center gap-2">
-                  <Link
-                    href={paths.role(role.id)}
-                    className="text-[15px] font-medium outline-none after:absolute after:inset-0 focus-visible:after:ring-2 focus-visible:after:ring-ring"
-                  >
-                    {role.name}
-                  </Link>
-                  <span className="inline-flex items-center gap-1 rounded-xs border border-hairline px-1.5 font-mono text-[10px] tracking-[0.04em] text-ink-2 uppercase">
-                    {role.kind === "system" ? (
-                      <LockIcon className="size-2.5" aria-hidden="true" />
-                    ) : null}
-                    {role.kind === "system" ? "System" : "Custom"}
-                  </span>
-                  {role.scope !== "organization" ? (
-                    <span className="font-mono text-[11px] text-ink-3">
-                      {scopeLabels[role.scope] ?? role.scope} role
-                    </span>
-                  ) : null}
-                </span>
-                {role.description ? (
-                  <span className="text-sm text-ink-2">{role.description}</span>
-                ) : null}
-              </span>
-              <span
-                role="cell"
-                className="hidden w-36 items-center gap-2 sm:flex"
-              >
-                {people?.length ? (
-                  <span className="flex">
-                    {people.slice(0, 3).map((member) => (
-                      <span
-                        key={member.userId}
-                        title={member.name}
-                        className="-ml-1.5 rounded-full ring-2 ring-canvas first:ml-0"
-                      >
-                        <ActorAvatar name={member.name} size={22} />
-                      </span>
-                    ))}
-                  </span>
-                ) : null}
-                <span className="font-mono text-xs text-ink-2">{count}</span>
-              </span>
-              <span
-                role="cell"
-                className="w-24 text-right font-mono text-sm text-ink-2"
-              >
-                {granted} / {total}
-              </span>
-              <span role="cell" className="relative z-[1] flex w-8 justify-end">
-                {canClone || canRemove ? (
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button
-                        variant="ghost"
-                        size="icon-sm"
-                        aria-label={`Actions for ${role.name}`}
-                      >
-                        <MoreHorizontalIcon className="size-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="w-44">
-                      <DropdownMenuItem asChild>
-                        <Link href={paths.role(role.id)}>
-                          {role.editable && canUpdate ? "Edit" : "View"}
-                        </Link>
-                      </DropdownMenuItem>
-                      {canClone ? (
-                        <DropdownMenuItem
-                          onClick={() => {
-                            setCloning(role);
-                            setName(`${role.name} copy`);
-                          }}
-                        >
-                          <CopyIcon className="size-4" />
-                          Clone {role.name}
-                        </DropdownMenuItem>
-                      ) : null}
-                      {canRemove ? (
-                        <DropdownMenuItem
-                          variant="destructive"
-                          onClick={() => setDeleting(role)}
-                        >
-                          <Trash2Icon className="size-4" />
-                          Delete {role.name}
-                        </DropdownMenuItem>
-                      ) : null}
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                ) : null}
-              </span>
-            </div>
+              role={role}
+              people={people}
+              total={total}
+              granted={granted}
+              canCreate={canCreate}
+              canUpdate={canUpdate}
+              canDelete={canDelete}
+              onStartClone={(r) => {
+                setCloning(r);
+                setName(`${r.name} copy`);
+              }}
+              onStartDelete={(r) => setDeleting(r)}
+            />
           );
         })}
       </div>
 
       <PermissionMatrix roles={roles} />
 
-      <Dialog open={creating} onOpenChange={setCreating}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>New role</DialogTitle>
-            <DialogDescription>
-              Name the role and choose where it can be assigned. You pick its
-              permissions next.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-3">
-            <div className="space-y-2">
-              <Label htmlFor="role-name">Name</Label>
-              <Input
-                id="role-name"
-                value={name}
-                onChange={(event) => setName(event.target.value)}
-                placeholder="Viewer plus comment"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label>Scope</Label>
-              <Select
-                value={scope}
-                onValueChange={(value) =>
-                  setScope(value as "organization" | "team" | "project")
-                }
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="organization">Organization</SelectItem>
-                  <SelectItem value="team">Team</SelectItem>
-                  <SelectItem value="project">Project</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setCreating(false)}>
-              Cancel
-            </Button>
-            <Button disabled={name.trim().length < 2} onClick={createRole}>
-              Create role
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <CreateRoleDialog
+        open={creating}
+        onOpenChange={setCreating}
+        name={name}
+        onNameChange={setName}
+        scope={scope}
+        onScopeChange={setScope}
+        onCreate={createRole}
+      />
 
-      <Dialog
-        open={Boolean(cloning)}
-        onOpenChange={(open) => !open && setCloning(null)}
-      >
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Clone {cloning?.name}</DialogTitle>
-            <DialogDescription>
-              The copy starts with the same permissions (owner-only ones are
-              left out).
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-2">
-            <Label htmlFor="clone-name">Name</Label>
-            <Input
-              id="clone-name"
-              value={name}
-              onChange={(event) => setName(event.target.value)}
-            />
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setCloning(null)}>
-              Cancel
-            </Button>
-            <Button disabled={name.trim().length < 2} onClick={cloneRole}>
-              Clone role
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <CloneRoleDialog
+        cloning={cloning}
+        onClose={() => setCloning(null)}
+        name={name}
+        onNameChange={setName}
+        onClone={cloneRole}
+      />
 
-      <Dialog
-        open={Boolean(deleting)}
-        onOpenChange={(open) => !open && setDeleting(null)}
-      >
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Delete {deleting?.name}?</DialogTitle>
-            <DialogDescription>
-              {deleting && deleting.assignmentCount > 0
-                ? `This role is assigned ${deleting.assignmentCount} time${deleting.assignmentCount === 1 ? "" : "s"}. Remove those assignments first.`
-                : "This cannot be undone."}
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setDeleting(null)}>
-              Cancel
-            </Button>
-            <Button
-              variant="destructive"
-              disabled={Boolean(deleting && deleting.assignmentCount > 0)}
-              onClick={deleteRole}
-            >
-              Delete role
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <DeleteRoleDialog
+        deleting={deleting}
+        onClose={() => setDeleting(null)}
+        onDelete={deleteRole}
+      />
     </div>
   );
 };

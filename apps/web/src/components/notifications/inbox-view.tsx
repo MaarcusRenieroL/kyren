@@ -1,5 +1,7 @@
 "use client";
 
+import { Switch } from "@zentro/ui/shadcn/switch";
+import { Label } from "@zentro/ui/shadcn/label";
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { CheckIcon } from "lucide-react";
@@ -111,7 +113,8 @@ export function InboxView({
           const active = tab === id;
 
           return (
-            <button
+            <Button
+              variant="custom"
               key={id}
               type="button"
               role="tab"
@@ -128,35 +131,16 @@ export function InboxView({
               <span className="ml-1.5 font-mono text-xs text-ink-3">
                 {count}
               </span>
-            </button>
+            </Button>
           );
         })}
       </div>
 
       <div className="mt-3.5 mb-1.5 flex flex-wrap items-center gap-2">
-        <button
-          type="button"
-          role="switch"
-          aria-checked={unreadOnly}
-          onClick={() => setUnreadOnly((value) => !value)}
-          className="flex h-8 items-center gap-2 rounded-md border border-hairline bg-surface px-2.5 text-xs outline-none hover:bg-hover focus-visible:ring-2 focus-visible:ring-ring"
-        >
-          <span
-            aria-hidden="true"
-            className={cn(
-              "relative h-4 w-7 rounded-full transition-colors",
-              unreadOnly ? "bg-ink" : "bg-line-strong",
-            )}
-          >
-            <span
-              className={cn(
-                "absolute top-0.5 size-3 rounded-full bg-canvas transition-[left] duration-200",
-                unreadOnly ? "left-3.5" : "left-0.5",
-              )}
-            />
-          </span>
+        <Label className="flex h-8 cursor-pointer items-center gap-2 rounded-md border border-hairline bg-surface px-2.5 text-xs hover:bg-hover">
+          <Switch checked={unreadOnly} onCheckedChange={setUnreadOnly} />
           Unread only
-        </button>
+        </Label>
         <span className="font-mono text-xs text-ink-3">
           {state === "ready"
             ? unreadOnly || tab !== "all"

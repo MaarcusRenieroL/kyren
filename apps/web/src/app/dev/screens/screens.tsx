@@ -1,5 +1,6 @@
 "use client";
 
+import { Button } from "@zentro/ui/shadcn/button";
 import { useMemo, useState, type ReactNode } from "react";
 
 import { InboxView } from "~/src/components/notifications/inbox-view";
@@ -35,13 +36,14 @@ export function Screens() {
     <main className={`${theme} min-h-screen bg-canvas px-8 py-6 text-ink`}>
       <div className="mb-4 flex items-center gap-3">
         <h1 className="font-display text-3xl">Screens</h1>
-        <button
+        <Button
+          variant="custom"
           type="button"
           className="rounded-full border border-hairline px-3 py-1 text-sm"
           onClick={() => setTheme((value) => (value ? "" : "dark"))}
         >
           {theme ? "Dark" : "Light"}
-        </button>
+        </Button>
         <NotificationsProvider initial={seed}>
           <div id="bell-demo">
             <NotificationBell />

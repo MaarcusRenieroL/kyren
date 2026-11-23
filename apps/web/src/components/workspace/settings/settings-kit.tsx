@@ -1,3 +1,4 @@
+import { Label } from "@zentro/ui/shadcn/label";
 import type { ReactNode } from "react";
 
 import { cn } from "@zentro/ui/lib/utils";
@@ -91,9 +92,9 @@ export function SettingsRow({
     >
       <div className="flex flex-col gap-0.5">
         {htmlFor ? (
-          <label htmlFor={htmlFor} className="text-sm font-medium">
+          <Label htmlFor={htmlFor} className="text-sm font-medium">
             {label}
-          </label>
+          </Label>
         ) : (
           <span className="text-sm font-medium">{label}</span>
         )}
@@ -155,13 +156,14 @@ export function SettingsFooter({
       </p>
       <span className="flex-1" />
       {dirty ? (
-        <button
+        <Button
+          variant="custom"
           type="button"
           onClick={onDiscard}
           className="inline-flex h-(--control-h) items-center rounded-full px-4 text-sm text-ink-2 outline-none hover:bg-hover hover:text-ink focus-visible:ring-2 focus-visible:ring-ring"
         >
           Discard
-        </button>
+        </Button>
       ) : null}
       <SaveButton saving={saving} label={saveLabel} />
     </div>

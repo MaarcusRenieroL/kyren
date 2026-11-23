@@ -6,19 +6,12 @@ import Link from "next/link";
 import { ArrowLeftIcon, SearchIcon } from "lucide-react";
 
 import { useTrpcClient } from "@zentro/api/react";
-import { listModules } from "@zentro/modules";
 import { Badge } from "@zentro/ui/shadcn/badge";
 import { Button } from "@zentro/ui/shadcn/button";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@zentro/ui/shadcn/card";
+import { Card, CardContent } from "@zentro/ui/shadcn/card";
 import { Input } from "@zentro/ui/shadcn/input";
 import { Label } from "@zentro/ui/shadcn/label";
 import { Skeleton } from "@zentro/ui/shadcn/skeleton";
-import { Switch } from "@zentro/ui/shadcn/switch";
 import { Textarea } from "@zentro/ui/shadcn/textarea";
 import { toastError, toastSuccess } from "@zentro/ui/index";
 
@@ -31,23 +24,8 @@ import { paths } from "~/src/lib/paths";
 import { trpcResult } from "~/src/lib/trpc-result";
 
 import { scopeLabels, useCatalog } from "./use-catalog";
-
-type Role = {
-  id: string;
-  name: string;
-  description: string | null;
-  scope: "organization" | "team" | "project";
-  kind: "system" | "custom";
-  systemKey: string | null;
-  permissions: string[];
-};
-
-const moduleNames: Record<string, string> = {
-  platform: "Platform",
-  ...Object.fromEntries(
-    listModules().map((module) => [module.id, module.name]),
-  ),
-};
+import { type Role } from "./role-editor-types";
+import { RolePermissionGroups } from "./role-permission-groups";
 
 export const RoleEditor: FC<{ roleId: string }> = ({ roleId }) => {
   const trpc = useTrpcClient();
@@ -89,9 +67,7 @@ export const RoleEditor: FC<{ roleId: string }> = ({ roleId }) => {
   const isBaseRole =
     role?.systemKey === "admin" || role?.systemKey === "member";
   const editableRole = role?.kind === "custom" || isBaseRole;
-  // You can only edit a role whose permissions you all hold yourself.
-  // Permissions the catalogue still has for this role's scope; older keys
-  // a role may hold are ignored here and dropped when it is saved.
+
   const known = useMemo(
     () =>
       new Set(
@@ -106,7 +82,7 @@ export const RoleEditor: FC<{ roleId: string }> = ({ roleId }) => {
         .filter((key) => known.has(key))
         .every((key) => myPermissions[key])
     : false;
-  // The Admin role is every admin's access, so only an owner changes it.
+
   const isOwner = useBaseRole() === "owner";
   const adminRoleLocked = role?.systemKey === "admin" && !isOwner;
   const canEdit = Boolean(
@@ -271,77 +247,23 @@ export const RoleEditor: FC<{ roleId: string }> = ({ roleId }) => {
         />
       </div>
 
-      {groups.map(([moduleId, groupMap]) => (
-        <Card key={moduleId}>
-          <CardHeader>
-            <CardTitle className="text-base">
-              {moduleNames[moduleId] ?? moduleId}
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-5">
-            {[...groupMap.entries()].map(([group, entries]) => (
-              <div key={group} className="space-y-2">
-                <h3 className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">
-                  {group}
-                </h3>
-                <div className="divide-y rounded-md border">
-                  {entries.map((entry) => {
-                    const allowedHere = entry.scopes.includes(role.scope);
-                    const held = Boolean(myPermissions[entry.key]);
-                    const isOn = selected.has(entry.key);
-                    const locked =
-                      !canEdit ||
-                      entry.ownerOnly ||
-                      !allowedHere ||
-                      (!held && !isOn);
+      <RolePermissionGroups
+        groups={groups}
+        role={role}
+        myPermissions={myPermissions}
+        selected={selected}
+        canEdit={canEdit}
+        onToggle={(key, checked) =>
+          setSelected((current) => {
+            const next = new Set(current);
 
-                    return (
-                      <div
-                        key={entry.key}
-                        className="flex items-center justify-between gap-4 px-3 py-2.5"
-                      >
-                        <div className="min-w-0">
-                          <p className="text-sm font-medium">
-                            {entry.label}
-                            {entry.ownerOnly ? (
-                              <Badge variant="outline" className="ml-2">
-                                Owner only
-                              </Badge>
-                            ) : null}
-                            {!allowedHere && !entry.ownerOnly ? (
-                              <Badge variant="outline" className="ml-2">
-                                Not for {role.scope} roles
-                              </Badge>
-                            ) : null}
-                          </p>
-                          <p className="text-xs text-muted-foreground">
-                            {entry.description}
-                          </p>
-                        </div>
-                        <Switch
-                          aria-label={entry.label}
-                          checked={role.systemKey === "owner" || isOn}
-                          disabled={locked || role.systemKey === "owner"}
-                          onCheckedChange={(checked) =>
-                            setSelected((current) => {
-                              const next = new Set(current);
+            if (checked) next.add(key);
+            else next.delete(key);
 
-                              if (checked) next.add(entry.key);
-                              else next.delete(entry.key);
-
-                              return next;
-                            })
-                          }
-                        />
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            ))}
-          </CardContent>
-        </Card>
-      ))}
+            return next;
+          })
+        }
+      />
 
       {canEdit ? (
         <div className="flex flex-wrap gap-2">

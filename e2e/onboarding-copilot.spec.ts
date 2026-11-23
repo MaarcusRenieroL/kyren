@@ -41,21 +41,21 @@ test.describe("Onboarding, Stepper Walkthrough, and AI Copilot @dashboard", () =
 
     const tourDialog = page.getByRole("dialog");
     await expect(tourDialog).toBeVisible();
-    await expect(tourDialog.getByText("Step 1 of")).toBeVisible();
+    await expect(tourDialog.getByRole("button", { name: "Go to tour step 1" })).toHaveAttribute("aria-current", "step");
 
     // Click Next
     const nextBtn = tourDialog.getByRole("button", { name: "Next" });
     await expect(nextBtn).toBeVisible();
     await nextBtn.click();
 
-    await expect(tourDialog.getByText("Step 2 of")).toBeVisible();
+    await expect(tourDialog.getByRole("button", { name: "Go to tour step 2" })).toHaveAttribute("aria-current", "step");
 
     // Click Previous
-    const prevBtn = tourDialog.getByRole("button", { name: "Previous" });
+    const prevBtn = tourDialog.getByRole("button", { name: "Back" });
     await expect(prevBtn).toBeVisible();
     await prevBtn.click();
 
-    await expect(tourDialog.getByText("Step 1 of")).toBeVisible();
+    await expect(tourDialog.getByRole("button", { name: "Go to tour step 1" })).toHaveAttribute("aria-current", "step");
 
     // Close tour via Escape
     await page.keyboard.press("Escape");

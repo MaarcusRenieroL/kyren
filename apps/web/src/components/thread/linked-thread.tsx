@@ -7,22 +7,12 @@ import { MessageSquareIcon } from "lucide-react";
 import { useTrpcClient } from "@zentro/api/react";
 import { StatusGlyph } from "@zentro/ui/components/status-glyph";
 import { Thread, ThreadItem } from "@zentro/ui/components/thread";
-import { cn } from "@zentro/ui/lib/utils";
 import { Skeleton } from "@zentro/ui/shadcn/skeleton";
-import { formatDueDate } from "@zentro/utils";
 
 import { useReachable } from "~/src/components/permissions/permission-provider";
 import { paths } from "~/src/lib/paths";
-
-type Related = {
-  kind: "task" | "doc";
-  id: string;
-  label: string;
-  status?: string;
-  sub: string;
-  late?: boolean;
-  href: string;
-};
+import { Chip, Entry, itemLink } from "./thread-entry";
+import { shortDate, firstName, taskSub, type Related } from "./thread-helpers";
 
 type Props = {
   /** What is on screen now: it gets the live node. */
@@ -44,91 +34,6 @@ type Props = {
   /** Shows the conversation about this item, when there is one. */
   discussion?: { type: "task" | "doc" | "project"; id: string };
 };
-
-const shortDate = (value: Date | string) =>
-  new Date(value).toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-  });
-
-function firstName(name: string | null | undefined) {
-  return name ? (name.split(" ")[0] ?? name) : "Unassigned";
-}
-
-/** A task's owner and where its date stands, as one short line. */
-function taskSub(task: {
-  assignee: string | null;
-  due: Date | null;
-  status: string;
-}) {
-  const owner = firstName(task.assignee);
-
-  if (task.status === "done") return { sub: `${owner} · done`, late: false };
-  if (!task.due) return { sub: `${owner} · no date`, late: false };
-
-  const due = formatDueDate(task.due);
-
-  return due.tone === "overdue"
-    ? { sub: `${owner} · overdue ${shortDate(task.due)}`, late: true }
-    : { sub: `${owner} · due ${due.text}`, late: false };
-}
-
-function Chip({ tint, children }: { tint: string; children: ReactNode }) {
-  return (
-    <span
-      aria-hidden="true"
-      className={cn(
-        "flex size-5 shrink-0 items-center justify-center rounded-[6px] border border-hairline font-mono text-[9px] text-ink",
-        tint,
-      )}
-    >
-      {children}
-    </span>
-  );
-}
-
-function Entry({
-  kind,
-  chip,
-  title,
-  sub,
-  subClassName,
-  strong = false,
-}: {
-  kind: string;
-  chip: ReactNode;
-  title: string;
-  sub?: string;
-  subClassName?: string;
-  strong?: boolean;
-}) {
-  return (
-    <span className="flex min-w-0 flex-col gap-0.5">
-      <span className="font-mono text-[10px] tracking-[0.08em] text-ink-3 uppercase">
-        {kind}
-      </span>
-      <span className="flex min-w-0 items-center gap-2">
-        {chip}
-        <span
-          className={cn(
-            "truncate text-sm text-ink",
-            strong ? "font-semibold" : "font-medium",
-          )}
-        >
-          {title}
-        </span>
-      </span>
-      {sub ? (
-        <span className={cn("font-mono text-[11px] text-ink-3", subClassName)}>
-          {sub}
-        </span>
-      ) : null}
-    </span>
-  );
-}
-
-const itemLink =
-  "block rounded-md px-2 py-1.5 outline-none hover:bg-hover focus-visible:ring-2 focus-visible:ring-ring";
 
 /**
  * The Thread: a 1px line with a node for each linked item (the project, the

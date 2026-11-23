@@ -1,8 +1,11 @@
 "use client";
 
+import { Label } from "@zentro/ui/shadcn/label";
+import { Button } from "@zentro/ui/shadcn/button";
+import { Checkbox } from "@zentro/ui/shadcn/checkbox";
 import { useState, type ComponentProps, type ReactNode } from "react";
 import Link from "next/link";
-import { CheckIcon, EyeIcon, EyeOffIcon } from "lucide-react";
+import { EyeIcon, EyeOffIcon } from "lucide-react";
 
 import { cn } from "@zentro/ui/lib/utils";
 import { Input } from "@zentro/ui/shadcn/input";
@@ -48,9 +51,9 @@ export function AuthField({
   return (
     <div className={cn("flex flex-col gap-1.5", className)}>
       <div className="flex items-baseline">
-        <label htmlFor={htmlFor} className="text-[13px] font-medium">
+        <Label htmlFor={htmlFor} className="text-[13px] font-medium">
           {label}
-        </label>
+        </Label>
         <span className="flex-1" />
         {link ? (
           <Link
@@ -91,7 +94,8 @@ export function PasswordInput({
         className={cn("pr-10", className)}
         {...props}
       />
-      <button
+      <Button
+        variant="custom"
         type="button"
         onClick={() => setShown((value) => !value)}
         aria-label={shown ? "Hide password" : "Show password"}
@@ -102,7 +106,7 @@ export function PasswordInput({
         ) : (
           <EyeIcon className="size-4" />
         )}
-      </button>
+      </Button>
     </div>
   );
 }
@@ -233,26 +237,18 @@ export function ConsentCheckbox({
   children: ReactNode;
 }) {
   return (
-    <label
+    <Label
       htmlFor={id}
       className="flex cursor-pointer items-start gap-2.5 text-sm leading-5"
     >
-      <span className="relative mt-px size-[18px] shrink-0">
-        <input
-          id={id}
-          type="checkbox"
-          checked={checked}
-          aria-invalid={invalid || undefined}
-          onChange={(event) => onChange(event.target.checked)}
-          className="peer absolute inset-0 size-full cursor-pointer appearance-none rounded-[5px] border-[1.5px] border-ink bg-transparent outline-none checked:bg-ink focus-visible:ring-2 focus-visible:ring-ring aria-invalid:border-danger"
-        />
-        <CheckIcon
-          aria-hidden="true"
-          strokeWidth={3}
-          className="pointer-events-none absolute inset-0 m-auto size-3 text-ink-inverse opacity-0 peer-checked:opacity-100"
-        />
-      </span>
+      <Checkbox
+        id={id}
+        checked={checked}
+        aria-invalid={invalid || undefined}
+        onCheckedChange={(checked) => onChange(checked === true)}
+        className="cursor-pointer"
+      />
       <span>{children}</span>
-    </label>
+    </Label>
   );
 }

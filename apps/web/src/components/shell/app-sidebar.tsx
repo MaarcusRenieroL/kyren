@@ -1,12 +1,15 @@
 "use client";
 
+import { Button } from "@zentro/ui/shadcn/button";
 import { useChatBadge } from "~/src/components/chat/chat-store";
+import { useNotifications } from "~/src/components/notifications/notifications-provider";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useRef } from "react";
-import { XIcon } from "lucide-react";
+import { Fragment, useEffect, useRef, useState } from "react";
+import { ChevronDownIcon, XIcon } from "lucide-react";
 
 import { authClient } from "@zentro/auth/client";
+import { useTrpcClient } from "@zentro/api/react";
 import { OrgSwitcher } from "@zentro/ui/components/org-switcher";
 import { toastError } from "@zentro/ui/index";
 import { useActiveBox } from "@zentro/ui/lib/use-active-box";
@@ -26,6 +29,8 @@ import { cn } from "@zentro/ui/lib/utils";
 
 import { getShellIcon } from "~/src/lib/module-icons";
 import { apiPath, paths } from "~/src/lib/paths";
+import { sidebarSectionLabel } from "~/src/lib/sidebar-navigation";
+import { everyWhileVisible } from "~/src/lib/poll";
 
 export type ShellModule = {
   id: string;
@@ -78,9 +83,71 @@ export function AppSidebar({
   const pathname = usePathname();
   const chatBadge = useChatBadge(modules.some((item) => item.id === "chat"));
   const active = findActiveModule(modules, pathname);
+  const defaultSection =
+    active && active.id !== "settings" ? sidebarSectionLabel(active.id) : "Work";
+  const { items: notifications } = useNotifications();
+  const trpc = useTrpcClient();
+  const mailEnabled = modules.some((item) => item.id === "mail");
+  const [mailUnread, setMailUnread] = useState(0);
+
+  useEffect(() => {
+    if (!mailEnabled) return;
+
+    let live = true;
+    const load = () =>
+      trpc.mail.unread
+        .query()
+        .then(({ count }) => {
+          if (live) setMailUnread(count);
+        })
+        .catch(() => undefined);
+
+    void load();
+    const stop = everyWhileVisible(load, 30_000);
+    return () => {
+      live = false;
+      stop();
+    };
+  }, [mailEnabled, pathname, trpc]);
+
+  const unreadByModule = new Map([
+    ["chat", chatBadge],
+    ["mail", mailUnread],
+  ]);
+  for (const notification of notifications) {
+    if (!notification.unread || !notification.href) continue;
+
+    const [destination = ""] = notification.href.split(/[?#]/, 1);
+    const target = findActiveModule(modules, destination);
+    if (!target || target.id === "chat" || target.id === "mail") continue;
+
+    unreadByModule.set(target.id, (unreadByModule.get(target.id) ?? 0) + 1);
+  }
+
+  const unreadBySection = new Map<string, number>();
+  for (const { id } of modules) {
+    if (id === "settings") continue;
+
+    const section = sidebarSectionLabel(id);
+    unreadBySection.set(
+      section,
+      (unreadBySection.get(section) ?? 0) + (unreadByModule.get(id) ?? 0),
+    );
+  }
   const listRef = useRef<HTMLUListElement>(null);
   const box = useActiveBox(listRef, '[data-active="true"]');
-  const { isMobile, setOpenMobile } = useSidebar();
+  const { isMobile, setOpenMobile, state } = useSidebar();
+  const [sectionOverrides, setSectionOverrides] = useState<{
+    pathname: string;
+    expanded: Record<string, boolean>;
+  }>();
+  if (sectionOverrides && sectionOverrides.pathname !== pathname) {
+    setSectionOverrides(undefined);
+  }
+  const expandedOverrides = sectionOverrides?.pathname === pathname
+    ? sectionOverrides.expanded
+    : undefined;
+  const iconOnly = !isMobile && state === "collapsed";
   const itemSize = isMobile ? "h-11 text-[15px]" : "h-9";
   const close = () => setOpenMobile(false);
   const switchOrganization = async (organizationId: string) => {
@@ -122,14 +189,15 @@ export function AppSidebar({
         {/* Only the phone drawer needs its own close button; on wider
             screens the top bar's sidebar toggle (or ⌘B) collapses it. */}
         {isMobile ? (
-          <button
+          <Button
+            variant="custom"
             type="button"
             onClick={close}
             aria-label="Close navigation"
             className="flex size-9 shrink-0 items-center justify-center rounded-md text-ink-2 outline-none transition-colors hover:bg-hover hover:text-ink focus-visible:ring-2 focus-visible:ring-ring group-data-[collapsible=icon]:hidden"
           >
             <XIcon className="size-4" aria-hidden="true" />
-          </button>
+          </Button>
         ) : null}
       </SidebarHeader>
 
@@ -150,56 +218,91 @@ export function AppSidebar({
               ) : null}
               {modules
                 .filter((item) => item.id !== "settings")
-                .map((item) => {
+                .map((item, index, items) => {
                   const Icon = getShellIcon(item.id, item.icon);
                   const isActive = item.id === active?.id;
+                  const section = sidebarSectionLabel(item.id);
+                  const expanded =
+                    iconOnly || (expandedOverrides?.[section] ?? section === defaultSection);
+                  const unread = unreadByModule.get(item.id) ?? 0;
+                  const previous = items[index - 1];
+                  const startsSection =
+                    !previous || section !== sidebarSectionLabel(previous.id);
 
                   return (
-                    <SidebarMenuItem key={item.id} className="relative z-[1]">
-                      <SidebarMenuButton
-                        asChild
-                        isActive={isActive}
-                        tooltip={item.label}
-                        className={cn(
-                          itemSize,
-                          "rounded-lg text-ink-2 transition-all hover:bg-hover hover:text-ink data-active:bg-selected data-active:font-semibold data-active:text-ink shadow-2xs",
-                        )}
-                      >
-                        <Link
-                          href={item.href}
-                          onClick={close}
-                          aria-current={isActive ? "page" : undefined}
-                          className="flex items-center gap-2.5"
-                        >
-                          <Icon
+                    <Fragment key={item.id}>
+                      {startsSection ? (
+                        <li className="px-2 pt-3 pb-1 first-of-type:pt-0 group-data-[collapsible=icon]:hidden">
+                          <h2>
+                            <button
+                              type="button"
+                              aria-expanded={expanded}
+                              data-state={expanded ? "open" : "closed"}
+                              onClick={() =>
+                                setSectionOverrides((current) => ({
+                                  pathname,
+                                  expanded: {
+                                    ...(current?.pathname === pathname ? current.expanded : undefined),
+                                    [section]: !expanded,
+                                  },
+                                }))
+                              }
+                              className="flex min-h-7 w-full items-center justify-between gap-2 rounded-sm text-left text-xs font-medium text-ink-3 hover:text-ink focus-visible:outline-2 focus-visible:outline-ring"
+                            >
+                              <span className="flex-1">{section}</span>
+                              {!expanded && (
+                                <UnreadBadge count={unreadBySection.get(section) ?? 0} />
+                              )}
+                              <ChevronDownIcon
+                                aria-hidden="true"
+                                className={cn(
+                                  "size-3.5 shrink-0 motion-safe:transition-transform",
+                                  expanded && "rotate-180",
+                                )}
+                              />
+                            </button>
+                          </h2>
+                        </li>
+                      ) : null}
+                      {expanded ? (
+                        <SidebarMenuItem className="relative z-[1]">
+                          <SidebarMenuButton
+                            asChild
+                            isActive={isActive}
+                            tooltip={item.label}
                             className={cn(
-                              "size-4 shrink-0 transition-colors",
-                              isActive
-                                ? "text-signal font-semibold"
-                                : "text-ink-3",
+                              itemSize,
+                              "rounded-lg text-ink-2 transition-all hover:bg-hover hover:text-ink data-active:bg-selected data-active:font-semibold data-active:text-ink shadow-2xs",
                             )}
-                          />
-                          <span className="flex-1 truncate group-data-[collapsible=icon]:hidden">
-                            {item.label}
-                          </span>
-                          {item.id === "tasks" && taskCount ? (
-                            <span className="font-mono text-[11px] font-semibold px-1.5 py-0.2 rounded-full bg-signal/10 text-signal group-data-[collapsible=icon]:hidden">
-                              {taskCount}
-                            </span>
-                          ) : null}
-                          {item.id === "chat" && chatBadge ? (
-                            <span className="rounded-full bg-ink px-1.5 font-mono text-[11px] leading-[18px] text-ink-inverse group-data-[collapsible=icon]:hidden">
-                              {chatBadge}
-                            </span>
-                          ) : null}
-                          {item.id === "overview" ? (
-                            <span className="rounded-md border border-hairline bg-muted/50 px-1.5 py-0.2 font-mono text-[9px] font-medium tracking-[0.08em] text-ink-3 group-data-[collapsible=icon]:hidden">
-                              ADMIN
-                            </span>
-                          ) : null}
-                        </Link>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
+                          >
+                            <Link
+                              href={item.href}
+                              onClick={close}
+                              aria-current={isActive ? "page" : undefined}
+                              className="flex items-center gap-2.5"
+                            >
+                              <Icon
+                                className={cn(
+                                  "size-4 shrink-0 transition-colors",
+                                  isActive
+                                    ? "text-signal font-semibold"
+                                    : "text-ink-3",
+                                )}
+                              />
+                              <span className="flex-1 truncate group-data-[collapsible=icon]:hidden">
+                                {item.label}
+                              </span>
+                              {item.id === "tasks" && taskCount ? (
+                                <span aria-label={`${taskCount} open assigned tasks`} className="font-mono text-[11px] font-semibold px-1.5 py-0.2 rounded-full bg-signal/10 text-signal group-data-[collapsible=icon]:hidden">
+                                  {taskCount}
+                                </span>
+                              ) : null}
+                              <UnreadBadge count={unread} />
+                            </Link>
+                          </SidebarMenuButton>
+                        </SidebarMenuItem>
+                      ) : null}
+                    </Fragment>
                   );
                 })}
             </SidebarMenu>
@@ -238,6 +341,7 @@ export function AppSidebar({
                         <span className="group-data-[collapsible=icon]:hidden">
                           {item.label}
                         </span>
+                        <UnreadBadge count={unreadByModule.get(item.id) ?? 0} />
                       </Link>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
@@ -247,5 +351,18 @@ export function AppSidebar({
         </SidebarFooter>
       ) : null}
     </Sidebar>
+  );
+}
+
+function UnreadBadge({ count }: { count: number }) {
+  if (count === 0) return null;
+
+  return (
+    <span
+      aria-label={`${count} unread`}
+      className="rounded-full bg-signal/10 px-1.5 font-mono text-[11px] font-semibold text-signal group-data-[collapsible=icon]:hidden"
+    >
+      {count}
+    </span>
   );
 }

@@ -1,24 +1,11 @@
 "use client";
 
-import { FC, useCallback, useEffect, useMemo, useState } from "react";
+import { FC, useCallback, useEffect, useState } from "react";
 import { Trash2Icon } from "lucide-react";
 
 import { useTrpcClient } from "@zentro/api/react";
 import { Button } from "@zentro/ui/shadcn/button";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@zentro/ui/shadcn/card";
-import { Label } from "@zentro/ui/shadcn/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@zentro/ui/shadcn/select";
+import { Card, CardContent } from "@zentro/ui/shadcn/card";
 import { Skeleton } from "@zentro/ui/shadcn/skeleton";
 import {
   Table,
@@ -34,25 +21,8 @@ import { usePermission } from "~/src/components/permissions/permission-provider"
 import { trpcResult } from "~/src/lib/trpc-result";
 
 import { scopeLabels } from "./use-catalog";
-
-type Option = { id: string; label: string };
-
-type AssignmentRow = {
-  id: string;
-  roleName: string;
-  principalType: "user" | "team";
-  principalName: string;
-  scopeType: "organization" | "team" | "project";
-  scopeId: string;
-  scopeName: string;
-};
-
-type RoleOption = {
-  id: string;
-  name: string;
-  scope: string;
-  systemKey: string | null;
-};
+import type { AssignmentRow, Option, RoleOption } from "./assignments-types";
+import { AssignRoleCard } from "./assign-role-card";
 
 export const AssignmentsView: FC = () => {
   const trpc = useTrpcClient();
@@ -100,7 +70,6 @@ export const AssignmentsView: FC = () => {
         label: project.name,
       })),
     );
-    // The organization id is the scope of organization-level assignments.
     setOrganizationId(roleList.data?.[0]?.organizationId ?? "");
   }, [trpc]);
 
@@ -109,12 +78,6 @@ export const AssignmentsView: FC = () => {
   }, [load]);
 
   const selectedRole = roles.find((role) => role.id === roleId);
-  const scopeOptions = useMemo(() => {
-    if (selectedRole?.scope === "team") return teams;
-    if (selectedRole?.scope === "project") return projects;
-
-    return [];
-  }, [selectedRole, teams, projects]);
 
   const assign = async () => {
     if (!selectedRole) return;
@@ -161,12 +124,6 @@ export const AssignmentsView: FC = () => {
     return <Skeleton className="h-64 w-full" />;
   }
 
-  const principals = principalType === "user" ? people : teams;
-  const ready =
-    roleId &&
-    principalId &&
-    (selectedRole?.scope === "organization" || scopeId);
-
   return (
     <div className="space-y-4">
       <div>
@@ -177,89 +134,21 @@ export const AssignmentsView: FC = () => {
       </div>
 
       {canAssign ? (
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Assign a role</CardTitle>
-          </CardHeader>
-          <CardContent className="grid gap-4 md:grid-cols-4">
-            <div className="space-y-2">
-              <Label>Role</Label>
-              <Select
-                value={roleId}
-                onValueChange={(value) => {
-                  setRoleId(value);
-                  setScopeId("");
-                }}
-              >
-                <SelectTrigger aria-label="Role">
-                  <SelectValue placeholder="Choose a role" />
-                </SelectTrigger>
-                <SelectContent>
-                  {roles.map((role) => (
-                    <SelectItem key={role.id} value={role.id}>
-                      {role.name} ({scopeLabels[role.scope]})
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label>Assign to</Label>
-              <Select
-                value={principalType}
-                onValueChange={(value) => {
-                  setPrincipalType(value as "user" | "team");
-                  setPrincipalId("");
-                }}
-              >
-                <SelectTrigger aria-label="Principal type">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="user">A member</SelectItem>
-                  <SelectItem value="team">A team</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label>{principalType === "user" ? "Member" : "Team"}</Label>
-              <Select value={principalId} onValueChange={setPrincipalId}>
-                <SelectTrigger aria-label="Principal">
-                  <SelectValue placeholder="Choose" />
-                </SelectTrigger>
-                <SelectContent>
-                  {principals.map((option) => (
-                    <SelectItem key={option.id} value={option.id}>
-                      {option.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            {selectedRole && selectedRole.scope !== "organization" ? (
-              <div className="space-y-2">
-                <Label>{scopeLabels[selectedRole.scope]}</Label>
-                <Select value={scopeId} onValueChange={setScopeId}>
-                  <SelectTrigger aria-label="Scope">
-                    <SelectValue placeholder="Choose" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {scopeOptions.map((option) => (
-                      <SelectItem key={option.id} value={option.id}>
-                        {option.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            ) : null}
-            <div className="md:col-span-4">
-              <Button disabled={!ready} onClick={assign}>
-                Assign role
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+        <AssignRoleCard
+          roles={roles}
+          roleId={roleId}
+          setRoleId={setRoleId}
+          principalType={principalType}
+          setPrincipalType={setPrincipalType}
+          principalId={principalId}
+          setPrincipalId={setPrincipalId}
+          scopeId={scopeId}
+          setScopeId={setScopeId}
+          people={people}
+          teams={teams}
+          projects={projects}
+          onAssign={assign}
+        />
       ) : null}
 
       <Card className="py-0">

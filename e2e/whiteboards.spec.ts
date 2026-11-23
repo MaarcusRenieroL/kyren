@@ -44,8 +44,9 @@ const stored = async (boardId: string) =>
 
 async function newBoard(page: Page, title: string) {
   await page.goto("/whiteboards");
-  page.once("dialog", (dialog) => void dialog.accept(title));
   await page.getByRole("button", { name: "New board" }).first().click();
+  await page.getByRole("textbox", { name: "Board name" }).fill(title);
+  await page.getByRole("button", { name: "Create board" }).click();
   await expect(page).toHaveURL(/\/whiteboards\/[0-9a-f-]{36}$/);
   await expect(page.getByLabel("Whiteboard canvas")).toBeVisible();
 
@@ -240,13 +241,17 @@ test("a deleted board goes to the trash and can be restored @whiteboards", async
   const title = uniqueName("Old plan");
 
   await page.goto("/whiteboards");
-  page.once("dialog", (dialog) => void dialog.accept(title));
   await page.getByRole("button", { name: "New board" }).first().click();
+  await page.getByRole("textbox", { name: "Board name" }).fill(title);
+  await page.getByRole("button", { name: "Create board" }).click();
   await expect(page).toHaveURL(/\/whiteboards\/[0-9a-f-]{36}$/);
 
   await page.goto("/whiteboards");
-  page.once("dialog", (dialog) => void dialog.accept());
   await page.getByRole("button", { name: `Delete ${title}` }).click();
+  await page
+    .getByRole("alertdialog")
+    .getByRole("button", { name: "Move to trash" })
+    .click();
 
   const trash = page.getByRole("region", { name: "Trash" });
 
