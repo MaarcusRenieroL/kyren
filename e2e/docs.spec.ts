@@ -12,9 +12,10 @@ import { acceptNextConfirm, orgWithMember } from "./people-helpers";
 async function write(page: Page, text: string) {
   const body = page.getByRole("textbox", { name: "Doc body" });
 
+  await expect(body).toHaveAttribute("contenteditable", "true");
   await body.click();
-  await page.keyboard.press("ControlOrMeta+a");
-  await page.keyboard.type(text);
+  await body.press("ControlOrMeta+a");
+  await body.pressSequentially(text);
   await expect(page.getByRole("status")).toContainText("Saved");
 }
 

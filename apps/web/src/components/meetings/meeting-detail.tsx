@@ -9,13 +9,13 @@ import { EmptyState } from "@zentro/ui/components/empty-state";
 import { PageHeader } from "@zentro/ui/components/page-header";
 import { Button } from "@zentro/ui/shadcn/button";
 import { Textarea } from "@zentro/ui/shadcn/textarea";
-import { NativeSelect } from "@zentro/ui/shadcn/native-select";
 import { toastError, toastSuccess } from "@zentro/ui/index";
 
 import { useCurrentUserId } from "~/src/components/permissions/permission-provider";
 import { usePageCrumb } from "~/src/components/shell/breadcrumb-context";
 import { useAsyncData } from "~/src/lib/use-async-data";
 import { recapActionItems } from "./recap";
+import { ActionItems } from "./action-items";
 
 const when = new Intl.DateTimeFormat(undefined, {
   weekday: "long",
@@ -35,94 +35,6 @@ const answerLabel: Record<string, string> = {
   invited: "Not answered",
 };
 
-/** Action items from the AI recap, ready to become tasks in a chosen project. */
-function ActionItems({
-  meetingId,
-  items,
-}: {
-  meetingId: string;
-  items: string[];
-}) {
-  const trpc = useTrpcClient();
-  const projects = useAsyncData(
-    () => trpc.project.getProjectsByOrgId.query(),
-    [trpc],
-  );
-  const [picked, setPicked] = useState<string[]>(items);
-  const [projectId, setProjectId] = useState("");
-  const [made, setMade] = useState<string[]>([]);
-  const [busy, setBusy] = useState(false);
-
-  if (!items.length) return null;
-
-  async function create() {
-    setBusy(true);
-
-    try {
-      const result = await trpc.meeting.createTasks.mutate({
-        id: meetingId,
-        projectId,
-        titles: picked,
-      });
-
-      setMade(result.keys);
-      toastSuccess(`Created ${result.keys.length} tasks`);
-    } catch (error) {
-      toastError(error, "Could not create the tasks.");
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  return (
-    <div className="mt-3 flex flex-col gap-2 border-t border-line pt-3">
-      <h3 className="text-xs font-semibold text-ink-2">Action items</h3>
-      {items.map((item) => (
-        <label key={item} className="flex items-center gap-2 text-sm">
-          <input
-            type="checkbox"
-            checked={picked.includes(item)}
-            onChange={(event) =>
-              setPicked((current) =>
-                event.target.checked
-                  ? [...current, item]
-                  : current.filter((value) => value !== item),
-              )
-            }
-          />
-          {item}
-        </label>
-      ))}
-      <div className="flex flex-wrap items-center gap-2">
-        <NativeSelect
-          aria-label="Project for the tasks"
-          size="sm"
-          className="w-48 text-sm"
-          value={projectId}
-          onChange={(event) => setProjectId(event.target.value)}
-        >
-          <option value="">Choose a project</option>
-          {(projects.data ?? []).map((project) => (
-            <option key={project.id} value={project.id}>
-              {project.name}
-            </option>
-          ))}
-        </NativeSelect>
-        <Button
-          size="sm"
-          disabled={busy || !projectId || !picked.length}
-          onClick={() => void create()}
-        >
-          Create {picked.length} tasks
-        </Button>
-        {made.length ? (
-          <span className="text-xs text-ink-2">Created {made.join(", ")}</span>
-        ) : null}
-      </div>
-    </div>
-  );
-}
-
 /** One meeting: the join link, who is coming, shared notes and the AI recap. */
 export function MeetingDetail({ id }: { id: string }) {
   const trpc = useTrpcClient();
@@ -138,8 +50,6 @@ export function MeetingDetail({ id }: { id: string }) {
 
   useEffect(() => {
     if (meeting.data) setNotes(meeting.data.notes ?? "");
-    // Only when a different load arrives; typing must not be overwritten.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [meeting.data?.id]);
 
   async function run(label: string, action: () => Promise<unknown>) {
@@ -290,7 +200,6 @@ export function MeetingDetail({ id }: { id: string }) {
             }
             onClick={() =>
               void run("write the recap", async () => {
-                // Save first so the recap covers what is on screen.
                 await trpc.meeting.saveNotes.mutate({ id, notes });
                 await trpc.meeting.summarize.mutate({ id });
               })

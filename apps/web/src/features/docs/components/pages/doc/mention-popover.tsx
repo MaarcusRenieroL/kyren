@@ -1,5 +1,7 @@
 "use client";
 
+import { Input } from "@zentro/ui/shadcn/input";
+import { Button } from "@zentro/ui/shadcn/button";
 import { FC, useEffect, useMemo, useRef, useState } from "react";
 import { FileTextIcon, SearchIcon, XIcon } from "lucide-react";
 
@@ -163,7 +165,7 @@ export const MentionPopover: FC<MentionPopoverProps> = ({
       {/* Search Header */}
       <div className="relative flex items-center border-b border-hairline/80 px-2.5 pb-2">
         <SearchIcon className="size-3.5 text-ink-3 shrink-0" />
-        <input
+        <Input
           ref={inputRef}
           value={query}
           onChange={(e) => setQuery(e.target.value)}
@@ -171,21 +173,23 @@ export const MentionPopover: FC<MentionPopoverProps> = ({
           className="ml-2 w-full bg-transparent text-xs text-ink placeholder:text-ink-3 outline-none"
         />
         {query ? (
-          <button
+          <Button
+            variant="custom"
             type="button"
             onClick={() => setQuery("")}
             className="p-0.5 text-ink-3 hover:text-ink transition-colors cursor-pointer"
           >
             <XIcon className="size-3" />
-          </button>
+          </Button>
         ) : (
-          <button
+          <Button
+            variant="custom"
             type="button"
             onClick={onClose}
             className="p-0.5 text-ink-3 hover:text-ink transition-colors cursor-pointer"
           >
             <XIcon className="size-3" />
-          </button>
+          </Button>
         )}
       </div>
 
@@ -199,7 +203,8 @@ export const MentionPopover: FC<MentionPopoverProps> = ({
             ["doc", "Docs"],
           ] as const
         ).map(([id, label]) => (
-          <button
+          <Button
+            variant="custom"
             key={id}
             type="button"
             onClick={() => setTab(id)}
@@ -211,7 +216,7 @@ export const MentionPopover: FC<MentionPopoverProps> = ({
             )}
           >
             {label}
-          </button>
+          </Button>
         ))}
       </div>
 
@@ -223,7 +228,8 @@ export const MentionPopover: FC<MentionPopoverProps> = ({
           </div>
         ) : (
           items.map((item, index) => (
-            <button
+            <Button
+              variant="custom"
               key={`${item.type}-${item.id}`}
               type="button"
               onClick={() => onSelect(item)}
@@ -255,7 +261,7 @@ export const MentionPopover: FC<MentionPopoverProps> = ({
                   {item.subtitle}
                 </span>
               </div>
-            </button>
+            </Button>
           ))
         )}
       </div>

@@ -12,6 +12,57 @@ afterAll(() => world.cleanup());
 
 type Caller = Awaited<ReturnType<World["caller"]>>;
 
+it("filters and sorts the file library before paginating", async () => {
+  const org = await world.org("File table");
+  const owner = await world.userIn(org, "owner", "Table Owner");
+  const member = await world.userIn(org, "member", "Table Member");
+  const caller = await world.caller(owner.user, org);
+  const fixtures = [
+    { name: "report-small.pdf", size: 5 },
+    { name: "report-medium.pdf", size: 20 },
+    { name: "report-large.pdf", size: 30 },
+    { name: "report-huge.pdf", size: 50 },
+    { name: "report-old.pdf", size: 35, day: 9 },
+    { name: "report-other.pdf", size: 38, uploader: member.member.id },
+    { name: "report-preview.png", size: 40, mimeType: "image/png" },
+    { name: "notes.pdf", size: 42 },
+  ];
+
+  await db.insert(files).values(
+    fixtures.map((file) => ({
+      organizationId: org.id,
+      uploadedByMemberId: file.uploader ?? owner.member.id,
+      source: "library" as const,
+      name: file.name,
+      mimeType: file.mimeType ?? "application/pdf",
+      size: file.size,
+      storageKey: `${org.id}/${file.name}`,
+      createdAt: new Date(Date.UTC(2025, 0, file.day ?? 10)),
+    })),
+  );
+
+  const input = {
+    search: "report",
+    kind: "document" as const,
+    uploaderId: owner.member.id,
+    minBytes: 10,
+    maxBytes: 45,
+    uploadedFrom: "2025-01-10T00:00:00.000Z",
+    uploadedBefore: "2025-01-11T00:00:00.000Z",
+    sort: { column: "size" as const, descending: true },
+    limit: 1,
+  };
+
+  expect((await caller.files.library(input)).map((file) => file.name)).toEqual([
+    "report-large.pdf",
+  ]);
+  expect(
+    (await caller.files.library({ ...input, offset: 1 })).map(
+      (file) => file.name,
+    ),
+  ).toEqual(["report-medium.pdf"]);
+});
+
 describe("file library folders", () => {
   let owner: Caller;
   let member: Caller;
@@ -76,6 +127,22 @@ describe("file library folders", () => {
     expect(await names({ kind: "all" })).toEqual(["roadmap.pdf"]);
     expect(
       await names({ kind: "all", folderId: null, search: "road" }),
+    ).toEqual(["roadmap.pdf"]);
+    expect(
+      await names({
+        kind: "all",
+        folderId: null,
+        search: "road",
+        searchWithinFolder: true,
+      }),
+    ).toEqual([]);
+    expect(
+      await names({
+        kind: "all",
+        folderId: contracts,
+        search: "road",
+        searchWithinFolder: true,
+      }),
     ).toEqual(["roadmap.pdf"]);
     expect(await owner.files.folders()).toEqual([
       expect.objectContaining({ name: "Contracts", files: 1, canManage: true }),

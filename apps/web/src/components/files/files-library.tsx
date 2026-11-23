@@ -1,365 +1,169 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
 import {
   ArrowLeftIcon,
-  DownloadIcon,
-  FileIcon,
+  ChevronLeftIcon,
+  ChevronRightIcon,
   FolderIcon,
   FolderPlusIcon,
   ImageIcon,
   LayoutGridIcon,
-  ListIcon,
-  PencilIcon,
   SearchIcon,
-  Trash2Icon,
+  TableIcon,
   UploadIcon,
 } from "lucide-react";
 
-import { useTrpcClient } from "@zentro/api/react";
-import type { AppRouter } from "@zentro/api/server";
-import type { inferRouterOutputs } from "@trpc/server";
+import { useRef, useState } from "react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@zentro/ui/shadcn/alert-dialog";
+import type { LibraryFile } from "./library/types";
+
 import { EmptyState } from "@zentro/ui/components/empty-state";
 import { PageHeader } from "@zentro/ui/components/page-header";
 import { Button } from "@zentro/ui/shadcn/button";
 import { Input } from "@zentro/ui/shadcn/input";
-import { NativeSelect } from "@zentro/ui/shadcn/native-select";
-import { toast, toastError } from "@zentro/ui/index";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@zentro/ui/shadcn/dropdown-menu";
 
 import { usePermission } from "~/src/components/permissions/permission-provider";
-import { apiPath } from "~/src/lib/paths";
-
-type LibraryFile = inferRouterOutputs<AppRouter>["files"]["library"][number];
-type Folder = inferRouterOutputs<AppRouter>["files"]["folders"][number];
-type Kind = "all" | "image" | "document" | "other";
-
-const kinds: { id: Kind; label: string }[] = [
-  { id: "all", label: "All" },
-  { id: "image", label: "Images" },
-  { id: "document", label: "Documents" },
-  { id: "other", label: "Other" },
-];
-
-function formatSize(bytes: number) {
-  if (bytes < 1024) return `${bytes} B`;
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-  if (bytes < 1024 * 1024 * 1024)
-    return `${(bytes / 1024 / 1024).toFixed(1)} MB`;
-  return `${(bytes / 1024 / 1024 / 1024).toFixed(1)} GB`;
-}
-
-const dateFormat = new Intl.DateTimeFormat(undefined, {
-  month: "short",
-  day: "numeric",
-  year: "numeric",
-});
-
-function Thumb({ file, large }: { file: LibraryFile; large?: boolean }) {
-  // A picture that can't be loaded (gone from storage) shows the plain
-  // file icon instead of a broken image.
-  const [failed, setFailed] = useState(false);
-  const isImage = file.mimeType.startsWith("image/") && !failed;
-
-  if (isImage) {
-    return (
-      // eslint-disable-next-line @next/next/no-img-element
-      <img
-        src={file.url}
-        alt=""
-        loading="lazy"
-        onError={() => setFailed(true)}
-        className={
-          large
-            ? "size-full object-cover"
-            : "size-10 rounded-md border border-line object-cover"
-        }
-      />
-    );
-  }
-
-  return (
-    <span
-      className={
-        large
-          ? "flex size-full items-center justify-center bg-sunken text-ink-2"
-          : "flex size-10 items-center justify-center rounded-md border border-line bg-sunken text-ink-2"
-      }
-    >
-      <FileIcon className={large ? "size-8" : "size-4"} aria-hidden />
-    </span>
-  );
-}
+import { formatSize, type FileSort } from "./library/types";
+import { useFilesLibrary } from "./library/use-files-library";
+import { FilesGridView, FilesTableView } from "./library/files-views";
+import { FilesFilters } from "./library/files-filters";
+import { FilesTableMenus, FileTypeFilter } from "./library/files-table-menus";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@zentro/ui/shadcn/select";
 
 export function FilesLibrary() {
-  const trpc = useTrpcClient();
+  const [deletion, setDeletion] = useState<"folder" | LibraryFile | null>(null);
+  const [columnVisibility, setColumnVisibility] = useState<
+    Record<string, boolean>
+  >({});
+  const dragDepth = useRef(0);
+  const [draggingFiles, setDraggingFiles] = useState(false);
   const canUpload = usePermission("files.upload");
-  const inputRef = useRef<HTMLInputElement>(null);
-  const [files, setFiles] = useState<LibraryFile[] | null>(null);
-  const [failed, setFailed] = useState(false);
-  const [usage, setUsage] = useState<{ used: number; limit: number } | null>(
-    null,
-  );
-  const [search, setSearch] = useState("");
-  const [kind, setKind] = useState<Kind>("all");
-  const [view, setView] = useState<"list" | "grid">("list");
-  const [uploading, setUploading] = useState(0);
-  const [renaming, setRenaming] = useState<string | null>(null);
-  const [draft, setDraft] = useState("");
-  const [folders, setFolders] = useState<Folder[]>([]);
-  // The folder being looked at; null is the top of the library.
-  const [folderId, setFolderId] = useState<string | null>(null);
-  const [folderDraft, setFolderDraft] = useState<string | null>(null);
-  const folder = folders.find((item) => item.id === folderId) ?? null;
+  const {
+    inputRef,
+    files,
+    page,
+    pageSize,
+    setPageSize,
+    setPage,
+    hasNext,
+    failed,
+    usage,
+    search,
+    setSearch,
+    kind,
+    setKind,
+    filters,
+    setFilters,
+    sort,
+    setSort,
+    view,
+    setView,
+    uploading,
+    renaming,
+    setRenaming,
+    draft,
+    setDraft,
+    folders,
+    setFolderId,
+    folderDraft,
+    setFolderDraft,
+    folder,
+    load,
+    upload,
+    rename,
+    saveFolder,
+    deleteFolder,
+    move,
+    remove,
+  } = useFilesLibrary();
+  const hasFilters =
+    Boolean(search.trim()) ||
+    kind !== "all" ||
+    Object.values(filters).some(Boolean);
 
-  const load = useCallback(async () => {
-    try {
-      setFiles(
-        await trpc.files.library.query({
-          search: search || undefined,
-          kind,
-          folderId,
-        }),
-      );
-      setFolders(await trpc.files.folders.query());
-      setFailed(false);
-      setUsage(await trpc.files.usage.query().catch(() => null));
-    } catch {
-      setFailed(true);
-    }
-  }, [trpc, search, kind, folderId]);
+  const emptyMessage = hasFilters
+    ? "No files match"
+    : folder
+      ? "This folder is empty"
+      : "No files yet";
+  const changeSort = (next: FileSort) => {
+    setSort(next);
+    setPage(1);
+  };
 
-  useEffect(() => {
-    const timer = setTimeout(() => void load(), search ? 200 : 0);
-    return () => clearTimeout(timer);
-  }, [load, search]);
-
-  async function upload(list: FileList | null) {
-    if (!list?.length) return;
-
-    for (const file of Array.from(list)) {
-      setUploading((count) => count + 1);
-
-      try {
-        const body = new FormData();
-        body.append("file", file);
-        body.append("library", "1");
-        // Uploaded inside a folder, it is filed there in the same step.
-        if (folderId) body.append("folderId", folderId);
-        const response = await fetch(apiPath("/api/files"), {
-          method: "POST",
-          body,
-        });
-
-        if (!response.ok) {
-          const data = (await response.json().catch(() => null)) as {
-            error?: string;
-          } | null;
-          throw new Error(data?.error ?? "Could not upload the file.");
-        }
-      } catch (error) {
-        toastError(
-          `Could not upload ${file.name}`,
-          error instanceof Error ? error.message : undefined,
-        );
-      } finally {
-        setUploading((count) => count - 1);
-      }
-    }
-
-    if (inputRef.current) inputRef.current.value = "";
-    await load();
-  }
-
-  async function rename(file: LibraryFile) {
-    const name = draft.trim();
-    setRenaming(null);
-
-    if (!name || name === file.name) return;
-
-    try {
-      await trpc.files.rename.mutate({ id: file.id, name });
-      await load();
-    } catch (error) {
-      toastError(
-        "Could not rename the file",
-        error instanceof Error ? error.message : undefined,
-      );
-    }
-  }
-
-  async function saveFolder() {
-    const name = folderDraft?.trim();
-
-    setFolderDraft(null);
-
-    if (!name) return;
-
-    try {
-      if (folder) {
-        await trpc.files.renameFolder.mutate({ id: folder.id, name });
-      } else {
-        const { id } = await trpc.files.createFolder.mutate({ name });
-
-        setFolderId(id);
-      }
-
-      await load();
-    } catch (error) {
-      toastError(
-        "Could not save the folder",
-        error instanceof Error ? error.message : undefined,
-      );
-    }
-  }
-
-  async function deleteFolder() {
-    if (
-      !folder ||
-      !window.confirm(
-        `Delete the folder “${folder.name}”? Its files stay in the library.`,
-      )
-    )
-      return;
-
-    try {
-      await trpc.files.deleteFolder.mutate({ id: folder.id });
-      setFolderId(null);
-      toast.success("Folder deleted");
-    } catch (error) {
-      toastError(
-        "Could not delete the folder",
-        error instanceof Error ? error.message : undefined,
-      );
-    }
-  }
-
-  async function move(file: LibraryFile, target: string) {
-    try {
-      await trpc.files.moveFile.mutate({
-        id: file.id,
-        folderId: target || null,
-      });
-      await load();
-    } catch (error) {
-      toastError(
-        "Could not move the file",
-        error instanceof Error ? error.message : undefined,
-      );
-    }
-  }
-
-  async function remove(file: LibraryFile) {
-    if (!window.confirm(`Delete “${file.name}”? This cannot be undone.`))
-      return;
-
-    try {
-      await trpc.files.remove.mutate({ id: file.id });
-      toast.success("File deleted");
-      await load();
-    } catch (error) {
-      toastError(
-        "Could not delete the file",
-        error instanceof Error ? error.message : undefined,
-      );
-    }
-  }
-
-  function actions(file: LibraryFile) {
-    return (
-      <div className="flex items-center gap-1">
-        <Button variant="ghost" size="icon-sm" asChild>
-          <a
-            href={file.url}
-            download={file.name}
-            aria-label={`Download ${file.name}`}
-          >
-            <DownloadIcon aria-hidden />
-          </a>
-        </Button>
-        {file.canManage && folders.length ? (
-          <NativeSelect
-            aria-label={`Move ${file.name}`}
-            value={file.folderId ?? ""}
-            onChange={(event) => void move(file, event.target.value)}
-            className="h-8 w-36 text-xs"
-          >
-            <option value="">No folder</option>
-            {folders.map((item) => (
-              <option key={item.id} value={item.id}>
-                {item.name}
-              </option>
-            ))}
-          </NativeSelect>
-        ) : null}
-        {file.canManage ? (
-          <>
-            <Button
-              variant="ghost"
-              size="icon-sm"
-              aria-label={`Rename ${file.name}`}
-              onClick={() => {
-                setDraft(file.name);
-                setRenaming(file.id);
-              }}
-            >
-              <PencilIcon aria-hidden />
-            </Button>
-            <Button
-              variant="ghost"
-              size="icon-sm"
-              aria-label={`Delete ${file.name}`}
-              onClick={() => void remove(file)}
-            >
-              <Trash2Icon aria-hidden />
-            </Button>
-          </>
-        ) : null}
-      </div>
-    );
-  }
-
-  function name(file: LibraryFile) {
-    if (renaming === file.id) {
-      return (
-        <Input
-          autoFocus
-          value={draft}
-          aria-label="File name"
-          onChange={(event) => setDraft(event.target.value)}
-          onBlur={() => void rename(file)}
-          onKeyDown={(event) => {
-            if (event.key === "Enter") void rename(file);
-            if (event.key === "Escape") setRenaming(null);
-          }}
-        />
-      );
-    }
-
-    return (
-      <a
-        href={file.url}
-        target="_blank"
-        rel="noreferrer"
-        className="line-clamp-2 text-sm font-medium break-all text-ink hover:underline sm:line-clamp-1"
-      >
-        {file.name}
-      </a>
-    );
+  function openFolder(id: string | null) {
+    setFolderId(id);
+    setFilters((current) => ({ ...current, folder: "" }));
+    setSearch("");
+    setPage(1);
   }
 
   return (
-    <div className="flex min-w-0 flex-1 flex-col gap-6 overflow-y-auto p-6">
+    <div
+      className="relative flex min-w-0 flex-1 flex-col gap-5 overflow-y-auto p-6"
+      onDragEnter={(event) => {
+        if (!canUpload || !event.dataTransfer.types.includes("Files")) return;
+        event.preventDefault();
+        dragDepth.current += 1;
+        setDraggingFiles(true);
+      }}
+      onDragOver={(event) => {
+        if (!canUpload || !event.dataTransfer.types.includes("Files")) return;
+        event.preventDefault();
+        event.dataTransfer.dropEffect = "copy";
+      }}
+      onDragLeave={() => {
+        dragDepth.current = Math.max(0, dragDepth.current - 1);
+        if (!dragDepth.current) setDraggingFiles(false);
+      }}
+      onDrop={(event) => {
+        if (!event.dataTransfer.types.includes("Files")) return;
+        event.preventDefault();
+        dragDepth.current = 0;
+        setDraggingFiles(false);
+        if (canUpload) void upload(event.dataTransfer.files);
+      }}
+    >
+      {draggingFiles ? (
+        <div
+          role="status"
+          className="pointer-events-none absolute inset-2 z-20 grid place-items-center rounded-xl border-2 border-dashed border-signal bg-surface/90"
+        >
+          <span className="flex items-center gap-2 font-medium">
+            <UploadIcon aria-hidden className="size-5" />
+            Drop files here to upload{folder ? ` to ${folder.name}` : ""}
+          </span>
+        </div>
+      ) : null}
       <PageHeader
         title="Files"
-        description={`Everything your team has shared, in one place.${
-          usage
-            ? ` ${formatSize(usage.used)} of ${formatSize(usage.limit)} used.`
-            : ""
-        }`}
         actions={
           canUpload ? (
             <>
-              <input
+              <Input
+                appearance="native"
                 ref={inputRef}
                 type="file"
                 multiple
@@ -379,42 +183,120 @@ export function FilesLibrary() {
         }
       />
 
-      <div className="flex flex-wrap items-center gap-3">
-        <div className="relative min-w-56 flex-1 sm:max-w-sm">
+      {usage ? (
+        <div
+          className="flex flex-wrap items-center gap-x-4 gap-y-1 rounded-lg border border-line bg-sunken/40 px-3 py-2 text-xs text-ink-2"
+          aria-label="Storage usage"
+        >
+          <span className="font-medium text-ink">Storage</span>
+          <progress
+            className="h-2 w-24 accent-signal"
+            aria-label="Storage used"
+            value={Math.min(usage.used, usage.limit)}
+            max={usage.limit || 1}
+          />
+          <span>
+            {formatSize(usage.used)} of {formatSize(usage.limit)} used.
+          </span>
+          <span>
+            {formatSize(Math.max(0, usage.limit - usage.used))} available
+          </span>
+        </div>
+      ) : null}
+
+      <div className="flex flex-wrap items-center gap-2">
+        <div className="relative min-w-48 flex-1 sm:max-w-64">
           <SearchIcon
             className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-ink-3"
             aria-hidden
           />
           <Input
             value={search}
-            onChange={(event) => setSearch(event.target.value)}
+            maxLength={120}
+            onChange={(event) => {
+              setSearch(event.target.value);
+              setPage(1);
+            }}
             placeholder="Search files"
             aria-label="Search files"
-            className="pl-9"
+            className="h-8 pl-9"
           />
         </div>
-        <div className="flex gap-1" role="group" aria-label="File type">
-          {kinds.map((item) => (
-            <Button
-              key={item.id}
-              size="sm"
-              variant={kind === item.id ? "secondary" : "ghost"}
-              aria-pressed={kind === item.id}
-              onClick={() => setKind(item.id)}
-            >
-              {item.label}
-            </Button>
-          ))}
-        </div>
-        <div className="ml-auto flex gap-1" role="group" aria-label="View">
+        <FileTypeFilter
+          kind={kind}
+          onChange={(next) => {
+            setKind(next);
+            setPage(1);
+          }}
+        />
+        <FilesFilters
+          filters={filters}
+          folders={folders}
+          onChange={(next) => {
+            setFilters(next);
+            setPage(1);
+          }}
+        />
+        <div
+          className="ml-auto flex items-center gap-2"
+          role="group"
+          aria-label="File display"
+        >
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="sm">
+                <FolderIcon aria-hidden /> Folders
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-56">
+              <DropdownMenuItem onSelect={() => openFolder(null)}>
+                Library
+              </DropdownMenuItem>
+              {folders.map((item) => (
+                <DropdownMenuItem
+                  key={item.id}
+                  onSelect={() => openFolder(item.id)}
+                >
+                  <span className="min-w-0 flex-1 truncate">{item.name}</span>
+                  <span className="text-xs text-ink-3">{item.files}</span>
+                </DropdownMenuItem>
+              ))}
+              {canUpload ? (
+                <>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem
+                    onSelect={() => {
+                      openFolder(null);
+                      setFolderDraft("");
+                    }}
+                  >
+                    <FolderPlusIcon aria-hidden /> New folder
+                  </DropdownMenuItem>
+                </>
+              ) : null}
+            </DropdownMenuContent>
+          </DropdownMenu>
+          {view === "table" && (
+            <FilesTableMenus
+              sort={sort}
+              onSort={changeSort}
+              columnVisibility={columnVisibility}
+              onColumnVisibility={(column, visible) =>
+                setColumnVisibility((current) => ({
+                  ...current,
+                  [column]: visible,
+                }))
+              }
+            />
+          )}
           <Button
             size="icon-sm"
-            variant={view === "list" ? "secondary" : "ghost"}
-            aria-label="List view"
-            aria-pressed={view === "list"}
-            onClick={() => setView("list")}
+            variant={view === "table" ? "secondary" : "ghost"}
+            aria-label="Table view"
+            aria-pressed={view === "table"}
+            onClick={() => setView("table")}
           >
-            <ListIcon aria-hidden />
+            <TableIcon aria-hidden />
           </Button>
           <Button
             size="icon-sm"
@@ -428,9 +310,17 @@ export function FilesLibrary() {
         </div>
       </div>
 
-      {search ? null : folder ? (
+      {search.trim() ? null : folder ? (
         <div className="flex flex-wrap items-center gap-2">
-          <Button variant="ghost" size="sm" onClick={() => setFolderId(null)}>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => {
+              setFolderId(null);
+              setFilters((current) => ({ ...current, folder: "" }));
+              setPage(1);
+            }}
+          >
             <ArrowLeftIcon aria-hidden />
             Library
           </Button>
@@ -450,34 +340,14 @@ export function FilesLibrary() {
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => void deleteFolder()}
+                onClick={() => setDeletion("folder")}
               >
                 Delete folder
               </Button>
             </div>
           ) : null}
         </div>
-      ) : (
-        <ul className="flex flex-wrap gap-2" aria-label="Folders">
-          {folders.map((item) => (
-            <li key={item.id}>
-              <Button variant="outline" onClick={() => setFolderId(item.id)}>
-                <FolderIcon aria-hidden />
-                {item.name}
-                <span className="text-xs text-ink-3">{item.files}</span>
-              </Button>
-            </li>
-          ))}
-          {canUpload ? (
-            <li>
-              <Button variant="ghost" onClick={() => setFolderDraft("")}>
-                <FolderPlusIcon aria-hidden />
-                New folder
-              </Button>
-            </li>
-          ) : null}
-        </ul>
-      )}
+      ) : null}
 
       {folderDraft !== null ? (
         <Input
@@ -504,25 +374,19 @@ export function FilesLibrary() {
         <p className="text-sm text-ink-2" role="status">
           Loading files…
         </p>
-      ) : files.length === 0 ? (
+      ) : view === "grid" && files.length === 0 ? (
         <EmptyState
           icon={<ImageIcon className="size-4" aria-hidden />}
-          title={
-            search || kind !== "all"
-              ? "No files match"
-              : folder
-                ? "This folder is empty"
-                : "No files yet"
-          }
+          title={emptyMessage}
           description={
-            search || kind !== "all"
+            hasFilters
               ? "Try a different search or filter."
               : canUpload
                 ? "Upload a file and it shows up here for everyone."
                 : "Files your team uploads show up here."
           }
           action={
-            search || kind !== "all" || !canUpload ? undefined : (
+            hasFilters || !canUpload ? undefined : (
               <Button onClick={() => inputRef.current?.click()}>
                 <UploadIcon aria-hidden />
                 Upload a file
@@ -530,43 +394,129 @@ export function FilesLibrary() {
             )
           }
         />
-      ) : view === "list" ? (
-        <ul className="divide-y divide-line rounded-xl border border-line">
-          {files.map((file) => (
-            <li key={file.id} className="flex items-center gap-3 px-4 py-3">
-              <Thumb file={file} />
-              <div className="flex min-w-0 flex-1 flex-col">
-                {name(file)}
-                <span className="text-xs text-ink-3">
-                  {formatSize(file.size)} · {file.uploadedBy ?? "Someone"} ·{" "}
-                  {dateFormat.format(new Date(file.createdAt))}
-                </span>
-              </div>
-              {actions(file)}
-            </li>
-          ))}
-        </ul>
+      ) : view === "table" ? (
+        <FilesTableView
+          files={files}
+          sort={sort}
+          onSort={changeSort}
+          columnVisibility={columnVisibility}
+          emptyMessage={emptyMessage}
+          folders={folders}
+          renaming={renaming}
+          draft={draft}
+          onDraftChange={setDraft}
+          onStartRename={(file) => {
+            setDraft(file.name);
+            setRenaming(file.id);
+          }}
+          onSaveRename={rename}
+          onCancelRename={() => setRenaming(null)}
+          onMove={move}
+          onRemove={setDeletion}
+        />
       ) : (
-        <ul className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
-          {files.map((file) => (
-            <li
-              key={file.id}
-              className="flex flex-col overflow-hidden rounded-xl border border-line"
-            >
-              <div className="aspect-4/3 overflow-hidden">
-                <Thumb file={file} large />
-              </div>
-              <div className="flex flex-col gap-1 p-3">
-                {name(file)}
-                <span className="text-xs text-ink-3">
-                  {formatSize(file.size)}
-                </span>
-                {actions(file)}
-              </div>
-            </li>
-          ))}
-        </ul>
+        <FilesGridView
+          files={files}
+          folders={folders}
+          renaming={renaming}
+          draft={draft}
+          onDraftChange={setDraft}
+          onStartRename={(file) => {
+            setDraft(file.name);
+            setRenaming(file.id);
+          }}
+          onSaveRename={rename}
+          onCancelRename={() => setRenaming(null)}
+          onMove={move}
+          onRemove={setDeletion}
+        />
       )}
+      {files !== null && !failed && (
+        <nav
+          aria-label="Files pagination"
+          className="flex flex-wrap items-center justify-between gap-3"
+        >
+          <span className="text-xs text-ink-3">
+            {files.length} {files.length === 1 ? "file" : "files"} on this page
+          </span>
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-xs text-ink-2">Rows per page</span>
+            <Select
+              value={String(pageSize)}
+              onValueChange={(value) => {
+                setPageSize(Number(value));
+                setPage(1);
+              }}
+            >
+              <SelectTrigger aria-label="Rows per page" className="h-8 w-18">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {[10, 25, 50, 100].map((size) => (
+                  <SelectItem key={size} value={String(size)}>
+                    {size}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <span className="mx-2 text-xs text-ink-2" aria-live="polite">
+              Page {page}
+            </span>
+            <Button
+              variant="outline"
+              size="icon-sm"
+              aria-label="Previous page"
+              disabled={page === 1}
+              onClick={() => setPage(page - 1)}
+            >
+              <ChevronLeftIcon aria-hidden />
+            </Button>
+            <Button
+              variant="outline"
+              size="icon-sm"
+              aria-label="Next page"
+              disabled={!hasNext}
+              onClick={() => setPage(page + 1)}
+            >
+              <ChevronRightIcon aria-hidden />
+            </Button>
+          </div>
+        </nav>
+      )}
+      <AlertDialog
+        open={deletion !== null}
+        onOpenChange={(open) => {
+          if (!open) setDeletion(null);
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {deletion === "folder"
+                ? `Delete folder “${folder?.name}”?`
+                : `Delete “${deletion?.name}”?`}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {deletion === "folder"
+                ? "Its files stay in the library."
+                : "This permanently deletes the file."}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                if (deletion === "folder") {
+                  setPage(1);
+                  void deleteFolder();
+                } else if (deletion) void remove(deletion);
+              }}
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

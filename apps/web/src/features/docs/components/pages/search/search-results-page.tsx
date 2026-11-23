@@ -1,5 +1,6 @@
 "use client";
 
+import { Input } from "@zentro/ui/shadcn/input";
 import { paths } from "~/src/lib/paths";
 import { FileTextIcon, SearchIcon } from "lucide-react";
 import Link from "next/link";
@@ -77,7 +78,7 @@ export function SearchResultsPage({ query }: SearchResultsPageProps) {
         className="mt-4 flex h-12 items-center gap-2.5 rounded-xl border border-hairline bg-surface px-3.5 focus-within:border-signal focus-within:ring-[3px] focus-within:ring-ring/22"
       >
         <SearchIcon aria-hidden="true" className="size-4 shrink-0 text-ink-3" />
-        <input
+        <Input
           name="q"
           defaultValue={query}
           autoFocus={!query}

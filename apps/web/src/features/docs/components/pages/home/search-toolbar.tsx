@@ -1,5 +1,6 @@
 "use client";
 
+import { Input } from "@zentro/ui/shadcn/input";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { FC, useEffect, useRef, type FormEvent } from "react";
@@ -101,7 +102,7 @@ export const SearchToolbar: FC<SearchToolbarProps> = ({
               aria-hidden="true"
               className="absolute top-1/2 left-3.5 size-4 -translate-y-1/2 text-ink-3"
             />
-            <input
+            <Input
               ref={input}
               value={query}
               onChange={(event) => onQueryChange?.(event.target.value)}
@@ -110,14 +111,15 @@ export const SearchToolbar: FC<SearchToolbarProps> = ({
               className="h-full w-full rounded-2xl border border-hairline bg-surface pr-16 pl-10 text-[13px] text-ink outline-none placeholder:text-ink-3 shadow-xs focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/20 transition-all dark:shadow-[inset_0_1px_0_0_rgba(255,255,255,0.08)]"
             />
             {query ? (
-              <button
+              <Button
+                variant="custom"
                 type="button"
                 onClick={() => onQueryChange?.("")}
                 className="absolute top-1/2 right-3 -translate-y-1/2 p-1 text-ink-3 hover:text-ink rounded transition-colors"
                 title="Clear search"
               >
                 <XIcon className="size-3.5" />
-              </button>
+              </Button>
             ) : (
               <Kbd className="absolute top-1/2 right-3 -translate-y-1/2 text-[10px]">
                 /
@@ -168,7 +170,8 @@ export const SearchToolbar: FC<SearchToolbarProps> = ({
         {onFilterChange && (
           <div className="flex flex-wrap items-center gap-1.5">
             {filters.map((f) => (
-              <button
+              <Button
+                variant="custom"
                 key={f.id}
                 type="button"
                 onClick={() => onFilterChange(f.id)}
@@ -192,7 +195,7 @@ export const SearchToolbar: FC<SearchToolbarProps> = ({
                     {f.count}
                   </span>
                 )}
-              </button>
+              </Button>
             ))}
           </div>
         )}
@@ -226,7 +229,8 @@ export const SearchToolbar: FC<SearchToolbarProps> = ({
             </Select>
 
             {selectedProject && (
-              <button
+              <Button
+                variant="custom"
                 type="button"
                 onClick={() => onProjectChange(null)}
                 className="flex items-center gap-1 rounded-md bg-muted px-1.5 py-0.5 text-[11px] text-ink-3 hover:text-ink"
@@ -234,7 +238,7 @@ export const SearchToolbar: FC<SearchToolbarProps> = ({
               >
                 <XIcon className="size-3" />
                 Clear
-              </button>
+              </Button>
             )}
           </div>
         )}

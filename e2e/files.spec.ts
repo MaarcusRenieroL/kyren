@@ -2,6 +2,14 @@ import { expect, test } from "./fixtures";
 
 import { registerWithOrganization, uniqueName } from "./helpers";
 
+test("signed-out uploads are rejected before parsing the file @files", async ({
+  request,
+}) => {
+  const response = await request.post("/api/files", { data: "invalid form" });
+
+  expect(response.status()).toBe(401);
+});
+
 test("a file uploads and shows usage; an oversized body is refused @files", async ({
   page,
 }) => {
@@ -17,8 +25,30 @@ test("a file uploads and shows usage; an oversized body is refused @files", asyn
     buffer: Buffer.from("hello from the e2e test"),
   });
 
-  await expect(page.getByText("notes.txt").first()).toBeVisible();
+  const table = page.getByRole("table", { name: "Files" });
+  await expect(
+    table.getByRole("link", { name: "notes.txt", exact: true }),
+  ).toBeVisible();
   await expect(page.getByText(/used\./)).toBeVisible();
+
+  await table.getByRole("button", { name: "Name", exact: true }).click();
+  await expect(
+    table.getByRole("columnheader", { name: "Name" }),
+  ).toHaveAttribute("aria-sort", "ascending");
+  await page.getByRole("button", { name: "View columns" }).click();
+  await page.getByRole("menuitemcheckbox", { name: "Size" }).click();
+  await expect(table.getByRole("columnheader", { name: "Size" })).toHaveCount(
+    0,
+  );
+  await page.keyboard.press("Escape");
+
+  const search = page.getByRole("textbox", { name: "Search files" });
+  await search.fill("does-not-exist");
+  await expect(table.getByText("No files match")).toBeVisible();
+  await search.clear();
+  await expect(
+    table.getByRole("link", { name: "notes.txt", exact: true }),
+  ).toBeVisible();
 
   // 27 MB is over the 25 MB limit, however the request is shaped.
   const status = await page.evaluate(async () => {
@@ -88,49 +118,89 @@ test("a file pretending to be an image downloads instead of showing @files", asy
 test("files go into folders, move out again, and survive the folder's deletion @files", async ({
   page,
 }) => {
-  await registerWithOrganization(page, {
+  const { email } = await registerWithOrganization(page, {
     label: "files-folders",
     orgName: uniqueName("Files folders org"),
   });
   await page.goto("/files");
 
-  await page.getByRole("button", { name: "New folder" }).click();
+  const foldersMenu = page.getByRole("button", {
+    name: "Folders",
+    exact: true,
+  });
+  await foldersMenu.click();
+  await page.getByRole("menuitem", { name: "New folder" }).click();
   await page.getByLabel("Folder name").fill("Contracts");
   await page.getByLabel("Folder name").press("Enter");
   // A new folder opens, and uploads land in it.
   await expect(page.getByRole("heading", { name: "Contracts" })).toBeVisible();
   await expect(page.getByText("This folder is empty")).toBeVisible();
 
-  await page.getByLabel("Files to upload").setInputFiles({
-    name: "lease.txt",
-    mimeType: "text/plain",
-    buffer: Buffer.from("the lease"),
+  const transfer = await page.evaluateHandle(() => {
+    const data = new DataTransfer();
+    data.items.add(
+      new File(["the lease"], "lease.txt", { type: "text/plain" }),
+    );
+    return data;
   });
+  await page.getByRole("heading", { name: "Contracts" }).dispatchEvent("drop", {
+    dataTransfer: transfer,
+  });
+  await transfer.dispose();
   await expect(
     page.getByRole("link", { name: "lease.txt", exact: true }),
   ).toBeVisible();
 
   // Back at the top of the library, filed files sit in their folder.
   await page.getByRole("button", { name: "Library" }).click();
-  const folders = page.getByRole("list", { name: "Folders" });
-
+  await foldersMenu.click();
   await expect(
-    folders.getByRole("button", { name: /Contracts\s*1/ }),
+    page.getByRole("menuitem", { name: /Contracts\s*1/ }),
   ).toBeVisible();
+  await page.keyboard.press("Escape");
   await expect(
     page.getByRole("link", { name: "lease.txt", exact: true }),
   ).toHaveCount(0);
 
-  await folders.getByRole("button", { name: /Contracts/ }).click();
-  await page.getByLabel("Move lease.txt").selectOption({ label: "No folder" });
-  await expect(page.getByText("This folder is empty")).toBeVisible();
-
-  page.once("dialog", (dialog) => void dialog.accept());
-  await page.getByRole("button", { name: "Delete folder" }).click();
+  await page.getByRole("button", { name: "Filters", exact: true }).click();
+  await page.getByRole("combobox", { name: "Uploaded by" }).click();
+  await page
+    .getByRole("textbox", { name: "Search workspace members" })
+    .fill(email);
+  await page.getByRole("option").filter({ hasText: email }).click();
+  await page.getByRole("combobox", { name: "Folder", exact: true }).click();
+  await page.getByRole("textbox", { name: "Search folders" }).fill("contract");
+  await page.getByRole("option", { name: "Contracts" }).click();
+  await page.getByRole("button", { name: /^Uploaded from,/ }).click();
+  await page.locator('[data-today="true"] button').click();
+  await page.getByRole("button", { name: /^Uploaded through,/ }).click();
+  await page.locator('[data-today="true"] button').click();
+  await page.getByRole("button", { name: "Apply filters" }).click();
   await expect(
     page.getByRole("link", { name: "lease.txt", exact: true }),
   ).toBeVisible();
-  await expect(folders.getByRole("button", { name: /Contracts/ })).toHaveCount(
+  await page.getByRole("button", { name: "Filters (4)" }).click();
+  await page.getByRole("button", { name: "Clear filters" }).click();
+  await expect(
+    page.getByRole("link", { name: "lease.txt", exact: true }),
+  ).toHaveCount(0);
+
+  await foldersMenu.click();
+  await page.getByRole("menuitem", { name: /Contracts/ }).click();
+  await page.getByRole("combobox", { name: "Move lease.txt" }).click();
+  await page.getByRole("option", { name: "No folder" }).click();
+  await expect(page.getByText("This folder is empty")).toBeVisible();
+
+  await page.getByRole("button", { name: "Delete folder" }).click();
+  await page
+    .getByRole("alertdialog")
+    .getByRole("button", { name: "Delete", exact: true })
+    .click();
+  await expect(
+    page.getByRole("link", { name: "lease.txt", exact: true }),
+  ).toBeVisible();
+  await foldersMenu.click();
+  await expect(page.getByRole("menuitem", { name: /Contracts/ })).toHaveCount(
     0,
   );
 });

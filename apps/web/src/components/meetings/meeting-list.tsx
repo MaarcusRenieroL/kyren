@@ -1,5 +1,23 @@
 "use client";
 
+import { Label } from "@zentro/ui/shadcn/label";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@zentro/ui/shadcn/dialog";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@zentro/ui/shadcn/collapsible";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { Checkbox } from "@zentro/ui/shadcn/checkbox";
 import { useState } from "react";
 import Link from "next/link";
 
@@ -32,17 +50,44 @@ function defaultStart() {
   return local.toISOString().slice(0, 16);
 }
 
+const meetingSchema = z.object({
+  title: z.string().trim().min(1, "Enter a title.").max(200),
+  agenda: z.string().max(5000),
+  start: z
+    .string()
+    .refine(
+      (value) => Number.isFinite(Date.parse(value)),
+      "Enter a valid start date and time.",
+    ),
+  minutes: z.number().int().min(5).max(480),
+  invited: z.array(z.string()),
+});
+type MeetingForm = z.infer<typeof meetingSchema>;
+
 /** Meetings the person organizes or is invited to, and a form to schedule one. */
 export function MeetingList({ canCreate }: { canCreate: boolean }) {
   const trpc = useTrpcClient();
   const [tab, setTab] = useState<"upcoming" | "past">("upcoming");
   const [open, setOpen] = useState(false);
-  const [title, setTitle] = useState("");
-  const [agenda, setAgenda] = useState("");
-  const [start, setStart] = useState(defaultStart);
-  const [minutes, setMinutes] = useState("30");
-  const [invited, setInvited] = useState<string[]>([]);
-  const [busy, setBusy] = useState(false);
+  const [inviteSearch, setInviteSearch] = useState("");
+  const {
+    register,
+    handleSubmit,
+    reset,
+    watch,
+    setValue,
+    formState: { errors, isSubmitting },
+  } = useForm<MeetingForm>({
+    resolver: zodResolver(meetingSchema),
+    defaultValues: {
+      title: "",
+      agenda: "",
+      start: defaultStart(),
+      minutes: 30,
+      invited: [],
+    },
+  });
+  const invited = watch("invited");
 
   const meetings = useAsyncData(
     () => trpc.meeting.list.query({ when: tab }),
@@ -50,119 +95,186 @@ export function MeetingList({ canCreate }: { canCreate: boolean }) {
   );
   const people = useAsyncData(() => trpc.member.getMembers.query(), [trpc]);
 
-  async function schedule(event: React.FormEvent) {
-    event.preventDefault();
-    setBusy(true);
+  const matches = (people.data ?? []).filter((person) =>
+    `${person.name ?? ""} ${person.email}`
+      .toLowerCase()
+      .includes(inviteSearch.trim().toLowerCase()),
+  );
 
+  async function schedule({
+    title,
+    agenda,
+    start,
+    minutes,
+    invited,
+  }: MeetingForm) {
     try {
       await trpc.meeting.create.mutate({
         title,
         agenda: agenda || undefined,
         startsAt: new Date(start),
-        durationMinutes: Number(minutes),
+        durationMinutes: minutes,
         attendeeUserIds: invited,
       });
-      setTitle("");
-      setAgenda("");
-      setInvited([]);
+      reset({
+        title: "",
+        agenda: "",
+        start: defaultStart(),
+        minutes: 30,
+        invited: [],
+      });
+      setInviteSearch("");
       setOpen(false);
       setTab("upcoming");
       meetings.reload();
     } catch (error) {
       toastError(error, "Could not schedule the meeting.");
-    } finally {
-      setBusy(false);
     }
   }
 
   return (
-    <div className="mx-auto flex w-full max-w-3xl flex-col gap-5 p-6">
+    <div className="flex w-full min-w-0 flex-col gap-5 p-6">
       <PageHeader
         title="Meetings"
         description="Video meetings with an agenda, shared notes and an AI recap."
         actions={
           canCreate ? (
-            <Button onClick={() => setOpen((value) => !value)}>
-              Schedule a meeting
-            </Button>
+            <Button onClick={() => setOpen(true)}>Schedule a meeting</Button>
           ) : undefined
         }
       />
 
-      {open ? (
-        <form
-          onSubmit={(event) => void schedule(event)}
-          className="tile flex flex-col gap-3 px-5 py-4"
-        >
-          <label className="flex flex-col gap-1 text-sm">
-            Title
-            <Input
-              value={title}
-              onChange={(event) => setTitle(event.target.value)}
-              required
-              maxLength={200}
-            />
-          </label>
-          <div className="flex flex-wrap gap-3">
-            <label className="flex flex-col gap-1 text-sm">
-              Starts
+      <Dialog
+        open={open}
+        onOpenChange={(next) => {
+          if (!isSubmitting) setOpen(next);
+        }}
+      >
+        <DialogContent className="max-h-[90dvh] overflow-y-auto sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Schedule a meeting</DialogTitle>
+            <DialogDescription>
+              Choose a time and invite people from your workspace.
+            </DialogDescription>
+          </DialogHeader>
+          <form
+            noValidate
+            onSubmit={handleSubmit(schedule)}
+            className="grid gap-4"
+          >
+            <Label className="grid gap-2 leading-normal">
+              Title
               <Input
-                type="datetime-local"
-                value={start}
-                onChange={(event) => setStart(event.target.value)}
-                required
+                {...register("title")}
+                maxLength={200}
+                aria-invalid={!!errors.title}
               />
-            </label>
-            <label className="flex flex-col gap-1 text-sm">
-              Minutes
-              <Input
-                type="number"
-                min={5}
-                max={480}
-                className="w-24"
-                value={minutes}
-                onChange={(event) => setMinutes(event.target.value)}
-                required
-              />
-            </label>
-          </div>
-          <label className="flex flex-col gap-1 text-sm">
-            Agenda
-            <Textarea
-              value={agenda}
-              onChange={(event) => setAgenda(event.target.value)}
-              rows={3}
-              maxLength={5000}
-            />
-          </label>
-          <fieldset className="flex flex-col gap-1 text-sm">
-            <legend className="mb-1">Invite</legend>
-            <div className="flex max-h-40 flex-col gap-1 overflow-auto">
-              {(people.data ?? []).map((person) => (
-                <label key={person.userId} className="flex items-center gap-2">
-                  <input
-                    type="checkbox"
-                    checked={invited.includes(person.userId)}
-                    onChange={(event) =>
-                      setInvited((current) =>
-                        event.target.checked
-                          ? [...current, person.userId]
-                          : current.filter((id) => id !== person.userId),
-                      )
-                    }
-                  />
-                  {person.name || person.email}
-                </label>
-              ))}
+              {errors.title && (
+                <span className="text-danger-text" role="alert">
+                  {errors.title.message}
+                </span>
+              )}
+            </Label>
+            <div className="grid gap-3 sm:grid-cols-[1fr_7rem]">
+              <Label className="grid min-w-0 gap-2 leading-normal">
+                Starts
+                <Input
+                  type="datetime-local"
+                  {...register("start")}
+                  aria-invalid={!!errors.start}
+                />
+                {errors.start && (
+                  <span className="text-danger-text" role="alert">
+                    {errors.start.message}
+                  </span>
+                )}
+              </Label>
+              <Label className="grid gap-2 leading-normal">
+                Minutes
+                <Input
+                  type="number"
+                  min={5}
+                  max={480}
+                  {...register("minutes", { valueAsNumber: true })}
+                  aria-invalid={!!errors.minutes}
+                />
+                {errors.minutes && (
+                  <span className="text-danger-text" role="alert">
+                    Enter 5 to 480 minutes.
+                  </span>
+                )}
+              </Label>
             </div>
-          </fieldset>
-          <div>
-            <Button type="submit" disabled={busy || !title.trim()}>
-              Schedule
-            </Button>
-          </div>
-        </form>
-      ) : null}
+            <Label className="grid gap-2 leading-normal">
+              Agenda
+              <Textarea {...register("agenda")} rows={3} maxLength={5000} />
+            </Label>
+            <Collapsible className="rounded-lg border border-line">
+              <CollapsibleTrigger asChild>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  className="w-full justify-between"
+                >
+                  Invite people <span>{invited.length} selected</span>
+                </Button>
+              </CollapsibleTrigger>
+              <CollapsibleContent className="grid gap-2 border-t border-line p-3">
+                <Input
+                  type="search"
+                  aria-label="Search invitees"
+                  placeholder="Search by name or email"
+                  value={inviteSearch}
+                  onChange={(event) => setInviteSearch(event.target.value)}
+                />
+                <div className="grid max-h-44 gap-2 overflow-y-auto p-1">
+                  {matches.map((person) => (
+                    <Label
+                      key={person.userId}
+                      className="min-w-0 cursor-pointer py-1 leading-normal"
+                    >
+                      <Checkbox
+                        checked={invited.includes(person.userId)}
+                        onCheckedChange={(checked) =>
+                          setValue(
+                            "invited",
+                            checked === true
+                              ? [...invited, person.userId]
+                              : invited.filter((id) => id !== person.userId),
+                          )
+                        }
+                      />
+                      <span className="min-w-0 truncate">
+                        {person.name || person.email}
+                      </span>
+                    </Label>
+                  ))}
+                  {!matches.length && (
+                    <p className="text-sm text-ink-2">
+                      {people.status === "loading"
+                        ? "Loading people…"
+                        : "No matching people."}
+                    </p>
+                  )}
+                </div>
+              </CollapsibleContent>
+            </Collapsible>
+            <DialogFooter>
+              <Button
+                type="button"
+                variant="outline"
+                disabled={isSubmitting}
+                onClick={() => setOpen(false)}
+              >
+                Cancel
+              </Button>
+              <Button type="submit" loading={isSubmitting}>
+                Schedule
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
 
       <div role="tablist" className="flex gap-2">
         {(["upcoming", "past"] as const).map((value) => (
@@ -182,9 +294,13 @@ export function MeetingList({ canCreate }: { canCreate: boolean }) {
       {meetings.status === "error" ? (
         <p role="alert" className="text-sm text-danger-text">
           Could not load your meetings.{" "}
-          <button className="underline" onClick={meetings.reload}>
+          <Button
+            variant="custom"
+            className="underline"
+            onClick={meetings.reload}
+          >
             Try again
-          </button>
+          </Button>
         </p>
       ) : meetings.status === "ready" && !meetings.data.length ? (
         <EmptyState

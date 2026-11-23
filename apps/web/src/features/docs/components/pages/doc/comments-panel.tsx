@@ -1,49 +1,15 @@
 "use client";
 
+import { useEffect, useState } from "react";
+import { SendIcon, XIcon } from "lucide-react";
 import { Button } from "@zentro/ui/shadcn/button";
 import { Skeleton } from "@zentro/ui/shadcn/skeleton";
 import { Textarea } from "@zentro/ui/shadcn/textarea";
-import {
-  CheckIcon,
-  CornerDownRightIcon,
-  PencilIcon,
-  SendIcon,
-  Trash2Icon,
-  XIcon,
-} from "lucide-react";
-import { useEffect, useState } from "react";
-
 import { useTrpcClient } from "@zentro/api/react";
 import { toastError, toastSuccess } from "@zentro/ui/index";
-
-import { ActorAvatar } from "~/src/components/actor-avatar";
-
-import { formatDocDate } from "../../../lib/docs";
-
-type DocComment = {
-  id: string;
-  parentId: string | null;
-  body: string;
-  authorName: string | null;
-  authorEmail: string | null;
-  authorImage: string | null;
-  resolvedAt: Date | null;
-  createdAt: Date;
-  updatedAt: Date;
-  canEdit: boolean;
-  canDelete: boolean;
-};
-
-/** Open threads and their replies; a resolved thread hides with its replies. */
-function openOnly(list: DocComment[]) {
-  const open = new Set(
-    list
-      .filter((comment) => !comment.parentId && !comment.resolvedAt)
-      .map((comment) => comment.id),
-  );
-
-  return list.filter((comment) => open.has(comment.parentId ?? comment.id));
-}
+import { type DocComment, openOnly } from "./comments/types";
+import { CommentItem } from "./comments/comment-item";
+import { ThreadReplyForm } from "./comments/thread-reply-form";
 
 type CommentsPanelProps = {
   docId: string;
@@ -71,6 +37,7 @@ export function CommentsPanel({
   useEffect(() => {
     onCount?.(threads.length);
   }, [threads.length, onCount]);
+
   const [replying, setReplying] = useState<{ id: string; body: string } | null>(
     null,
   );
@@ -91,7 +58,6 @@ export function CommentsPanel({
     async function loadComments() {
       try {
         const commentList = await trpc.docs.getComments.query({ docId });
-
         if (isMounted) {
           setComments(openOnly(commentList));
         }
@@ -112,16 +78,11 @@ export function CommentsPanel({
   }, [docId, trpc]);
 
   async function createComment() {
-    if (!body.trim() || savingId) {
-      return;
-    }
+    if (!body.trim() || savingId) return;
 
     try {
       setSavingId("new");
-      await trpc.docs.createComment.mutate({
-        docId,
-        body,
-      });
+      await trpc.docs.createComment.mutate({ docId, body });
       setBody("");
       await fetchComments();
       toastSuccess("Comment added");
@@ -133,9 +94,7 @@ export function CommentsPanel({
   }
 
   async function sendReply() {
-    if (!replying || !replying.body.trim() || savingId) {
-      return;
-    }
+    if (!replying || !replying.body.trim() || savingId) return;
 
     try {
       setSavingId(`reply:${replying.id}`);
@@ -168,9 +127,7 @@ export function CommentsPanel({
   }
 
   async function saveEdit() {
-    if (!editing || !editing.body.trim() || savingId) {
-      return;
-    }
+    if (!editing || !editing.body.trim() || savingId) return;
 
     try {
       setSavingId(editing.id);
@@ -186,9 +143,7 @@ export function CommentsPanel({
   }
 
   async function deleteComment(id: string) {
-    if (!window.confirm("Delete this comment? This cannot be undone.")) {
-      return;
-    }
+    if (!window.confirm("Delete this comment? This cannot be undone.")) return;
 
     try {
       setSavingId(id);
@@ -202,109 +157,7 @@ export function CommentsPanel({
     }
   }
 
-  function renderComment(comment: DocComment, isReply: boolean) {
-    const author =
-      comment.authorName ?? comment.authorEmail ?? "Unknown author";
-
-    return (
-      <div className={`flex gap-2.5 rounded-xl p-3 ${isReply ? "pt-1" : ""}`}>
-        <ActorAvatar name={author} size={28} />
-        <div className="min-w-0 flex-1">
-          <p className="flex items-baseline gap-2 text-sm">
-            <span className="truncate font-medium">{author}</span>
-            <span className="font-mono text-[11px] text-ink-3">
-              {formatDocDate(comment.createdAt)}
-            </span>
-          </p>
-          {editing?.id === comment.id ? (
-            <div className="mt-1 flex flex-col gap-1.5">
-              <Textarea
-                className="min-h-16 resize-none"
-                aria-label="Edit comment"
-                value={editing.body}
-                onChange={(event) =>
-                  setEditing({ id: comment.id, body: event.target.value })
-                }
-              />
-              <div className="flex justify-end gap-1.5">
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  onClick={() => setEditing(null)}
-                >
-                  Cancel
-                </Button>
-                <Button
-                  size="sm"
-                  disabled={!editing.body.trim() || savingId === comment.id}
-                  onClick={saveEdit}
-                >
-                  {savingId === comment.id ? "Saving..." : "Save"}
-                </Button>
-              </div>
-            </div>
-          ) : (
-            <p className="mt-1 text-sm leading-5 text-ink-2">{comment.body}</p>
-          )}
-          {editing?.id !== comment.id ? (
-            <div className="mt-1.5 flex items-center gap-3 text-xs">
-              {canComment && !isReply ? (
-                <button
-                  type="button"
-                  onClick={() => setReplying({ id: comment.id, body: "" })}
-                  aria-label={`Reply to ${author}`}
-                  className="flex items-center gap-1 rounded-xs text-ink-2 outline-none hover:underline focus-visible:ring-2 focus-visible:ring-ring"
-                >
-                  <CornerDownRightIcon className="size-3.5" />
-                  Reply
-                </button>
-              ) : null}
-              {canComment && !isReply ? (
-                <button
-                  type="button"
-                  disabled={savingId === comment.id}
-                  onClick={() => resolveComment(comment.id)}
-                  className="flex items-center gap-1 rounded-xs text-signal outline-none hover:underline focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50"
-                >
-                  <CheckIcon className="size-3.5" />
-                  {savingId === comment.id ? "Working..." : "Resolve"}
-                </button>
-              ) : null}
-              {canComment && comment.canEdit ? (
-                <button
-                  type="button"
-                  disabled={savingId === comment.id}
-                  onClick={() =>
-                    setEditing({ id: comment.id, body: comment.body })
-                  }
-                  className="flex items-center gap-1 rounded-xs text-ink-2 outline-none hover:underline focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50"
-                >
-                  <PencilIcon className="size-3.5" />
-                  Edit
-                </button>
-              ) : null}
-              {canComment && comment.canDelete ? (
-                <button
-                  type="button"
-                  disabled={savingId === comment.id}
-                  onClick={() => deleteComment(comment.id)}
-                  aria-label={`Delete comment by ${author}`}
-                  className="flex items-center gap-1 rounded-xs text-ink-2 outline-none hover:text-danger hover:underline focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50"
-                >
-                  <Trash2Icon className="size-3.5" />
-                  Delete
-                </button>
-              ) : null}
-            </div>
-          ) : null}
-        </div>
-      </div>
-    );
-  }
-
-  if (!isOpen) {
-    return null;
-  }
+  if (!isOpen) return null;
 
   return (
     <aside
@@ -344,45 +197,45 @@ export function CommentsPanel({
               key={thread.id}
               className="flex flex-col border-t border-hairline/60 first:border-t-0"
             >
-              {renderComment(thread, false)}
+              <CommentItem
+                comment={thread}
+                isReply={false}
+                canComment={canComment}
+                savingId={savingId}
+                editing={editing}
+                setEditing={setEditing}
+                onSaveEdit={saveEdit}
+                onStartReply={(id) => setReplying({ id, body: "" })}
+                onResolve={resolveComment}
+                onDelete={deleteComment}
+              />
               {repliesOf(thread.id).map((reply) => (
                 <div key={reply.id} className="ml-8">
-                  {renderComment(reply, true)}
+                  <CommentItem
+                    comment={reply}
+                    isReply={true}
+                    canComment={canComment}
+                    savingId={savingId}
+                    editing={editing}
+                    setEditing={setEditing}
+                    onSaveEdit={saveEdit}
+                    onStartReply={(id) => setReplying({ id, body: "" })}
+                    onResolve={resolveComment}
+                    onDelete={deleteComment}
+                  />
                 </div>
               ))}
               {replying?.id === thread.id ? (
-                <div className="ml-8 flex flex-col gap-1.5 px-3 pb-3">
-                  <Textarea
-                    autoFocus
-                    className="min-h-16 resize-none"
-                    aria-label="Reply"
-                    value={replying.body}
-                    onChange={(event) =>
-                      setReplying({ id: thread.id, body: event.target.value })
-                    }
-                  />
-                  <div className="flex justify-end gap-1.5">
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      onClick={() => setReplying(null)}
-                    >
-                      Cancel
-                    </Button>
-                    <Button
-                      size="sm"
-                      disabled={
-                        !replying.body.trim() ||
-                        savingId === `reply:${thread.id}`
-                      }
-                      onClick={sendReply}
-                    >
-                      {savingId === `reply:${thread.id}`
-                        ? "Posting..."
-                        : "Send reply"}
-                    </Button>
-                  </div>
-                </div>
+                <ThreadReplyForm
+                  threadId={thread.id}
+                  replyingBody={replying.body}
+                  isSaving={savingId === `reply:${thread.id}`}
+                  onChange={(val) =>
+                    setReplying({ id: thread.id, body: val })
+                  }
+                  onCancel={() => setReplying(null)}
+                  onSubmit={sendReply}
+                />
               ) : null}
             </div>
           ))}

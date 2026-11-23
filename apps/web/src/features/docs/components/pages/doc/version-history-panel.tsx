@@ -1,5 +1,6 @@
 "use client";
 
+import { Button } from "@zentro/ui/shadcn/button";
 import { FC, useEffect, useState } from "react";
 import { EyeIcon, HistoryIcon, RotateCcwIcon, XIcon } from "lucide-react";
 
@@ -127,14 +128,15 @@ export const VersionHistoryPanel: FC<Props> = ({
           <HistoryIcon className="size-4 text-signal" />
           <h2 className="text-sm font-semibold text-ink">Version History</h2>
         </div>
-        <button
+        <Button
+          variant="custom"
           type="button"
           onClick={onClose}
           className="rounded-lg p-1 text-ink-3 transition-colors hover:bg-hover hover:text-ink cursor-pointer"
           aria-label="Close version history"
         >
           <XIcon className="size-4" />
-        </button>
+        </Button>
       </div>
 
       <div className="flex-1 overflow-y-auto divide-y divide-hairline/50 py-3">
@@ -205,17 +207,19 @@ export const VersionHistoryPanel: FC<Props> = ({
                 )}
 
                 <div className="mt-1 flex items-center justify-end gap-2">
-                  <button
+                  <Button
+                    variant="custom"
                     type="button"
                     onClick={() => void togglePreview(entry)}
                     className="inline-flex items-center gap-1 rounded-lg px-2 py-1 text-[11px] font-medium text-ink-2 hover:bg-surface hover:text-ink transition-colors cursor-pointer"
                   >
                     <EyeIcon className="size-3" />
                     <span>{isPreviewing ? "Hide" : "Preview"}</span>
-                  </button>
+                  </Button>
 
                   {!isLatest && (
-                    <button
+                    <Button
+                      variant="custom"
                       type="button"
                       onClick={() => handleRestore(entry)}
                       disabled={restoringId === entry.id}
@@ -225,7 +229,7 @@ export const VersionHistoryPanel: FC<Props> = ({
                       <span>
                         {restoringId === entry.id ? "Restoring..." : "Restore"}
                       </span>
-                    </button>
+                    </Button>
                   )}
                 </div>
               </div>

@@ -54,6 +54,17 @@ export async function POST(request: Request) {
   if (paused) return paused;
 
   const ctx = await createRequestContext(request);
+  if (!ctx.user) {
+    return Response.json({ error: "You must be logged in" }, { status: 401 });
+  }
+
+  if (!ctx.activeOrganization) {
+    return Response.json(
+      { error: "No active organization selected" },
+      { status: 400 },
+    );
+  }
+
   const caller = appRouter.createCaller(ctx);
   const declared = Number(request.headers.get("content-length") ?? 0);
 
@@ -123,7 +134,7 @@ export async function POST(request: Request) {
 
     // A claimed image or PDF must really be one before it is ever shown.
     const mimeType = verifiedMimeType(bytes, file.type);
-    const key = newStorageKey(ctx.activeOrganization!.id, file.name);
+    const key = newStorageKey(ctx.activeOrganization.id, file.name);
     const { width, height } = imageSize(bytes, mimeType);
     const scan = await scanUpload(bytes).catch((error: unknown) => {
       console.error("Virus scan failed", error);
@@ -143,7 +154,7 @@ export async function POST(request: Request) {
 
     if (scan && !scan.clean) {
       console.warn(
-        `Upload refused: ${scan.signature} in "${file.name}" for organization ${ctx.activeOrganization!.id}`,
+        `Upload refused: ${scan.signature} in "${file.name}" for organization ${ctx.activeOrganization.id}`,
       );
 
       return Response.json(

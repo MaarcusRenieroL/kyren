@@ -1,0 +1,286 @@
+import { randomBytes } from "node:crypto";
+
+import { TRPCError } from "@trpc/server";
+import { and, asc, desc, eq, gte, inArray, lt } from "@zentro/db/drizzle";
+import { meetingAttendees, meetings, members, users } from "@zentro/db/schema";
+import { z } from "zod";
+
+import { aiAvailable, askClaude } from "../../chat-ai";
+import { actionItemsOf } from "../../meeting-actions";
+import { projectFromInput } from "../../resources";
+import { mailMeeting } from "../../meeting-mail";
+import { sendDueMeetingRemindersLazily } from "../../meeting-reminders";
+import { permissionProcedure, router, type OrganizationContext } from "../../trpc";
+import type { TRPCContext } from "../../../types";
+import { taskRouter } from "../task";
+import { uuid } from "../../zod-common";
+
+const MAX_ATTENDEES = 100;
+const MAX_NOTES = 20_000;
+
+const procedure = (permission: string, audit?: string[]) =>
+  permissionProcedure(permission, undefined, { module: "calendar", audit });
+
+/** Where the video room lives. Jitsi needs no account; set MEETING_BASE_URL to use your own. */
+function joinUrl(slug: string) {
+  const configured = process.env.MEETING_BASE_URL?.replace(/\/+$/, "");
+  const base =
+    configured && configured.startsWith("https://")
+      ? configured
+      : "https://meet.jit.si";
+
+  return `${base}/zentro-${slug}`;
+}
+
+/** A meeting the person organizes or is invited to; anything else does not exist for them. */
+async function visible(ctx: OrganizationContext, id: string) {
+  const [meeting] = await ctx.db
+    .select()
+    .from(meetings)
+    .where(
+      and(
+        eq(meetings.id, id),
+        eq(meetings.organizationId, ctx.activeOrganization.id),
+      ),
+    )
+    .limit(1);
+  const [invited] = meeting
+    ? await ctx.db
+        .select({ id: meetingAttendees.id })
+        .from(meetingAttendees)
+        .where(
+          and(
+            eq(meetingAttendees.meetingId, meeting.id),
+            eq(meetingAttendees.userId, ctx.user.id),
+          ),
+        )
+        .limit(1)
+    : [];
+
+  if (!meeting || (!invited && meeting.organizerUserId !== ctx.user.id)) {
+    throw new TRPCError({ code: "NOT_FOUND", message: "Meeting not found." });
+  }
+
+  return meeting;
+}
+
+
+export const meetingMutationsProcedures = {
+  create: procedure("calendar.create", ["meeting.scheduled"])
+    .input(
+      z.object({
+        title: z.string().trim().min(1, "Give the meeting a title.").max(200),
+        agenda: z.string().trim().max(5000).optional(),
+        startsAt: z.coerce.date(),
+        durationMinutes: z.number().int().min(5).max(480),
+        attendeeUserIds: z.array(uuid).max(MAX_ATTENDEES),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      if (input.startsAt.getTime() < Date.now() - 5 * 60_000) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Pick a time that has not passed.",
+        });
+      }
+
+      const invitees = [...new Set(input.attendeeUserIds)].filter(
+        (id) => id !== ctx.user.id,
+      );
+
+      if (invitees.length) {
+        const found = await ctx.db
+          .select({ userId: members.userId })
+          .from(members)
+          .where(
+            and(
+              eq(members.organizationId, ctx.activeOrganization.id),
+              inArray(members.userId, invitees),
+            ),
+          );
+
+        if (found.length !== invitees.length) {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: "You can only invite people from this organization.",
+          });
+        }
+      }
+
+      const result = await ctx.db.transaction(async (tx) => {
+        const [created] = await tx
+          .insert(meetings)
+          .values({
+            organizationId: ctx.activeOrganization.id,
+            organizerUserId: ctx.user.id,
+            title: input.title,
+            agenda: input.agenda || null,
+            startsAt: input.startsAt,
+            durationMinutes: input.durationMinutes,
+            roomSlug: randomBytes(12).toString("hex"),
+          })
+          .returning({ id: meetings.id });
+
+        await tx
+          .insert(meetingAttendees)
+          .values([
+            { meetingId: created!.id, userId: ctx.user.id, response: "yes" },
+            ...invitees.map((userId) => ({ meetingId: created!.id, userId })),
+          ]);
+        await ctx.audit.record(tx, {
+          action: "meeting.scheduled",
+          target: { id: created!.id, label: input.title },
+        });
+
+        return { id: created!.id };
+      });
+
+      const [row] = await ctx.db
+        .select()
+        .from(meetings)
+        .where(eq(meetings.id, result.id));
+
+      await mailMeeting(ctx.db, row!, "invite");
+
+      return result;
+    }),
+
+  /** An invitee's answer. */
+  respond: procedure("calendar.view")
+    .input(z.object({ id: uuid, response: z.enum(["yes", "no", "maybe"]) }))
+    .mutation(async ({ ctx, input }) => {
+      const meeting = await visible(ctx, input.id);
+
+      await ctx.db
+        .update(meetingAttendees)
+        .set({ response: input.response })
+        .where(
+          and(
+            eq(meetingAttendees.meetingId, meeting.id),
+            eq(meetingAttendees.userId, ctx.user.id),
+          ),
+        );
+
+      return { ok: true };
+    }),
+
+  /** Shared notes anyone in the meeting can write. */
+  saveNotes: procedure("calendar.view")
+    .input(z.object({ id: uuid, notes: z.string().max(MAX_NOTES) }))
+    .mutation(async ({ ctx, input }) => {
+      const meeting = await visible(ctx, input.id);
+
+      if (meeting.status === "canceled") {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "This meeting was canceled.",
+        });
+      }
+
+      await ctx.db
+        .update(meetings)
+        .set({ notes: input.notes })
+        .where(eq(meetings.id, meeting.id));
+
+      return { ok: true };
+    }),
+
+  /** Only the organizer cancels. */
+  cancel: procedure("calendar.view", ["meeting.canceled"])
+    .input(z.object({ id: uuid }))
+    .mutation(async ({ ctx, input }) => {
+      const meeting = await visible(ctx, input.id);
+
+      if (meeting.organizerUserId !== ctx.user.id) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "Only the organizer can cancel the meeting.",
+        });
+      }
+
+      await ctx.db.transaction(async (tx) => {
+        await tx
+          .update(meetings)
+          .set({ status: "canceled" })
+          .where(eq(meetings.id, meeting.id));
+        await ctx.audit.record(tx, {
+          action: "meeting.canceled",
+          target: { id: meeting.id, label: meeting.title },
+        });
+      });
+      await mailMeeting(ctx.db, meeting, "cancel");
+
+      return { ok: true };
+    }),
+
+  /**
+   * Makes a task for each action item in a project the person may add tasks
+   * to. Each task goes through the normal task creation, so keys, permissions
+   * and audit entries are the same as when it is created by hand.
+   */
+  createTasks: permissionProcedure("tasks.create", projectFromInput, {
+    module: "tasks",
+  })
+    .input(
+      z.object({
+        id: uuid,
+        projectId: uuid,
+        titles: z.array(z.string().trim().min(1).max(200)).min(1).max(20),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const meeting = await visible(ctx, input.id);
+      const tasksApi = taskRouter.createCaller(ctx as unknown as TRPCContext);
+      const keys: string[] = [];
+
+      for (const name of input.titles) {
+        const task = await tasksApi.createTask({
+          projectId: input.projectId,
+          name,
+          description: `From the meeting "${meeting.title}".`,
+        });
+
+        keys.push(task.key);
+      }
+
+      return { keys };
+    }),
+
+  /** Turns the notes into a short recap with decisions and action items. */
+  summarize: procedure("calendar.view", ["ai.used"])
+    .input(z.object({ id: uuid }))
+    .mutation(async ({ ctx, input }) => {
+      const meeting = await visible(ctx, input.id);
+
+      if (!meeting.notes?.trim()) {
+        ctx.audit.skipped("ai.used");
+
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Write some notes first.",
+        });
+      }
+
+      const summary = await askClaude(
+        ctx,
+        "summarize a meeting",
+        "You write concise meeting recaps. Reply with: a two-sentence summary, then 'Decisions:' and 'Action items:' as short bullet lists, naming owners when the notes do. Use only what the notes say.",
+        `Meeting: ${meeting.title}\n\nNotes:\n${meeting.notes}`,
+      );
+
+      if (!summary) {
+        throw new TRPCError({
+          code: "PRECONDITION_FAILED",
+          message:
+            "AI notes need an administrator to turn on AI (and ANTHROPIC_API_KEY to be set).",
+        });
+      }
+
+      await ctx.db
+        .update(meetings)
+        .set({ summary })
+        .where(eq(meetings.id, meeting.id));
+
+      return { summary };
+    }),
+};

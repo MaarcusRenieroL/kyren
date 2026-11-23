@@ -1,5 +1,7 @@
 "use client";
 
+import { Label } from "@zentro/ui/shadcn/label";
+import { Checkbox } from "@zentro/ui/shadcn/checkbox";
 import { useCallback, useEffect, useState } from "react";
 
 import { useTrpcClient } from "@zentro/api/react";
@@ -97,15 +99,14 @@ export function ShareDialog({
         </Button>
 
         {share?.canManage ? (
-          <label className="flex items-center gap-2 text-sm">
-            <input
-              type="checkbox"
+          <Label className="flex items-center gap-2 text-sm">
+            <Checkbox
               checked={share.shared}
               disabled={busy}
-              onChange={(event) => void toggle(event.target.checked)}
+              onCheckedChange={(checked) => void toggle(checked === true)}
             />
             Anyone with the link can read
-          </label>
+          </Label>
         ) : share?.shared ? (
           <p className="text-sm text-ink-2">
             This doc has a public link. Someone who can edit it can turn it off.
