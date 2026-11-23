@@ -209,13 +209,14 @@ export function ThreadPanel({
         {failed && !thread ? (
           <p className="px-4 py-6 text-sm text-ink-2">
             Couldn’t load this thread.{" "}
-            <button
+            <Button
+              variant="custom"
               type="button"
               onClick={() => void load()}
               className="text-signal-strong underline underline-offset-2"
             >
               Try again
-            </button>
+            </Button>
           </p>
         ) : null}
         {thread ? (

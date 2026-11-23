@@ -1,70 +1,18 @@
 "use client";
 
-import Link from "next/link";
+import { Input } from "@zentro/ui/shadcn/input";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { SearchIcon, XIcon } from "lucide-react";
 
-import type { inferRouterOutputs } from "@trpc/server";
-import type { AppRouter } from "@zentro/api/server";
 import { useTrpcClient } from "@zentro/api/react";
-import { cn } from "@zentro/ui/lib/utils";
 import { Button } from "@zentro/ui/shadcn/button";
 import { Skeleton } from "@zentro/ui/shadcn/skeleton";
-import { NativeSelect } from "@zentro/ui/shadcn/native-select";
 
 import { useChatSidebar } from "./chat-store";
 import { usePeople } from "./channel-view";
-import { MessageBody, relativeAgo } from "./message-body";
-import { Avatar } from "./message-item";
-
-type Result =
-  inferRouterOutputs<AppRouter>["chat"]["search"]["results"][number];
-
-const ranges = [
-  ["any", "Any time", 0],
-  ["7", "Last 7 days", 7],
-  ["30", "Last 30 days", 30],
-  ["90", "Last 90 days", 90],
-] as const;
-
-function Filter({
-  label,
-  value,
-  onChange,
-  options,
-}: {
-  label: string;
-  value: string;
-  onChange: (value: string) => void;
-  options: Array<[string, string]>;
-}) {
-  const active = value !== options[0]![0];
-
-  return (
-    <label
-      className={cn(
-        "flex h-8 items-center gap-1.5 rounded-lg border px-2.5 text-[13px]",
-        active ? "border-ink" : "border-hairline",
-      )}
-    >
-      <span className="text-ink-3">{label}</span>
-      <NativeSelect
-        size="sm"
-        value={value}
-        onChange={(event) => onChange(event.target.value)}
-        aria-label={label}
-        className="max-w-36 border-none bg-transparent font-medium"
-      >
-        {options.map(([optionValue, optionLabel]) => (
-          <option key={optionValue} value={optionValue}>
-            {optionLabel}
-          </option>
-        ))}
-      </NativeSelect>
-    </label>
-  );
-}
+import { Filter, ranges } from "./search-filters";
+import { SearchResultRow, type SearchResult } from "./search-result-row";
 
 /** Search every conversation you can read, with filters. */
 export function SearchView() {
@@ -78,7 +26,7 @@ export function SearchView() {
   const [place, setPlace] = useState(params.get("in") ?? "any");
   const [has, setHas] = useState(params.get("has") ?? "any");
   const [range, setRange] = useState(params.get("range") ?? "30");
-  const [results, setResults] = useState<Result[] | null>(null);
+  const [results, setResults] = useState<SearchResult[] | null>(null);
   const [failed, setFailed] = useState(false);
   const [debounced, setDebounced] = useState(q);
 
@@ -120,7 +68,10 @@ export function SearchView() {
   }, [trpc, debounced, from, place, has, days]);
 
   const groups = useMemo(() => {
-    const byChannel = new Map<string, { label: string; rows: Result[] }>();
+    const byChannel = new Map<
+      string,
+      { label: string; rows: SearchResult[] }
+    >();
 
     for (const result of results ?? []) {
       const entry = byChannel.get(result.channel.id) ?? {
@@ -161,7 +112,7 @@ export function SearchView() {
 
       <div className="mt-4 flex items-center gap-2 rounded-xl border border-signal bg-surface px-3 ring-4 ring-ring/20">
         <SearchIcon className="size-4 text-ink-3" aria-hidden="true" />
-        <input
+        <Input
           autoFocus
           value={q}
           onChange={(event) => setQ(event.target.value)}
@@ -176,14 +127,15 @@ export function SearchView() {
           </span>
         ) : null}
         {q ? (
-          <button
+          <Button
+            variant="custom"
             type="button"
             aria-label="Clear search"
             onClick={() => setQ("")}
             className="text-ink-3 hover:text-ink"
           >
             <XIcon className="size-4" />
-          </button>
+          </Button>
         ) : null}
       </div>
 
@@ -230,13 +182,14 @@ export function SearchView() {
           ])}
         />
         {filtering ? (
-          <button
+          <Button
+            variant="custom"
             type="button"
             onClick={clear}
             className="text-[13px] text-signal-strong hover:underline"
           >
             Clear filters
-          </button>
+          </Button>
         ) : null}
       </div>
 
@@ -289,37 +242,7 @@ export function SearchView() {
             {group.label} · {group.rows.length}
           </h3>
           {group.rows.map((result) => (
-            // A stretched link: the message body can hold its own links (task
-            // keys), and anchors can't nest.
-            <div
-              key={result.id}
-              className="group relative flex gap-3 rounded-lg px-3 py-2.5 hover:bg-hover"
-            >
-              <Link
-                href={`${result.channel.name ? `/chat/${result.channel.name}` : `/chat/dm/${result.channelId}`}?m=${result.id}`}
-                className="absolute inset-0 rounded-lg"
-                aria-label={`Jump to message from ${result.author?.name ?? "someone"}`}
-              />
-              <Avatar name={result.author?.name ?? "Someone"} size={30} />
-              <div className="min-w-0 flex-1">
-                <p className="text-sm">
-                  <span className="font-semibold">{result.author?.name}</span>{" "}
-                  <span className="font-mono text-[11px] text-ink-3">
-                    {relativeAgo(result.createdAt)}
-                  </span>
-                </p>
-                <div className="pointer-events-none line-clamp-2 text-[15px] leading-6 [&_a]:pointer-events-auto [&_a]:relative">
-                  <MessageBody
-                    body={result.body}
-                    names={result.names}
-                    highlight={words}
-                  />
-                </div>
-              </div>
-              <span className="pointer-events-none self-center font-mono text-xs text-ink-3 opacity-0 group-hover:opacity-100">
-                Jump
-              </span>
-            </div>
+            <SearchResultRow key={result.id} result={result} words={words} />
           ))}
         </section>
       ))}

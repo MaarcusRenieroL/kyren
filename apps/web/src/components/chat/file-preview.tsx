@@ -75,23 +75,25 @@ export function FilePreviewDialog({
             <span className="flex-1 uppercase">Files preview</span>
             {all.length > 1 ? (
               <span className="flex items-center gap-1">
-                <button
+                <Button
+                  variant="custom"
                   type="button"
                   aria-label="Previous file"
                   onClick={() => go(-1)}
                   className="rounded-xs p-0.5 hover:text-ink"
                 >
                   <ChevronLeftIcon className="size-4" />
-                </button>
+                </Button>
                 {index + 1} / {all.length}
-                <button
+                <Button
+                  variant="custom"
                   type="button"
                   aria-label="Next file"
                   onClick={() => go(1)}
                   className="rounded-xs p-0.5 hover:text-ink"
                 >
                   <ChevronRightIcon className="size-4" />
-                </button>
+                </Button>
               </span>
             ) : null}
           </div>

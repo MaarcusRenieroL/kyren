@@ -99,7 +99,8 @@ export function MentionsView() {
             ["unread", "Unread", unread],
           ] as const
         ).map(([value, label, count]) => (
-          <button
+          <Button
+            variant="custom"
             key={value}
             type="button"
             role="tab"
@@ -114,7 +115,7 @@ export function MentionsView() {
           >
             {label}
             <span className="ml-1.5 font-mono text-xs text-ink-3">{count}</span>
-          </button>
+          </Button>
         ))}
       </div>
 
@@ -129,13 +130,14 @@ export function MentionsView() {
       {failed && !items ? (
         <p className="pt-8 text-center text-[15px] text-ink-2">
           Couldn’t load your mentions.{" "}
-          <button
+          <Button
+            variant="custom"
             type="button"
             onClick={() => void load()}
             className="text-signal-strong underline underline-offset-2"
           >
             Try again
-          </button>
+          </Button>
         </p>
       ) : null}
 

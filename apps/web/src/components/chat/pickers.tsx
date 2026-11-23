@@ -1,5 +1,7 @@
 "use client";
 
+import { Button } from "@zentro/ui/shadcn/button";
+import { Input } from "@zentro/ui/shadcn/input";
 import { useEffect, useState } from "react";
 import { XIcon } from "lucide-react";
 
@@ -46,7 +48,8 @@ export function PeoplePicker({
           >
             <ActorAvatar name={person.name} size={20} />
             {person.name.split(" ")[0]}
-            <button
+            <Button
+              variant="custom"
               type="button"
               aria-label={`Remove ${person.name}`}
               onClick={() =>
@@ -55,10 +58,10 @@ export function PeoplePicker({
               className="text-ink-3 hover:text-ink"
             >
               <XIcon className="size-3.5" />
-            </button>
+            </Button>
           </span>
         ))}
-        <input
+        <Input
           value={query}
           onChange={(event) => setQuery(event.target.value)}
           placeholder={chosen.length ? "" : placeholder}
@@ -73,7 +76,8 @@ export function PeoplePicker({
         >
           {matches.map((person) => (
             <li key={person.memberId}>
-              <button
+              <Button
+                variant="custom"
                 type="button"
                 role="option"
                 aria-selected="false"
@@ -88,7 +92,7 @@ export function PeoplePicker({
                 <span className="font-mono text-[11px] text-ink-3">
                   {person.email}
                 </span>
-              </button>
+              </Button>
             </li>
           ))}
         </ul>
@@ -160,7 +164,8 @@ export function LinkPicker({
               ["none", "Nothing"],
             ] as const
           ).map(([next, label]) => (
-            <button
+            <Button
+              variant="custom"
               key={next}
               type="button"
               role="radio"
@@ -182,7 +187,7 @@ export function LinkPicker({
               )}
             >
               {label}
-            </button>
+            </Button>
           ))}
         </div>
         {mode !== "none" ? (

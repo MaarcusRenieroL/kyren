@@ -1,18 +1,9 @@
 "use client";
 
-import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState, type ReactNode } from "react";
+import { useState } from "react";
 import {
-  AtSignIcon,
   BellOffIcon,
-  BookmarkIcon,
-  ChevronDownIcon,
-  FileEditIcon,
-  HashIcon,
-  LockIcon,
-  MessageSquareIcon,
-  NewspaperIcon,
   PencilIcon,
   PlusIcon,
   SearchIcon,
@@ -25,118 +16,11 @@ import { Skeleton } from "@zentro/ui/shadcn/skeleton";
 
 import { StatusDialog } from "./chat-dialogs-extra";
 import { useChatSidebar, type SidebarChannel } from "./chat-store";
-import { Avatar } from "./message-item";
+import { channelHref, ChannelRow, row } from "./channel-list/channel-row";
+import { Group } from "./channel-list/channel-group";
+import { SidebarNavLinks } from "./channel-list/sidebar-nav-links";
 
-export function channelHref(
-  channel: Pick<SidebarChannel, "kind" | "id" | "name">,
-) {
-  return channel.kind === "dm"
-    ? `/chat/dm/${channel.id}`
-    : `/chat/${channel.name}`;
-}
-
-function Count({ value, strong }: { value: number; strong: boolean }) {
-  if (!value) return null;
-
-  return (
-    <span
-      className={cn(
-        "ml-auto shrink-0 rounded-full px-1.5 font-mono text-[11px] leading-[18px]",
-        strong ? "bg-ink text-ink-inverse" : "bg-sunken text-ink-2",
-      )}
-    >
-      {value}
-    </span>
-  );
-}
-
-function Group({
-  label,
-  action,
-  children,
-}: {
-  label: string;
-  action?: ReactNode;
-  children: ReactNode;
-}) {
-  const [open, setOpen] = useState(true);
-
-  return (
-    <section aria-label={label} className="flex flex-col gap-0.5">
-      <div className="flex items-center gap-1 px-2 pt-3 pb-1">
-        <button
-          type="button"
-          aria-expanded={open}
-          onClick={() => setOpen((value) => !value)}
-          className="eyebrow flex flex-1 items-center gap-1 rounded-xs text-left outline-none focus-visible:ring-2 focus-visible:ring-ring"
-        >
-          <ChevronDownIcon
-            className={cn("size-3 transition-transform", !open && "-rotate-90")}
-            aria-hidden="true"
-          />
-          {label}
-        </button>
-        {action}
-      </div>
-      {open ? children : null}
-    </section>
-  );
-}
-
-const row =
-  "flex h-8 items-center gap-2 rounded-md px-2 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring";
-
-function ChannelRow({
-  channel,
-  active,
-}: {
-  channel: SidebarChannel;
-  active: boolean;
-}) {
-  const unread = channel.unread > 0 && !channel.muted;
-  const dm = channel.kind === "dm";
-  const person = channel.people[0];
-
-  return (
-    <Link
-      href={channelHref(channel)}
-      aria-current={active ? "page" : undefined}
-      className={cn(
-        row,
-        active
-          ? "bg-selected font-medium text-ink"
-          : unread
-            ? "font-semibold text-ink hover:bg-hover"
-            : "text-ink-2 hover:bg-hover hover:text-ink",
-        channel.archived && "opacity-60",
-      )}
-    >
-      {dm ? (
-        channel.people.length === 1 && person ? (
-          <Avatar name={person.name} presence={person.presence} size={20} />
-        ) : (
-          <span className="flex size-5 shrink-0 items-center justify-center rounded-sm bg-sunken font-mono text-[10px]">
-            {channel.people.length + 1}
-          </span>
-        )
-      ) : channel.visibility === "private" ? (
-        <LockIcon className="size-3.5 shrink-0 text-ink-3" aria-hidden="true" />
-      ) : (
-        <HashIcon className="size-3.5 shrink-0 text-ink-3" aria-hidden="true" />
-      )}
-      <span className="min-w-0 flex-1 truncate">{channel.title}</span>
-      {channel.link?.key ? (
-        <span className="font-mono text-[10px] text-ink-3">
-          {channel.link.key}
-        </span>
-      ) : null}
-      <Count
-        value={channel.mentions || (unread ? channel.unread : 0)}
-        strong={channel.mentions > 0}
-      />
-    </Link>
-  );
-}
+export { channelHref };
 
 /** The left column of Chat: places to go, then the person's conversations. */
 export function ChannelList({
@@ -230,63 +114,7 @@ export function ChannelList({
       </div>
 
       <div className="flex min-h-0 flex-1 flex-col overflow-y-auto px-2 pb-4">
-        {(
-          [
-            [
-              "/chat/threads",
-              MessageSquareIcon,
-              "Threads",
-              extras?.threadsUnread ?? 0,
-              true,
-            ],
-            ["/chat/mentions", AtSignIcon, "Mentions", mentionTotal, true],
-            [
-              "/chat/saved",
-              BookmarkIcon,
-              "Saved",
-              extras?.dueReminders ?? 0,
-              true,
-            ],
-            [
-              "/chat/drafts",
-              FileEditIcon,
-              "Drafts & scheduled",
-              (extras?.drafts ?? 0) + (extras?.scheduled ?? 0),
-              false,
-            ],
-            ["/chat/catch-up", NewspaperIcon, "Catch up", 0, false],
-          ] as const
-        ).map(([href, Icon, label, count, strong]) => (
-          <Link
-            key={href}
-            href={href}
-            aria-current={pathname === href ? "page" : undefined}
-            className={cn(
-              row,
-              pathname === href
-                ? "bg-selected font-medium"
-                : "text-ink-2 hover:bg-hover hover:text-ink",
-            )}
-          >
-            <Icon className="size-4 shrink-0" aria-hidden="true" />
-            {label}
-            <Count value={count} strong={strong} />
-          </Link>
-        ))}
-        <Link
-          href="/chat/search"
-          aria-current={pathname === "/chat/search" ? "page" : undefined}
-          className={cn(
-            row,
-            pathname === "/chat/search"
-              ? "bg-selected font-medium"
-              : "text-ink-2 hover:bg-hover hover:text-ink",
-          )}
-        >
-          <SearchIcon className="size-4 shrink-0" aria-hidden="true" />
-          Search messages
-          <span className="ml-auto font-mono text-[10px] text-ink-3">⌘⇧F</span>
-        </Link>
+        <SidebarNavLinks mentionTotal={mentionTotal} extras={extras} />
 
         {!data && !error ? (
           <div className="flex flex-col gap-2 px-2 pt-5" aria-busy="true">
@@ -303,13 +131,14 @@ export function ChannelList({
         {error && !data ? (
           <div className="px-2 pt-5 text-[13px] text-ink-2">
             Couldn’t load your conversations.{" "}
-            <button
+            <Button
+              variant="custom"
               type="button"
               onClick={() => void refresh()}
               className="text-signal-strong underline underline-offset-2"
             >
               Try again
-            </button>
+            </Button>
           </div>
         ) : null}
 
@@ -338,14 +167,15 @@ export function ChannelList({
                   active={isActive(channel)}
                 />
               ))}
-              <button
+              <Button
+                variant="custom"
                 type="button"
                 onClick={onBrowse}
                 className={cn(row, "text-ink-3 hover:bg-hover hover:text-ink")}
               >
                 <SearchIcon className="size-3.5" aria-hidden="true" />
                 Browse channels
-              </button>
+              </Button>
             </Group>
 
             {project.length ? (

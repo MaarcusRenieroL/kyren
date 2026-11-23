@@ -22,7 +22,8 @@ import {
   PopoverTrigger,
 } from "@zentro/ui/shadcn/popover";
 
-import { MessageBody } from "./message-body";
+import { ChannelCanvasPanel } from "./channel-canvas-panel";
+export { TypingLine } from "./typing-line";
 
 type Bookmark = { id: string; title: string; url: string };
 
@@ -103,7 +104,8 @@ export function ChannelInfoBar({
   return (
     <div className="flex flex-col gap-1.5 border-b border-hairline bg-sunken/40 px-5 py-1.5 text-[13px]">
       <div className="flex min-w-0 items-center gap-1.5">
-        <button
+        <Button
+          variant="custom"
           type="button"
           aria-expanded={open}
           onClick={() => setOpen((value) => !value)}
@@ -115,7 +117,7 @@ export function ChannelInfoBar({
             className={cn("size-3 transition-transform", open && "rotate-180")}
             aria-hidden="true"
           />
-        </button>
+        </Button>
         <span aria-hidden="true" className="h-4 w-px bg-hairline" />
         <ul className="flex min-w-0 flex-1 items-center gap-1 overflow-x-auto">
           {bookmarks.map((bookmark) => {
@@ -156,14 +158,15 @@ export function ChannelInfoBar({
                   </a>
                 )}
                 {canEdit ? (
-                  <button
+                  <Button
+                    variant="custom"
                     type="button"
                     aria-label={`Remove bookmark ${bookmark.title}`}
                     onClick={() => void removeBookmark(bookmark.id)}
                     className="hidden rounded-xs p-0.5 text-ink-3 hover:text-danger-text group-hover/bm:block focus-visible:block"
                   >
                     <XIcon className="size-3" />
-                  </button>
+                  </Button>
                 ) : null}
               </li>
             );
@@ -213,102 +216,16 @@ export function ChannelInfoBar({
       </div>
 
       {open ? (
-        <div className="rounded-lg border border-hairline bg-canvas p-3">
-          {editing ? (
-            <div className="flex flex-col gap-2">
-              <textarea
-                value={draft}
-                autoFocus
-                maxLength={5000}
-                rows={5}
-                onChange={(event) => setDraft(event.target.value)}
-                aria-label="Channel note"
-                className="w-full resize-y rounded-md border border-signal bg-surface px-3 py-2 text-[14px] leading-6 outline-none"
-                placeholder="Goals, rules, links people keep asking for. Supports the same formatting as messages."
-              />
-              <div className="flex items-center gap-2">
-                <Button size="sm" onClick={() => void saveCanvas()}>
-                  Save note
-                </Button>
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  onClick={() => {
-                    setDraft(canvas ?? "");
-                    setEditing(false);
-                  }}
-                >
-                  Cancel
-                </Button>
-                <span className="ml-auto font-mono text-[11px] text-ink-3">
-                  {draft.length}/5000
-                </span>
-              </div>
-            </div>
-          ) : canvas ? (
-            <div className="flex items-start gap-3">
-              <div className="min-w-0 flex-1 text-[14px] leading-6">
-                <MessageBody body={canvas} names={{}} />
-              </div>
-              {canEdit ? (
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => setEditing(true)}
-                >
-                  Edit
-                </Button>
-              ) : null}
-            </div>
-          ) : (
-            <div className="flex items-center justify-between gap-3 text-ink-2">
-              <span>
-                No note yet. Use it for goals, rules and useful links.
-              </span>
-              {canEdit ? (
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => setEditing(true)}
-                >
-                  Write a note
-                </Button>
-              ) : null}
-            </div>
-          )}
-        </div>
+        <ChannelCanvasPanel
+          canvas={canvas}
+          canEdit={canEdit}
+          editing={editing}
+          setEditing={setEditing}
+          draft={draft}
+          setDraft={setDraft}
+          onSave={() => void saveCanvas()}
+        />
       ) : null}
     </div>
-  );
-}
-
-/** "Arjun is typing…" above the composer. */
-export function TypingLine({ names }: { names: string[] }) {
-  if (!names.length) return <div className="h-5" aria-hidden="true" />;
-
-  const label =
-    names.length === 1
-      ? `${names[0]} is typing`
-      : names.length === 2
-        ? `${names[0]} and ${names[1]} are typing`
-        : "Several people are typing";
-
-  return (
-    <p
-      role="status"
-      aria-live="polite"
-      className="flex h-5 items-center gap-1.5 px-1 text-xs text-ink-3"
-    >
-      <span className="flex gap-0.5" aria-hidden="true">
-        {[0, 1, 2].map((dot) => (
-          <span
-            key={dot}
-            className="size-1 animate-bounce rounded-full bg-ink-3"
-            style={{ animationDelay: `${dot * 120}ms` }}
-          />
-        ))}
-      </span>
-      {label}
-    </p>
   );
 }
