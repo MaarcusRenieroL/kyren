@@ -5,16 +5,22 @@ import { Pool } from "pg";
 import * as schema from "../schema";
 import { dbEnv } from "../env";
 
-// One long-running server (a VM) shares this pool across every request, so it
-// needs more than pg's default of 10; Postgres allows 100 by default.
+const isVercel = process.env.VERCEL === "1";
+const configuredMax = Number(process.env.DATABASE_POOL_MAX);
+const defaultMax = isVercel ? 5 : 20;
+
+// Each Vercel function instance has its own pool. Keep its default small
+// because all instances share the database's connection budget.
 const pool = new Pool({
   connectionString: dbEnv.DATABASE_URL,
-  max: Number(process.env.DATABASE_POOL_MAX) || 20,
+  max:
+    Number.isSafeInteger(configuredMax) && configuredMax > 0
+      ? configuredMax
+      : defaultMax,
+  ...(isVercel && { idleTimeoutMillis: 5_000 }),
 });
 
-// On Vercel, the pool is closed cleanly when a function instance is suspended
-// so idle connections do not pile up on the Neon pooler.
-if (process.env.VERCEL) {
+if (isVercel) {
   attachDatabasePool(pool);
 }
 
