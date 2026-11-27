@@ -124,7 +124,7 @@ describe("webhooks", () => {
 
     const call = seen.find((entry) => entry.url.endsWith("/signed"))!;
     const [row] = await deliveriesFor(hook.id);
-    const [timestamp, signature] = call.headers["x-zentro-signature"]!.split(
+    const [timestamp, signature] = call.headers["x-kyren-signature"]!.split(
       ",",
     ).map((part) => part.split("=").slice(1).join("="));
 
@@ -132,7 +132,7 @@ describe("webhooks", () => {
     expect(`v1=${signature}`).toBe(
       signWebhook(hook.secret, Number(timestamp), call.body),
     );
-    expect(call.headers["x-zentro-event"]).toBe("apikey.revoked");
+    expect(call.headers["x-kyren-event"]).toBe("apikey.revoked");
   });
 
   it("retries a failing receiver with growing waits, then gives up", async () => {

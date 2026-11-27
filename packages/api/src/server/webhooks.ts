@@ -165,9 +165,9 @@ export async function deliverDueWebhooks(
       status = await send(endpoint.url, body, {
         "content-type": "application/json",
         "user-agent": "Kyren-Webhooks/1.0",
-        "x-zentro-event": claimed.event,
-        "x-zentro-delivery": claimed.id,
-        "x-zentro-signature": `t=${timestamp},${signWebhook(endpoint.secret, timestamp, body)}`,
+        "x-kyren-event": claimed.event,
+        "x-kyren-delivery": claimed.id,
+        "x-kyren-signature": `t=${timestamp},${signWebhook(endpoint.secret, timestamp, body)}`,
       });
     } catch (caught) {
       error = caught instanceof Error ? caught.message.slice(0, 300) : "Failed";
