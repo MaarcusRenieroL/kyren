@@ -12,12 +12,12 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@better-auth/drizzle-adapter": "^1.6.9",
+    "@better-auth/drizzle-adapter": "^1.7.27",
     "@kyren/db": "workspace:*",
     "@kyren/audit": "workspace:*",
     "@kyren/permissions": "workspace:*",
-    "better-auth": "^1.7.15",
-    "resend": "^6.12.2"
+    "better-auth": "^1.7.27",
+    "resend": "^6.39.0"
   },
   "devDependencies": {
     "@kyren/typescript-config": "workspace:*"
