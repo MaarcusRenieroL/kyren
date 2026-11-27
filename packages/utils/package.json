@@ -13,9 +13,9 @@
   "devDependencies": {
     "@types/sanitize-html": "^2.16.2",
     "@kyren/typescript-config": "workspace:*",
-    "vitest": "^5.0.3"
+    "vitest": "^5.1.1"
   },
   "dependencies": {
-    "sanitize-html": "^2.18.1"
+    "sanitize-html": "^2.18.2"
   }
 }
