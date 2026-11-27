@@ -14,7 +14,7 @@ import { migrate } from "drizzle-orm/node-postgres/migrator";
 import { Client, Pool } from "pg";
 
 const defaultTestDatabaseUrl =
-  "postgres://zentro:zentro@localhost:5432/zentro_test";
+  "postgres://kyren:kyren@localhost:5432/kyren_test";
 
 // Works from any package directory (and under both ESM and CJS loaders).
 function findRepoRoot(start = process.cwd()): string {

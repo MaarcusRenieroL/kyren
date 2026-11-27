@@ -5,7 +5,7 @@
 set -eu
 
 compose="docker compose -f deploy/docker-compose.prod.yml --env-file deploy/.env"
-profile="${ZENTRO_PROFILE---profile db}"
+profile="${KYREN_PROFILE---profile db}"
 
 previous="$(cat deploy/.version 2>/dev/null || echo latest)"
 
@@ -25,7 +25,7 @@ echo "== build and start $version (was $previous)"
 # Record the restore point before migrations can change the database.
 printf '%s\n%s\n' "$previous" "$stamp" >deploy/.rollback-point.tmp
 mv deploy/.rollback-point.tmp deploy/.rollback-point
-ZENTRO_VERSION="$version" $compose $profile up -d --build --wait
+KYREN_VERSION="$version" $compose $profile up -d --build --wait
 
 echo "$version" >deploy/.version
 echo "== done. Roll back with: deploy/rollback.sh"

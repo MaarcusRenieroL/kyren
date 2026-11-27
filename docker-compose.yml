@@ -3,17 +3,17 @@
 #
 # Secrets come from a root `.env` file (see .env.example); nothing sensitive is committed.
 
-name: zentro
+name: kyren
 
 x-app-env: &app-env
-  DATABASE_URL: ${DATABASE_URL_CONTAINER:-postgres://zentro:${POSTGRES_PASSWORD:-zentro}@root-postgres:5432/zentro}
+  DATABASE_URL: ${DATABASE_URL_CONTAINER:-postgres://kyren:${POSTGRES_PASSWORD:-kyren}@root-postgres:5432/kyren}
   BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET:?set BETTER_AUTH_SECRET (32+ chars) in .env}
   BETTER_AUTH_URL: ${BETTER_AUTH_URL:-http://localhost:3103}
   NEXT_PUBLIC_BASE_URL: ${NEXT_PUBLIC_BASE_URL:-http://localhost:3103}
   RESEND_API_KEY: ${RESEND_API_KEY:?set RESEND_API_KEY in .env}
 
 services:
-  # Automated tests use the zentro_test database on the shared root-postgres
+  # Automated tests use the kyren_test database on the shared root-postgres
   # (see TEST_DATABASE_URL in .env.example); no separate Postgres container.
 
   migrate:
@@ -22,7 +22,7 @@ services:
       context: .
       target: migrator
     environment:
-      DATABASE_URL: ${DATABASE_URL_CONTAINER:-postgres://zentro:${POSTGRES_PASSWORD:-zentro}@root-postgres:5432/zentro}
+      DATABASE_URL: ${DATABASE_URL_CONTAINER:-postgres://kyren:${POSTGRES_PASSWORD:-kyren}@root-postgres:5432/kyren}
     networks:
       - default
       - shared-dev-net

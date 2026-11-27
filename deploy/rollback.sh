@@ -7,7 +7,7 @@
 set -eu
 
 compose="docker compose -f deploy/docker-compose.prod.yml --env-file deploy/.env"
-profile="${ZENTRO_PROFILE---profile db}"
+profile="${KYREN_PROFILE---profile db}"
 if [ -f deploy/.rollback-point ]; then
   previous="$(sed -n '1p' deploy/.rollback-point)"
   stamp="$(sed -n '2p' deploy/.rollback-point)"
@@ -35,6 +35,6 @@ if [ "${1:-}" = "--restore" ]; then
 fi
 
 echo "== starting $previous"
-ZENTRO_VERSION="$previous" $compose $profile up -d --no-build web cron
+KYREN_VERSION="$previous" $compose $profile up -d --no-build web cron
 echo "$previous" >deploy/.version
 echo "== rolled back to $previous"

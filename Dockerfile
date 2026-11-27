@@ -1,8 +1,8 @@
 # syntax=docker/dockerfile:1.7
 #
 # Dockerfile for the Next.js app (apps/web) in the monorepo.
-#   docker build -t zentro-web .
-#   docker build --target migrator -t zentro-migrator .
+#   docker build -t kyren-web .
+#   docker build --target migrator -t kyren-migrator .
 #
 # NEXT_PUBLIC_* values are inlined into the client bundle at build time, so
 # pass the real public URLs as build args. Server secrets (BETTER_AUTH_SECRET,

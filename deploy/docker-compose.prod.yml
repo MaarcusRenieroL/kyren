@@ -4,10 +4,10 @@
 # Leave out `--profile db` and set DATABASE_URL to use an outside database
 # (for example Neon). See deploy/README.md.
 
-name: zentro-prod
+name: kyren-prod
 
 x-app-env: &app-env
-  DATABASE_URL: ${DATABASE_URL:-postgres://zentro:${POSTGRES_PASSWORD:-}@db:5432/zentro}
+  DATABASE_URL: ${DATABASE_URL:-postgres://kyren:${POSTGRES_PASSWORD:-}@db:5432/kyren}
   # Database connections the app keeps open (deploy/README.md, Capacity).
   DATABASE_POOL_MAX: ${DATABASE_POOL_MAX:-20}
   BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET:?set BETTER_AUTH_SECRET (32+ characters)}
@@ -51,24 +51,24 @@ services:
     command: ["postgres"]
     restart: unless-stopped
     environment:
-      POSTGRES_DB: zentro
-      POSTGRES_USER: zentro
+      POSTGRES_DB: kyren
+      POSTGRES_USER: kyren
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-}
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U zentro -d zentro"]
+      test: ["CMD-SHELL", "pg_isready -U kyren -d kyren"]
       interval: 5s
       timeout: 5s
       retries: 20
 
   migrate:
-    image: zentro-migrate:${ZENTRO_VERSION:-latest}
+    image: kyren-migrate:${KYREN_VERSION:-latest}
     build:
       context: ..
       target: migrator
     environment:
-      DATABASE_URL: ${DATABASE_URL:-postgres://zentro:${POSTGRES_PASSWORD:-}@db:5432/zentro}
+      DATABASE_URL: ${DATABASE_URL:-postgres://kyren:${POSTGRES_PASSWORD:-}@db:5432/kyren}
     restart: "no"
     depends_on:
       # Waits for the bundled database when it runs; ignored with an outside one.
@@ -78,7 +78,7 @@ services:
 
   web:
     # Tagged per release, so the previous image is still there to roll back to.
-    image: zentro-web:${ZENTRO_VERSION:-latest}
+    image: kyren-web:${KYREN_VERSION:-latest}
     build:
       context: ..
       args:
@@ -122,7 +122,7 @@ services:
       context: ./backup
     restart: unless-stopped
     environment:
-      DATABASE_URL: ${DATABASE_URL:-postgres://zentro:${POSTGRES_PASSWORD:-}@db:5432/zentro}
+      DATABASE_URL: ${DATABASE_URL:-postgres://kyren:${POSTGRES_PASSWORD:-}@db:5432/kyren}
       BACKUP_AGE_RECIPIENT: ${BACKUP_AGE_RECIPIENT:?set BACKUP_AGE_RECIPIENT (age public key)}
       BACKUP_REMOTE: ${BACKUP_REMOTE:?set BACKUP_REMOTE (rclone path)}
       BACKUP_AT: ${BACKUP_AT:-0230}
