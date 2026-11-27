@@ -74,7 +74,7 @@ test("Today counts work done since the viewer's midnight, not the server's @dash
   await expect
     .poll(
       async () =>
-        (await page.context().cookies()).find((c) => c.name === "zentro-tz")
+        (await page.context().cookies()).find((c) => c.name === "kyren-tz")
           ?.value,
     )
     .toBe(encodeURIComponent(zone));

@@ -43,8 +43,8 @@ export const paths = {
   searchDocs: (query?: string) => withQuery("/docs/search", { q: query }),
 
   inbox: () => "/inbox",
-  statusPage: process.env.NEXT_PUBLIC_STATUS_URL || "https://status.zentro.app",
-  supportEmail: process.env.NEXT_PUBLIC_SUPPORT_EMAIL || "support@zentro.app",
+  statusPage: process.env.NEXT_PUBLIC_STATUS_URL || "https://status.kyren.app",
+  supportEmail: process.env.NEXT_PUBLIC_SUPPORT_EMAIL || "support@kyren.app",
   files: () => "/files",
   chat: () => "/chat",
   maintenance: () => "/maintenance",

@@ -4,7 +4,7 @@ import type { CSSProperties, ReactNode } from "react";
 export const DISPLAY = "var(--font-bricolage), var(--font-geist), sans-serif";
 export const MONO = "var(--font-geist-mono), ui-monospace, monospace";
 export const SERIF = "var(--font-instrument-serif), Georgia, serif";
-export const storageKey = "zentro-landing-theme";
+export const storageKey = "kyren-landing-theme";
 
 export type Mode = "dark" | "light" | "system";
 

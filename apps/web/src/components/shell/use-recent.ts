@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 
 export type RecentItem = { href: string; label: string };
 
-const storageKey = "zentro:recent";
+const storageKey = "kyren:recent";
 const limit = 5;
 
 function read(): RecentItem[] {

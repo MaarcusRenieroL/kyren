@@ -5,7 +5,7 @@ export const themeColors = {
   dark: "#0a0a0f",
 } as const;
 
-export const densityCookie = "zentro-density";
+export const densityCookie = "kyren-density";
 export const densities = ["comfortable", "compact"] as const;
 export type Density = (typeof densities)[number];
 

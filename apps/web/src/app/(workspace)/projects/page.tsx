@@ -41,7 +41,7 @@ export default function ProjectsPage() {
   // The chosen layout is remembered in this browser.
   useEffect(() => {
     try {
-      const saved = localStorage.getItem("zentro:projects-view");
+      const saved = localStorage.getItem("kyren:projects-view");
 
       if (saved === "list" || saved === "grid") setView(saved);
     } catch {
@@ -53,7 +53,7 @@ export default function ProjectsPage() {
     setView(next);
 
     try {
-      localStorage.setItem("zentro:projects-view", next);
+      localStorage.setItem("kyren:projects-view", next);
     } catch {
       // Not fatal.
     }

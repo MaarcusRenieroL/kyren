@@ -80,7 +80,7 @@ export function WorkspaceStarterChecklist({
   organizationId: string;
   className?: string;
 }) {
-  const storageKey = `zentro_starter_checklist_dismissed:${organizationId}`;
+  const storageKey = `kyren_starter_checklist_dismissed:${organizationId}`;
   const [collapsed, setCollapsed] = useState(false);
   const [dismissed, setDismissed] = useState(false);
 

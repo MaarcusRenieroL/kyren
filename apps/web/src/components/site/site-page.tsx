@@ -10,14 +10,18 @@ import { authClient } from "@kyren/auth/client";
 import { clamp } from "./site-data";
 import { SiteTemplate } from "./site-template";
 import { buildSitePageVals } from "./page-builder/build-site-page-vals";
-import type { Mode, SitePageName, SitePageProps } from "./page-builder/builder-types";
+import type {
+  Mode,
+  SitePageName,
+  SitePageProps,
+} from "./page-builder/builder-types";
 
 export type { SitePageName } from "./page-builder/builder-types";
 
 type Props = SitePageProps;
 
 // Shared with the landing page so the theme carries across.
-const storageKey = "zentro-landing-theme";
+const storageKey = "kyren-landing-theme";
 
 const initialState = {
   P: null as number | null,
