@@ -101,7 +101,15 @@ function hasSessionCookie(request: NextRequest) {
   return sessionCookieNames.some((name) => request.cookies.has(name));
 }
 
-/** Whether the page may be shown, or where to send the person instead. */
+/**
+ * Optimistic pre-filter, not the authorization boundary: it keeps signed-out
+ * visitors out of the app shell and attaches a CSP. Tenant access is enforced
+ * where the data is read — `assertProtectedContext` in every tRPC procedure
+ * and `getDashboardContext()` in the workspace layout — so a path that slips
+ * past this matcher must never be the only thing protecting data.
+ *
+ * Whether the page may be shown, or where to send the person instead.
+ */
 async function signInGate(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
@@ -197,6 +205,10 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  // Every page, not API routes, Next's own files or files with an extension.
-  matcher: ["/((?!api/|_next/|.*\\.[a-zA-Z0-9]+$).*)"],
+  // Every page. API routes, Next's build output and known static assets are
+  // skipped; the extension list is explicit so page routes containing a dot
+  // (e.g. /docs/v1.2) still get the auth gate and the CSP.
+  matcher: [
+    "/((?!api/|_next/|_vercel/|.*\\.(?:avif|css|gif|ico|jpe?g|js|json|map|mjs|otf|png|svg|ttf|txt|webmanifest|webp|woff2?|xml)$).*)",
+  ],
 };
