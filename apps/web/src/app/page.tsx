@@ -1,18 +1,10 @@
 import { JSX } from "react";
-import { headers } from "next/headers";
-import { redirect } from "next/navigation";
 
-import { auth } from "@kyren/auth";
-
-import { paths } from "~/src/lib/paths";
 import { LandingPage } from "../components/landing-page/landing-page";
 
-export default async function Home(): Promise<JSX.Element> {
-  const session = await auth.api.getSession({ headers: await headers() });
-
-  if (session) {
-    redirect(paths.dashboard());
-  }
-
+// Signed-in visitors are redirected to the dashboard by the proxy before this
+// page is served. Keeping the page free of headers()/cookies() lets it be
+// prerendered and cached at the edge.
+export default function Home(): JSX.Element {
   return <LandingPage />;
 }

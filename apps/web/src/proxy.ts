@@ -1,10 +1,11 @@
 import { NextResponse, type NextRequest } from "next/server";
 
-import { auth } from "@kyren/auth";
-
 import { paths } from "~/src/lib/paths";
 
-import { contentSecurityPolicy } from "../security-headers";
+import {
+  contentSecurityPolicy,
+  publicContentSecurityPolicy,
+} from "../security-headers";
 
 // Invitation links stay open to users who already belong to an organization.
 const onboardingRoute = "/auth/join-organization";
@@ -58,11 +59,57 @@ function isProtected(pathname: string) {
   );
 }
 
+/**
+ * The marketing site is prerendered and served from the CDN, so it cannot use
+ * a per-request CSP nonce. Every route here must stay static and free of user
+ * data; a route that needs either belongs outside these prefixes.
+ */
+export const publicPrefixes = [
+  "/about",
+  "/changelog",
+  "/cookies",
+  "/dpa",
+  "/modules",
+  "/pricing",
+  "/privacy",
+  "/roadmap",
+  "/security",
+  "/status",
+  "/subprocessors",
+  "/terms",
+];
+
+function isPublicPage(pathname: string) {
+  return (
+    pathname === "/" ||
+    publicPrefixes.some(
+      (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`),
+    )
+  );
+}
+
+// Better Auth signs the session token. The cookie name only decides whether a
+// session lookup is worth doing; the lookup itself decides the redirect.
+const sessionCookieNames = [
+  "better-auth.session_token",
+  "__Secure-better-auth.session_token",
+  "better-auth-session_token",
+  "__Secure-better-auth-session_token",
+];
+
+function hasSessionCookie(request: NextRequest) {
+  return sessionCookieNames.some((name) => request.cookies.has(name));
+}
+
 /** Whether the page may be shown, or where to send the person instead. */
 async function signInGate(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   if (!isProtected(pathname)) return null;
+
+  // Loaded only when a protected page is requested: the marketing site never
+  // pays to initialize the auth and database stack.
+  const { auth } = await import("@kyren/auth");
 
   const session = await auth.api.getSession({
     headers: request.headers,
@@ -99,14 +146,41 @@ async function signInGate(request: NextRequest) {
 }
 
 /**
- * Every page gets a fresh nonce: its scripts run only with it (see the CSP).
- * Next.js reads it from the request's CSP header and puts it on its own
- * scripts; the root layout reads `x-nonce` for the one inline script it adds.
+ * Every signed-in page gets a fresh nonce: its scripts run only with it (see
+ * the CSP). Next.js reads it from the request's CSP header and puts it on its
+ * own scripts; the providers in the workspace and auth layouts read `x-nonce`
+ * for the inline scripts they add.
  */
 export async function proxy(request: NextRequest) {
+  const { pathname } = request.nextUrl;
+
+  // A signed-in visitor should land in the app, not on the marketing page.
+  // Only people carrying a session cookie pay for the lookup, so anonymous
+  // visitors keep the static, edge-cached page. Check the session itself: a
+  // stale cookie must not trap a signed-out person on a redirect loop.
+  if (pathname === "/" && hasSessionCookie(request)) {
+    const { auth } = await import("@kyren/auth");
+    const session = await auth.api.getSession({ headers: request.headers });
+
+    if (session) {
+      return NextResponse.redirect(appUrl(request, paths.dashboard()));
+    }
+  }
+
   const redirect = await signInGate(request);
 
   if (redirect) return redirect;
+
+  if (isPublicPage(pathname)) {
+    const response = NextResponse.next();
+
+    response.headers.set(
+      "content-security-policy",
+      publicContentSecurityPolicy(),
+    );
+
+    return response;
+  }
 
   const nonce = Buffer.from(crypto.randomUUID()).toString("base64");
   const policy = contentSecurityPolicy(nonce);

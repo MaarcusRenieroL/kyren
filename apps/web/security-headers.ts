@@ -27,8 +27,32 @@ export function contentSecurityPolicy(nonce: string) {
 }
 
 /**
+ * CSP for the prerendered marketing pages. A per-request nonce would force
+ * those pages to render dynamically on every visit, so they allow same-origin
+ * and inline scripts instead. Signed-in pages keep the stricter nonce policy
+ * above. There is no user data on these pages to protect from injection.
+ */
+export function publicContentSecurityPolicy() {
+  return [
+    "default-src 'self'",
+    `script-src 'self' 'unsafe-inline'${production ? "" : " 'unsafe-eval'"}`,
+    "style-src 'self' 'unsafe-inline'",
+    "img-src 'self' data: blob: https:",
+    "font-src 'self' data:",
+    "connect-src 'self'",
+    "media-src 'self' blob:",
+    "worker-src 'self' blob:",
+    "object-src 'none'",
+    "base-uri 'self'",
+    "form-action 'self'",
+    "frame-ancestors 'none'",
+  ].join("; ");
+}
+
+/**
  * Headers every response gets. The CSP is added per page by the proxy, with a
- * fresh nonce; file downloads set a stricter one of their own.
+ * fresh nonce on signed-in pages; file downloads set a stricter one of their
+ * own.
  */
 export const securityHeaders = [
   {

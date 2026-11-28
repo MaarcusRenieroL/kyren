@@ -1,13 +1,8 @@
 import type { Metadata, Viewport } from "next";
-import { cookies, headers } from "next/headers";
 import localFont from "next/font/local";
 import { JSX } from "react";
 
-import {
-  densityCookie,
-  parseDensity,
-  themeColors,
-} from "@kyren/ui/lib/theme-colors";
+import { themeColors } from "@kyren/ui/lib/theme-colors";
 
 import "./globals.css";
 
@@ -26,11 +21,14 @@ const display = localFont({
   weight: "200 800",
   display: "swap",
 });
+// Only the interface and display faces are preloaded; mono and serif are used
+// below the fold, so let the browser discover them with the CSS instead.
 const mono = localFont({
   src: "./fonts/geist-mono-latin-wght-normal.woff2",
   variable: "--font-geist-mono",
   weight: "100 900",
   display: "swap",
+  preload: false,
 });
 const serif = localFont({
   src: [
@@ -47,6 +45,7 @@ const serif = localFont({
   ],
   variable: "--font-instrument-serif",
   display: "swap",
+  preload: false,
 });
 
 export const metadata: Metadata = {
@@ -69,32 +68,19 @@ export const viewport: Viewport = {
   ],
 };
 
-export default async function RootLayout({
+// This layout deliberately reads no cookies or headers. Public pages must stay
+// static and CDN-cacheable; the providers live in the layouts that need them.
+export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
-}>): Promise<JSX.Element> {
-  const density = parseDensity((await cookies()).get(densityCookie)?.value);
-  // Set by the proxy; the CSP lets only scripts carrying it run.
-  const nonce = (await headers()).get("x-nonce") ?? undefined;
-
+}>): JSX.Element {
   return (
     <html
       lang="en"
       suppressHydrationWarning
-      data-density={density}
       className={`h-full antialiased ${sans.variable} ${mono.variable} ${display.variable} ${serif.variable}`}
     >
-      <head>
-        {/* Marks the page as scripted before first paint, so reveal effects
-            only hide content when they are guaranteed to show it again. */}
-        <script
-          nonce={nonce}
-          dangerouslySetInnerHTML={{
-            __html: "document.documentElement.classList.add('js')",
-          }}
-        />
-      </head>
       <body className="font-sans antialiased">{children}</body>
     </html>
   );

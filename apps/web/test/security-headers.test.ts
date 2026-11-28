@@ -1,6 +1,10 @@
 import { describe, expect, it } from "vitest";
 
-import { contentSecurityPolicy, securityHeaders } from "../security-headers";
+import {
+  contentSecurityPolicy,
+  publicContentSecurityPolicy,
+  securityHeaders,
+} from "../security-headers";
 
 describe("security headers", () => {
   const byKey = Object.fromEntries(
@@ -30,6 +34,15 @@ describe("security headers", () => {
     expect(csp).not.toMatch(/script-src[^;]*https:/);
     expect(csp).toMatch(/script-src[^;]*'nonce-abc123'/);
     expect(csp).not.toMatch(/script-src[^;]*'unsafe-inline'/);
+  });
+
+  it("keeps cached public pages free of per-request nonces", () => {
+    const csp = publicContentSecurityPolicy();
+
+    expect(csp).toContain("default-src 'self'");
+    expect(csp).toContain("frame-ancestors 'none'");
+    expect(csp).toMatch(/script-src[^;]*'self'[^;]*'unsafe-inline'/);
+    expect(csp).not.toContain("nonce-");
   });
 
   it("isolates the window from other sites", () => {
