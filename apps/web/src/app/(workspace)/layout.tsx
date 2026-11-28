@@ -8,6 +8,7 @@ import { members, tasks } from "@kyren/db/schema";
 import { effectivePermissions, getCatalogKeys } from "@kyren/permissions";
 
 import { PermissionProvider } from "~/src/components/permissions/permission-provider";
+import { AppProviders } from "~/src/components/providers/app-providers";
 import { AnnouncementBanner } from "~/src/components/shell/announcement-banner";
 import { AppShell } from "~/src/components/shell/app-shell";
 import { getDashboardContext } from "~/src/lib/dashboard-context";
@@ -60,37 +61,39 @@ export default async function WorkspaceLayout({
   const settings = modules.find((item) => item.id === "settings");
 
   return (
-    <PermissionProvider
-      value={{
-        baseRole: snapshot.baseRole,
-        userId: snapshot.userId,
-        permissions,
-        reachable,
-      }}
-    >
-      <AppShell
-        modules={modules}
-        enabledModules={enabledModules}
-        organizations={organizations.map((org) => ({
-          id: org.id,
-          name: org.name,
-          slug: org.slug,
-        }))}
-        activeOrgSlug={organization.slug}
-        user={{ name: session.user.name, email: session.user.email }}
-        links={{
-          settingsHref: settings?.href ?? null,
-          membersHref: reachable["members.view"]
-            ? paths.membersSettings()
-            : null,
+    <AppProviders>
+      <PermissionProvider
+        value={{
+          baseRole: snapshot.baseRole,
+          userId: snapshot.userId,
+          permissions,
+          reachable,
         }}
-        sidebarOpen={sidebarOpen}
-        orgSubtitle={`${roleLabel} · ${people} ${people === 1 ? "person" : "people"}`}
-        taskCount={taskRow?.value ?? 0}
       >
-        <AnnouncementBanner />
-        {children}
-      </AppShell>
-    </PermissionProvider>
+        <AppShell
+          modules={modules}
+          enabledModules={enabledModules}
+          organizations={organizations.map((org) => ({
+            id: org.id,
+            name: org.name,
+            slug: org.slug,
+          }))}
+          activeOrgSlug={organization.slug}
+          user={{ name: session.user.name, email: session.user.email }}
+          links={{
+            settingsHref: settings?.href ?? null,
+            membersHref: reachable["members.view"]
+              ? paths.membersSettings()
+              : null,
+          }}
+          sidebarOpen={sidebarOpen}
+          orgSubtitle={`${roleLabel} · ${people} ${people === 1 ? "person" : "people"}`}
+          taskCount={taskRow?.value ?? 0}
+        >
+          <AnnouncementBanner />
+          {children}
+        </AppShell>
+      </PermissionProvider>
+    </AppProviders>
   );
 }

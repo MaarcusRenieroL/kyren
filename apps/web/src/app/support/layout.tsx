@@ -1,0 +1,7 @@
+import { ThemeProviders } from "~/src/components/providers/theme-providers";
+
+export default function SupportLayout({
+  children,
+}: Readonly<{ children: React.ReactNode }>) {
+  return <ThemeProviders>{children}</ThemeProviders>;
+}

@@ -5,6 +5,7 @@ import { useEffect } from "react";
 
 import { Logo } from "@kyren/ui/components/logo";
 
+import { ClientThemeSync } from "~/src/components/providers/client-theme-sync";
 import { ServerErrorContent } from "~/src/components/system/server-error-content";
 
 type Props = {
@@ -19,6 +20,7 @@ export default function RootError({ error, reset }: Props) {
 
   return (
     <main className="flex min-h-screen flex-col bg-canvas px-6 py-6">
+      <ClientThemeSync />
       <Link href="/" aria-label="Kyren home" className="w-fit">
         <Logo />
       </Link>

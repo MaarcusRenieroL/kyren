@@ -3,7 +3,6 @@ import { cookies, headers } from "next/headers";
 import localFont from "next/font/local";
 import { JSX } from "react";
 
-import { Toaster } from "@kyren/ui/shadcn/sonner";
 import {
   densityCookie,
   parseDensity,
@@ -11,8 +10,6 @@ import {
 } from "@kyren/ui/lib/theme-colors";
 
 import "./globals.css";
-import { ThemeProvider } from "../components/providers/theme-provider";
-import { AppTRPCProvider } from "../components/providers/trpc-provider";
 
 // Geist for the interface, Bricolage Grotesque for display type, Geist Mono for
 // keys, timers and figures, Instrument Serif for the editorial accent.
@@ -98,18 +95,7 @@ export default async function RootLayout({
           }}
         />
       </head>
-      <body className="font-sans antialiased">
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="system"
-          enableSystem
-          disableTransitionOnChange
-          nonce={nonce}
-        >
-          <AppTRPCProvider>{children}</AppTRPCProvider>
-          <Toaster />
-        </ThemeProvider>
-      </body>
+      <body className="font-sans antialiased">{children}</body>
     </html>
   );
 }

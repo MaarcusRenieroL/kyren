@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import type { ReactNode } from "react";
 
 import { PlatformShell } from "~/src/components/platform/shell";
+import { AppProviders } from "~/src/components/providers/app-providers";
 import { requirePlatformAccess } from "~/src/lib/platform-guard";
 
 export const metadata: Metadata = {
@@ -30,8 +31,10 @@ export default async function PlatformLayout({
   }
 
   return (
-    <PlatformShell name={access.name} email={access.email}>
-      {children}
-    </PlatformShell>
+    <AppProviders>
+      <PlatformShell name={access.name} email={access.email}>
+        {children}
+      </PlatformShell>
+    </AppProviders>
   );
 }
