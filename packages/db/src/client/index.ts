@@ -17,6 +17,9 @@ const pool = new Pool({
     Number.isSafeInteger(configuredMax) && configuredMax > 0
       ? configuredMax
       : defaultMax,
+  // A saturated or cold database must fail fast rather than hold a page's
+  // response open indefinitely.
+  connectionTimeoutMillis: 5_000,
   ...(isVercel && { idleTimeoutMillis: 5_000 }),
 });
 
