@@ -9,7 +9,7 @@ import {
   type DashboardWorkItem,
   type Viewer,
 } from "./types";
-import { visibleScope } from "./visible-scope";
+import { visibleScope, type ProjectVisibilityRow } from "./visible-scope";
 
 /**
  * Today's "Jump back in": the latest docs, projects and tasks the caller can
@@ -20,12 +20,15 @@ export async function getRecentWork({
   enabledModules,
   snapshot,
   timeZone,
-}: Omit<Viewer, "userId">): Promise<{
+  projectRows,
+}: Omit<Viewer, "userId"> & {
+  projectRows?: ProjectVisibilityRow[];
+}): Promise<{
   recentWork: DashboardWorkItem[];
   links: DashboardLinks;
 }> {
   const { reachable, projectsVisible, tasksVisible, docsVisible } =
-    await visibleScope(organizationId, snapshot);
+    await visibleScope(organizationId, snapshot, projectRows);
 
   const [recentProjects, recentDocs, recentTasks] = await Promise.all([
     when(enabledModules.has("projects"), () =>

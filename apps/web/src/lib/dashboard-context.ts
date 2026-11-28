@@ -70,26 +70,31 @@ export async function getAuthorizedDashboardContext(permission: string) {
 export const getDashboardContext = cache(async () => {
   const requestHeaders = await headers();
 
+  // Both calls read the same headers and neither needs the other's result.
+  // Start them together; a signed-out request redirects after the session
+  // lookup, so swallow an organization lookup that fails on the way out.
+  const organizationsPromise = auth.api.listOrganizations({
+    headers: requestHeaders,
+  });
   const session = await auth.api.getSession({
     headers: requestHeaders,
   });
 
   if (!session?.user) {
+    void organizationsPromise.catch(() => []);
     redirect(paths.auth.signIn());
+  }
+
+  if (!session.user.emailVerified) {
+    void organizationsPromise.catch(() => []);
+    redirect(paths.auth.verifyEmail(session.user.email));
   }
 
   const sessionWithUser = {
     ...session,
     user: session.user,
   };
-
-  if (!sessionWithUser.user.emailVerified) {
-    redirect(paths.auth.verifyEmail(sessionWithUser.user.email));
-  }
-
-  const organizations = await auth.api.listOrganizations({
-    headers: requestHeaders,
-  });
+  const organizations = await organizationsPromise;
 
   // The organization is the one active in the session. A session without one
   // (for example one created before the user joined an organization) falls
@@ -113,50 +118,51 @@ export const getDashboardContext = cache(async () => {
     organization = fallbackOrganization;
   }
 
+  // Everything below depends only on the organization and the viewer, not on
+  // each other. Run them as one batch so a remote database's round trips stop
+  // adding up on every page render.
+  const needsTwoFactor = !sessionWithUser.user.twoFactorEnabled;
+  const [policyRows, accessBlocked, snapshot, enabledModules, projectList] =
+    await Promise.all([
+      needsTwoFactor
+        ? db
+            .select({ required: organizationsTable.requireTwoFactor })
+            .from(organizationsTable)
+            .where(eq(organizationsTable.id, organization.id))
+            .limit(1)
+        : Promise.resolve([] as { required: boolean }[]),
+      workspaceAccessBlock(db, organization.id, requestHeaders),
+      loadPermissionSnapshot(db, organization.id, sessionWithUser.user.id),
+      loadEnabledModules(db, organization.id),
+      db
+        .select({
+          id: projects.id,
+          teamId: projects.teamId,
+          visibility: projects.visibility,
+        })
+        .from(projects)
+        .where(
+          and(
+            eq(projects.organizationId, organization.id),
+            isNull(projects.deletedAt),
+          ),
+        ),
+    ]);
+
   // An organization can insist on two-factor; until the person has it, the
   // only page they can use is the one that turns it on.
-  if (!sessionWithUser.user.twoFactorEnabled) {
-    const [policy] = await db
-      .select({ required: organizationsTable.requireTwoFactor })
-      .from(organizationsTable)
-      .where(eq(organizationsTable.id, organization.id))
-      .limit(1);
-
-    if (policy?.required) {
-      redirect(paths.auth.twoFactorRequired());
-    }
+  if (needsTwoFactor && policyRows[0]?.required) {
+    redirect(paths.auth.twoFactorRequired());
   }
 
   // Suspension and the organization's network allow-list apply to pages too,
   // not only to API calls, since pages read the database directly.
-  if (await workspaceAccessBlock(db, organization.id, requestHeaders)) {
+  if (accessBlocked) {
     redirect(paths.auth.accessBlocked());
   }
 
-  const snapshot = await loadPermissionSnapshot(
-    db,
-    organization.id,
-    sessionWithUser.user.id,
-  );
   const role = snapshot.baseRole ?? defaultRole;
-
-  const enabledModules = [
-    ...(await loadEnabledModules(db, organization.id)),
-  ] as ModuleId[];
-
-  const projectList = await db
-    .select({
-      id: projects.id,
-      teamId: projects.teamId,
-      visibility: projects.visibility,
-    })
-    .from(projects)
-    .where(
-      and(
-        eq(projects.organizationId, organization.id),
-        isNull(projects.deletedAt),
-      ),
-    );
+  const enabledModuleIds = [...enabledModules] as ModuleId[];
   // Which permissions the user holds anywhere, for navigation and route guards.
   const reachable = reachablePermissions(
     snapshot,
@@ -167,7 +173,9 @@ export const getDashboardContext = cache(async () => {
   return {
     organization,
     organizations,
-    enabledModules,
+    enabledModules: enabledModuleIds,
+    // Already loaded for permission reachability; dashboard queries reuse it.
+    projectList,
     roles: {
       user: sessionWithUser.user.role ?? defaultRole,
       organization: role,

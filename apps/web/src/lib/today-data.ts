@@ -27,6 +27,7 @@ import { can, type PermissionSnapshot } from "@kyren/permissions";
 
 import { paths } from "~/src/lib/paths";
 import { zonedDate, zonedMidnight } from "~/src/lib/time-zone";
+import type { ProjectVisibilityRow } from "./dashboard/visible-scope";
 import {
   weekdayLetter,
   verbFor,
@@ -42,6 +43,7 @@ export async function getTodayData({
   enabledModules,
   snapshot,
   timeZone,
+  projectRows: givenProjectRows,
 }: {
   organizationId: string;
   userId: string;
@@ -49,6 +51,8 @@ export async function getTodayData({
   snapshot: PermissionSnapshot;
   /** The viewer's IANA zone, already checked with `safeTimeZone`. */
   timeZone: string;
+  /** The workspace project list, when the caller already loaded it. */
+  projectRows?: ProjectVisibilityRow[];
 }): Promise<TodayData> {
   const empty: TodayData = {
     memberId: null,
@@ -63,19 +67,21 @@ export async function getTodayData({
 
   if (!enabledModules.has("tasks")) return empty;
 
-  const projectRows = await db
-    .select({
-      id: projects.id,
-      teamId: projects.teamId,
-      visibility: projects.visibility,
-    })
-    .from(projects)
-    .where(
-      and(
-        eq(projects.organizationId, organizationId),
-        isNull(projects.deletedAt),
-      ),
-    );
+  const projectRows =
+    givenProjectRows ??
+    (await db
+      .select({
+        id: projects.id,
+        teamId: projects.teamId,
+        visibility: projects.visibility,
+      })
+      .from(projects)
+      .where(
+        and(
+          eq(projects.organizationId, organizationId),
+          isNull(projects.deletedAt),
+        ),
+      ));
   const taskProjectIds = projectRows
     .filter((project) => can(snapshot, "tasks.view", { project }))
     .map((project) => project.id);

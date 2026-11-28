@@ -4,29 +4,26 @@ import {
   reachablePermissions,
   type PermissionSnapshot,
 } from "@kyren/permissions";
-import {
-  and,
-  eq,
-  inArray,
-  isNull,
-  or,
-  sql,
-} from "@kyren/db/drizzle";
-import {
-  docs,
-  projects,
-  tasks,
-} from "@kyren/db/schema";
+import { and, eq, inArray, isNull, or, sql } from "@kyren/db/drizzle";
+import { docs, projects, tasks } from "@kyren/db/schema";
+
+export type ProjectVisibilityRow = Pick<
+  typeof projects.$inferSelect,
+  "id" | "teamId" | "visibility"
+>;
 
 /**
  * What the caller may see: projects hidden from them, and the tasks and docs
  * inside those projects, stay out of every query that uses these conditions.
+ * Callers that already loaded the project list pass it in so this does not
+ * query the same rows again on every page.
  */
 export async function visibleScope(
   organizationId: string,
   snapshot: PermissionSnapshot,
+  projectRows?: ProjectVisibilityRow[],
 ) {
-  const projectRows = await db
+  projectRows ??= await db
     .select({
       id: projects.id,
       teamId: projects.teamId,
