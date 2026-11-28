@@ -5,7 +5,6 @@ import { Input } from "@kyren/ui/shadcn/input";
 import type { ReactNode } from "react";
 import { Control, Controller } from "react-hook-form";
 import type { CreateTaskFormValues } from "@kyren/api/types/zod-schema";
-import { RichTextEditor } from "@kyren/ui/components/rich-text-editor";
 import {
   Select,
   SelectContent,
@@ -13,6 +12,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@kyren/ui/shadcn/select";
+
+import { RichTextEditor } from "~/src/components/rich-text/lazy-rich-text-editor";
 
 import { TaskMetaFields } from "./task-meta-fields";
 import {

@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import { CircleDotIcon, HistoryIcon, MessageSquareIcon } from "lucide-react";
-import { RichTextPreview } from "@kyren/ui/components/rich-text-editor";
+import { RichTextPreview } from "@kyren/ui/components/rich-text/preview";
 import { AvatarInitials } from "../avatar-initials";
 import type { MemberOption, TaskActivityEvent, TaskComment } from "../types";
 import { formatActivityDate, getActivityLabel } from "./activity-helpers";

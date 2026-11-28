@@ -7,12 +7,10 @@ import { formatGitCheckoutCommand } from "~/src/features/tasks/lib/format";
 import { toastError, toastSuccess } from "@kyren/ui/index";
 import { StatusGlyph } from "@kyren/ui/components/status-glyph";
 import { Button } from "@kyren/ui/shadcn/button";
-import {
-  RichTextEditor,
-  RichTextPreview,
-} from "@kyren/ui/components/rich-text-editor";
+import { RichTextPreview } from "@kyren/ui/components/rich-text/preview";
 
 import { StarButton } from "~/src/components/favorites/star-button";
+import { RichTextEditor } from "~/src/components/rich-text/lazy-rich-text-editor";
 import { DiscussionPanel } from "~/src/components/chat/discussion-panel";
 import { LinkedWork } from "~/src/components/links/linked-work";
 import { LinkedThread } from "~/src/components/thread/linked-thread";

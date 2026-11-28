@@ -2,8 +2,9 @@
 
 import { useState, type KeyboardEvent } from "react";
 import { Kbd } from "@kyren/ui/components/kbd";
-import { RichTextEditor } from "@kyren/ui/components/rich-text-editor";
 import { Button } from "@kyren/ui/shadcn/button";
+
+import { RichTextEditor } from "~/src/components/rich-text/lazy-rich-text-editor";
 
 export function CommentComposer({
   disabled,

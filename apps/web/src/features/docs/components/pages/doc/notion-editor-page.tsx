@@ -13,6 +13,7 @@ import { formatDocDate, getDocProject } from "../../../lib/docs";
 import { MentionPopover } from "./mention-popover";
 import { VersionHistoryPanel } from "./version-history-panel";
 import { docsEditorClassName, markdownToHtml } from "./editor/doc-markdown";
+import { DocPageSkeleton } from "./doc-page-skeleton";
 import { DocToolbar, slashCommands } from "./editor/doc-toolbar";
 import { DocHeader } from "./editor/doc-header";
 import { DocSidebar } from "./editor/doc-sidebar";
@@ -32,17 +33,7 @@ export function NotionEditorPage({ slug }: { slug: string }) {
   const d = useDocEditor({ slug });
 
   if (d.isLoading) {
-    return (
-      <div className="flex min-h-[calc(100vh-3.5rem)] border-t">
-        <main className="min-w-0 flex-1 bg-background">
-          <div className="mx-auto max-w-4xl px-6 py-8">
-            <div className="mb-8 h-6 w-72 animate-pulse rounded-md bg-muted" />
-            <div className="h-12 w-full max-w-2xl animate-pulse rounded-md bg-muted" />
-            <div className="mt-10 h-80 animate-pulse rounded-md bg-muted" />
-          </div>
-        </main>
-      </div>
-    );
+    return <DocPageSkeleton />;
   }
 
   if (!d.doc) {
